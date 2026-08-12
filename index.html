@@ -38,7 +38,6 @@
     font-family: var(--mono); font-size: 15px; letter-spacing: 0.22em;
     text-transform: uppercase; color: var(--amber);
   }
-  #app-root .tagline { font-size: 12.5px; color: var(--chalk-dim); }
   #app-root .strombrytare {
     display: inline-flex; align-items: center; gap: 8px;
     cursor: pointer; user-select: none; margin-left: 4px;
@@ -261,6 +260,47 @@
   }
   #app-root .lektionstext .fallgrop strong { color: var(--coral); }
 
+  /* ---- startsidan ---- */
+  #app-root .lektionstext.start { max-width: 820px; }
+  #app-root .start .valkomst {
+    font-size: 22px; line-height: 1.35; color: var(--chalk);
+    margin: 2px 0 10px; font-weight: 600;
+  }
+  #app-root .start .ingress { font-size: 15px; color: var(--chalk-dim); margin-bottom: 22px; }
+  #app-root .start .delar {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+    gap: 10px; margin: 0 0 22px;
+  }
+  #app-root .start .del-kort {
+    border: 1px solid var(--line); border-left: 2px solid var(--amber);
+    border-radius: 0 8px 8px 0; padding: 11px 14px;
+    background: rgba(27, 50, 85, 0.35);
+  }
+  #app-root .start .del-kort h4 {
+    margin: 0 0 3px; font-size: 14px; color: var(--amber); font-weight: 600;
+  }
+  #app-root .start .del-kort .spann {
+    font-family: var(--mono); font-size: 10.5px; color: var(--chalk-dim);
+    letter-spacing: 0.1em; display: block; margin-bottom: 5px;
+  }
+  #app-root .start .del-kort p { margin: 0; font-size: 13px; line-height: 1.5; }
+  #app-root .start .snabbstart {
+    border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 20px; background: rgba(20, 38, 67, 0.5);
+  }
+  #app-root .start .snabbstart ol { margin: 8px 0 0; padding-left: 20px; }
+  #app-root .start .snabbstart li { margin-bottom: 5px; }
+  #app-root .start .tva {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px;
+  }
+  #app-root .start kbd {
+    font-family: var(--mono); font-size: 11.5px; background: var(--panel-2);
+    border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 5px; color: var(--chalk);
+  }
+  #app-root .startknapp { border-color: var(--line); }
+  #app-root .startknapp.vald { border-color: var(--amber); background: var(--panel-2); }
+
   @media (max-width: 780px) {
     #app-root { height: auto; overflow: visible; }
     #app-root .layout { grid-template-columns: 1fr; }
@@ -275,8 +315,7 @@
 </style>
 
 <header class="topbar">
-  <span class="wordmark">Kodlabbet</span>
-  <span class="tagline">Skriv Python, tryck Kör, se vad som händer.</span>
+  <span class="wordmark">Pythonlabbet</span>
   <label class="strombrytare" id="ai-toggle-etikett">
     <input type="checkbox" id="ai-toggle">
     <span class="spar-toggle"><span class="knopp"></span></span>
@@ -287,7 +326,10 @@
 
 <div class="layout">
   <aside class="rail">
-    <p class="rubrik">Kapitel</p>
+    <button class="lektion startknapp vald" id="start-knapp">
+      <span class="nr">•</span><span>Start</span>
+    </button>
+    <p class="rubrik" style="margin-top:14px">Kapitel</p>
     <div id="lektionslista"></div>
   </aside>
 
@@ -324,15 +366,77 @@
         <button class="knapp" id="rensa-knapp" style="margin-left:auto; font-size:12px; padding:4px 10px;">Rensa utskrift</button>
       </div>
       <div class="flikinnehall" id="panel-lektion">
-        <div class="lektionstext" id="lektionstext">
-          <h3>Välkommen till Kodlabbet</h3>
-          <p>Det här är en riktig Python-tolk som kör inuti webbläsaren. Ingen installation, inget konto — koden körs på din egen dator.</p>
-          <p>Välj ett kapitel till vänster. Koden hamnar i rutan ovanför och förklaringen här nere. Tryck <code>Kör</code> eller <code>Ctrl + Enter</code> för att köra.</p>
-          <h3>Spara arbetet</h3>
-          <p><code>Spara</code> skriver koden till en riktig <code>.py</code>-fil på din dator, och <code>Öppna fil</code> hämtar tillbaka den. Du kan också dra in en <code>.py</code>-fil direkt i kodrutan.</p>
-          <p>I Chrome och Edge sparas filen tillbaka till samma ställe varje gång. I Firefox och Safari hamnar den i mappen Hämtade filer i stället — samma resultat, ett extra steg.</p>
-          <h3>Om något fastnar</h3>
-          <p>En loop som snurrar för evigt låser sidan, för Python och webbsidan delar på samma motor. Ladda om sidan om det händer — och spara innan du kör något med <code>while</code> i.</p>
+        <div class="lektionstext start" id="lektionstext">
+          <p class="valkomst">Välkommen till Pythonlabbet</p>
+          <p class="ingress">En riktig Python-tolk som kör inuti webbläsaren. Ingen installation, inget konto — koden körs på din egen dator. 28 kapitel tar dig från din första utskrift till hur en språkmodell fungerar inuti.</p>
+
+          <div class="snabbstart">
+            <strong>Kom igång på en minut</strong>
+            <ol>
+              <li>Välj <strong>Kapitel 1</strong> i listan till vänster.</li>
+              <li>Läs förklaringen här nere och koden i rutan ovanför.</li>
+              <li>Tryck <kbd>Kör</kbd> eller <kbd>Ctrl</kbd> + <kbd>Enter</kbd>.</li>
+              <li>Ändra något i koden och kör igen. Det är så man lär sig.</li>
+            </ol>
+          </div>
+
+          <h3>Vad du kommer att bygga</h3>
+          <div class="delar">
+            <div class="del-kort">
+              <h4>Grunderna</h4>
+              <span class="spann">Kapitel 1–5</span>
+              <p>Utskrift, variabler och datatyper, frågor till användaren, villkor och loopar. Allt annat vilar på det här.</p>
+            </div>
+            <div class="del-kort">
+              <h4>Samlingar</h4>
+              <span class="spann">Kapitel 6–9</span>
+              <p>Listor, text, dictionaries — och till sist filer, CSV och en riktig databas med sqlite3.</p>
+            </div>
+            <div class="del-kort">
+              <h4>Bygga struktur</h4>
+              <span class="spann">Kapitel 10–13</span>
+              <p>Egna funktioner, felhantering som inte kraschar, färdiga moduler, och klasser som håller ihop data och beteende.</p>
+            </div>
+            <div class="del-kort">
+              <h4>Algoritmer</h4>
+              <span class="spann">Kapitel 14–17</span>
+              <p>Sortering, binärsökning och rekursion. Du mäter också varför ett smart recept slår ett rakt igenom-recept tusenfalt.</p>
+            </div>
+            <div class="del-kort">
+              <h4>Projekt</h4>
+              <span class="spann">Kapitel 18–20</span>
+              <p>Ett gissningsspel, och sedan 3D-grafik: snurrande kuber, fordon, djur och en hel liten värld byggd av kod.</p>
+            </div>
+            <div class="del-kort">
+              <h4>Maskininlärning</h4>
+              <span class="spann">Kapitel 21–24</span>
+              <p>Träna en modell som lär sig regler själv, göra text till siffror, bygga egna embeddings och hämta öppna data från nätet.</p>
+            </div>
+            <div class="del-kort">
+              <h4>Slutprojekt</h4>
+              <span class="spann">Kapitel 25–28</span>
+              <p>Sveriges väder i 3D med riktig SMHI-data, modeller du kan se, en egen språkmodell — och mekanismen bakom transformers.</p>
+            </div>
+          </div>
+
+          <div class="tva">
+            <div>
+              <h3>Spara ditt arbete</h3>
+              <p><kbd>Spara</kbd> skriver koden till en riktig <code>.py</code>-fil på datorn och <kbd>Öppna fil</kbd> hämtar tillbaka den. Du kan också dra in en fil direkt i kodrutan.</p>
+              <p>I Chrome och Edge sparas den tillbaka till samma ställe varje gång. I Firefox och Safari hamnar den i Hämtade filer — samma resultat, ett extra steg.</p>
+              <h3>AI-hjälp</h3>
+              <p>Strömbrytaren uppe till höger kopplar in en språkmodell som förklarar kod och felmeddelanden. Den ger ledtrådar, inte färdiga svar. Ollama och LM Studio fungerar lokalt utan nyckel.</p>
+            </div>
+            <div>
+              <h3>Bra att veta</h3>
+              <p>Filerna du skapar med <code>open()</code> ligger inuti webbläsaren och försvinner när du laddar om sidan. Vill du ut på riktigt använder du <code>data.ladda_ner()</code>.</p>
+              <p>En loop som snurrar för evigt låser sidan, eftersom Python och webbsidan delar på samma motor. Ladda om om det händer — och spara innan du kör något med <code>while</code> i.</p>
+              <p>Vissa kapitel hämtar paket eller data från nätet första gången. Då syns nedladdningen i Utskrift.</p>
+            </div>
+          </div>
+
+          <h3>När du vuxit ur labbet</h3>
+          <p>Nästan allt här fungerar oförändrat i ett vanligt Python på datorn. Ladda ner från python.org och skriv i Thonny eller VS Code — då får du riktiga filer, en stoppknapp som fungerar, och alla bibliotek som finns. Det är tio minuters installation, och kapitel 12 berättar vad som inte följer med.</p>
         </div>
       </div>
       <div class="flikinnehall" id="panel-utskrift" hidden>
@@ -393,6 +497,7 @@
   var filnamnEl = document.getElementById("filnamn");
   var sparEl = document.getElementById("spar");
   var lektionstext = document.getElementById("lektionstext");
+  var startKnapp = document.getElementById("start-knapp");
   var panelLektion = document.getElementById("panel-lektion");
   var panelUtskrift = document.getElementById("panel-utskrift");
   var flikLektion = document.getElementById("flik-lektion");
@@ -511,7 +616,7 @@
     forklaring: `
       <h3>input pausar programmet</h3>
       <p><code>input()</code> stannar programmet, visar texten du gav den, och väntar tills användaren svarat. Svaret blir funktionens <em>returvärde</em> — det som kommer tillbaka och som du fångar i en variabel.</p>
-      <p>I Kodlabbet dyker frågan upp som en liten ruta. I ett riktigt Python på datorn skrivs den i terminalen i stället, men koden är identisk.</p>
+      <p>I Pythonlabbet dyker frågan upp som en liten ruta. I ett riktigt Python på datorn skrivs den i terminalen i stället, men koden är identisk.</p>
       <h3>Typomvandling</h3>
       <p>Eftersom svaret alltid är en <code>str</code> måste du göra om det innan du räknar:</p>
       <ul>
@@ -692,7 +797,7 @@
       <div class="uppgift"><strong>Uppgift:</strong> skriv ett program som frågar efter en mening och rapporterar antal tecken, antal ord och meningen baklänges. Baklänges får du med utsnittet <code>text[::-1]</code> — steget −1 betyder "gå åt andra hållet".</div>`
   },
   {
-    del: "Samlingar", titel: "Uppslagsbok", fil: "08_dictionary.py",
+    del: "Samlingar", titel: "Dictionary", fil: "08_dictionary.py",
     kod: [
       "# En dictionary parar ihop nyckel och värde.",
       "elev = {",
@@ -1020,7 +1125,7 @@
         <li><code>time</code> — <code>time()</code> ger sekunder sedan 1970, praktiskt för att mäta hur lång tid din kod tar.</li>
       </ul>
       <h3>Vad som fungerar här i labbet</h3>
-      <p>Kodlabbet kör Python inuti webbläsaren. Standardmodulerna finns, men allt som rör omvärlden gör det inte: du kan inte öppna filer på hårddisken från Python-koden, inte surfa på nätet, och inte använda grafikbibliotek som <code>tkinter</code> eller <code>pygame</code>. <code>time.sleep()</code> fungerar men fryser sidan under tiden — håll det kort.</p>
+      <p>Pythonlabbet kör Python inuti webbläsaren. Standardmodulerna finns, men allt som rör omvärlden gör det inte: du kan inte öppna filer på hårddisken från Python-koden, inte surfa på nätet, och inte använda grafikbibliotek som <code>tkinter</code> eller <code>pygame</code>. <code>time.sleep()</code> fungerar men fryser sidan under tiden — håll det kort.</p>
       <p>Vill du dit senare behöver du Python installerat på datorn. Då öppnas hela världen: spel, grafik, filer, internet.</p>
       <div class="uppgift"><strong>Uppgift:</strong> bygg sten–sax–påse mot datorn. Använd <code>random.choice</code>, håll poäng i variabler, och spela bäst av fem.</div>`
   },
@@ -1228,7 +1333,7 @@
       <div class="uppgift"><strong>Uppgift:</strong> kör mätningen med gränsen 5000, 20000 och 100000. Skriv upp kvoten varje gång. Vad händer med den när gränsen växer?</div>`
   },
   {
-    del: "Algoritmer", titel: "Listbyggare", fil: "17_listbyggare.py",
+    del: "Algoritmer", titel: "Listuttryck", fil: "17_listuttryck.py",
     kod: [
       "tal = [4, 17, 2, 9, 30, 11]",
       "",
@@ -1264,10 +1369,10 @@
       ""
     ].join("\n"),
     forklaring: `
-      <h3>Listbyggare</h3>
+      <h3>Listuttryck</h3>
       <p><code>[t * 2 for t in tal]</code> gör exakt samma sak som fyra rader med <code>append</code>, men på en. Läs den utifrån och in: hakparenteserna säger "bygg en lista", <code>for t in tal</code> säger vad du går igenom, och <code>t * 2</code> säger vad som ska hamna i den nya listan.</p>
       <p>Med <code>if</code> på slutet filtrerar du: bara element där villkoret är sant kommer med. Du kan kombinera båda.</p>
-      <p>Använd dem när de gör koden <em>tydligare</em>. En listbyggare med två loopar och tre villkor är svårare att läsa än den vanliga varianten — då är den vanliga bättre.</p>
+      <p>Använd dem när de gör koden <em>tydligare</em>. Ett listuttryck med två loopar och tre villkor är svårare att läsa än den vanliga varianten — då är den vanliga bättre.</p>
       <h3>enumerate</h3>
       <p>När du behöver både position och värde. Alternativet <code>for i in range(len(lista))</code> fungerar men är klumpigare, och kallas ofta ett tecken på att man inte kan enumerate än.</p>
       <h3>zip</h3>
@@ -1375,7 +1480,7 @@
     ].join("\n"),
     forklaring: `
       <h3>Python som styr JavaScript</h3>
-      <p>Kodlabbet kör Python inuti en webbsida, och på samma sida finns <strong>three.js</strong> — ett JavaScript-bibliotek för 3D-grafik. Modulen <code>scen</code> är en bro mellan de två: du skriver Python, och 3D-motorn ritar.</p>
+      <p>Pythonlabbet kör Python inuti en webbsida, och på samma sida finns <strong>three.js</strong> — ett JavaScript-bibliotek för 3D-grafik. Modulen <code>scen</code> är en bro mellan de två: du skriver Python, och 3D-motorn ritar.</p>
       <p>Det här är inte en leksaksvariant. Det är samma three.js som används på riktiga webbplatser, och det är samma Python som körde primtalssållet. Två språk som pratar med varandra.</p>
       <h3>Koordinatsystemet</h3>
       <p>Tre axlar: <code>x</code> går åt höger, <code>y</code> uppåt, <code>z</code> mot dig. Punkten <code>(0, 0, 0)</code> är mitten. Kameran står i <code>(0, 3, 9)</code>, alltså lite upphöjd och en bit bakåt, och tittar mot mitten.</p>
@@ -1590,7 +1695,7 @@
       <p>Det är därför den heter <em>boosting</em>: många svaga gissare som lyfter varandra. <code>learning_rate</code> styr hur stor korrigering varje träd får göra — lågt värde ger försiktigare men stabilare inlärning, och kräver fler träd.</p>
       <h3>Om GPU</h3>
       <p><code>tree_method="hist"</code> räknar på processorn. På en riktig dator med ett Nvidia-kort byter man till <code>device="cuda"</code> och får tiofalt snabbare träning, för ett grafikkort kan göra tusentals uträkningar samtidigt.</p>
-      <p>Det går <strong>inte</strong> här. Kodlabbet kör Python kompilerad till WebAssembly, och den har av säkerhetsskäl ingen väg fram till grafikkortets beräkningsdel. Webbläsaren släpper igenom grafik (det är så three.js ritar) men inte generella beräkningar. På 600 djur märks det inte — på 60 miljoner rader gör det hela skillnaden.</p>
+      <p>Det går <strong>inte</strong> här. Pythonlabbet kör Python kompilerad till WebAssembly, och den har av säkerhetsskäl ingen väg fram till grafikkortets beräkningsdel. Webbläsaren släpper igenom grafik (det är så three.js ritar) men inte generella beräkningar. På 600 djur märks det inte — på 60 miljoner rader gör det hela skillnaden.</p>
       <div class="fallgrop"><strong>Att veta:</strong> datan här är påhittad och därför lite för lätt. Verkliga data är rörigare, har luckor och innehåller fällor. Att en modell får 99 % på övningsdata betyder mycket lite.</div>
       <div class="uppgift"><strong>Uppgift:</strong> ändra <code>hund_vikt</code> till <code>slump.normal(8, 7, ANTAL_HUNDAR)</code> så att hundarna väger nästan lika mycket som katterna. Titta först på histogrammet: färgerna överlappar nu nästan helt. Kör sedan träningen — hur mycket faller träffsäkerheten, och vilken egenskap tar över som viktigast? Testa också att ta bort <code>hund_ljud</code> och <code>katt_ljud</code> helt.</div>`
   },
@@ -1620,11 +1725,11 @@
       "print()",
       "",
       "# 3. Stamning — för ihop böjningsformer till samma stam",
-      "stammare = SnowballStemmer(\"swedish\")",
-      "stammar = [stammare.stem(o) for o in rensade]",
-      "print(\"katten ->\", stammare.stem(\"katten\"))",
-      "print(\"katter ->\", stammare.stem(\"katter\"))",
-      "print(\"springer ->\", stammare.stem(\"springer\"))",
+      "stemmer = SnowballStemmer(\"swedish\")",
+      "stammar = [stemmer.stem(o) for o in rensade]",
+      "print(\"katten ->\", stemmer.stem(\"katten\"))",
+      "print(\"katter ->\", stemmer.stem(\"katter\"))",
+      "print(\"springer ->\", stemmer.stem(\"springer\"))",
       "print()",
       "",
       "# 4. Frekvens — vad handlar texten om?",
@@ -1648,7 +1753,7 @@
       <p>Ord som "och", "på", "i" finns i varenda text och säger därför nästan ingenting om vad just den här texten handlar om. Att rensa bort dem gör resten tydligare.</p>
       <p>NLTK har färdiga stoppordslistor för många språk, men de måste laddas ner med <code>nltk.download("stopwords")</code>, vilket kräver internetåtkomst som Python i webbläsaren inte har. Därför skriver vi listan själva här. På en riktig dator hade nedladdningen fungerat.</p>
       <h3>Stamning</h3>
-      <p>För en dator är "katt", "katten" och "katter" tre helt olika teckensträngar. En <strong>stammare</strong> kapar ändelserna så att alla tre blir samma stam, och plötsligt kan programmet se att texten handlar mycket om katter.</p>
+      <p>För en dator är "katt", "katten" och "katter" tre helt olika teckensträngar. En <strong>stemmer</strong> kapar ändelserna så att alla tre blir samma stam, och plötsligt kan programmet se att texten handlar mycket om katter.</p>
       <p><code>SnowballStemmer("swedish")</code> är regelbaserad — den följer en lista med svenska ändelseregler och behöver inga nedladdade data. Den är trubbig och blir ibland fel, men den är snabb och förvånansvärt användbar.</p>
       <h3>Frekvens och bigram</h3>
       <p><code>FreqDist</code> är NLTK:s räknare — i praktiken samma dictionary-räknare som du byggde själv i kapitel 8, fast färdig.</p>
@@ -1750,9 +1855,9 @@
     forklaring: `
       <h3>Problemet</h3>
       <p>En modell kan bara räkna. Ordet "katt" måste därför bli siffror innan XGBoost eller något annat kan arbeta med det. Det här kapitlet visar tre sätt, från det trubbigaste till det som moderna språkmodeller bygger på.</p>
-      <h3>1. Påse med ord</h3>
+      <h3>1. Bag of words</h3>
       <p><code>CountVectorizer</code> gör en lista över alla ord som förekommer — <em>ordförrådet</em> — och beskriver sedan varje mening som en rad siffror: hur många gånger vart och ett av orden finns i den.</p>
-      <p>Har ordförrådet 20 ord blir varje mening 20 siffror, mestadels nollor. Metoden kallas <em>bag of words</em>, påse med ord, för ordningen försvinner helt: "hunden jagar katten" och "katten jagar hunden" blir exakt samma siffror. Trubbigt — men förvånansvärt användbart för att avgöra vad en text <em>handlar om</em>.</p>
+      <p>Har ordförrådet 20 ord blir varje mening 20 siffror, mestadels nollor. Namnet betyder "påse med ord", för ordningen försvinner helt: "hunden jagar katten" och "katten jagar hunden" blir exakt samma siffror. Trubbigt — men förvånansvärt användbart för att avgöra vad en text <em>handlar om</em>.</p>
       <h3>2. TF-IDF</h3>
       <p>Ett problem med ren räkning: ord som finns i nästan varje mening får höga tal utan att säga något. TF-IDF viktar ner sådana ord och lyfter fram de som är ovanliga i samlingen men vanliga i just den här meningen.</p>
       <p>Namnet betyder <em>term frequency – inverse document frequency</em>: hur ofta ordet finns här, delat med hur många texter det finns i överhuvudtaget. Det är standardmetoden bakom sökmotorer i decennier.</p>
@@ -1855,7 +1960,7 @@
     forklaring: `
       <h3>Riktig data i stället för påhittad</h3>
       <p>I kapitel 21 hittade vi på hundarna. Här hämtas mätvärden från SMHI:s öppna API, insamlade från flera hundra riktiga väderstationer den senaste timmen. Kör programmet igen om en timme och du får nya siffror.</p>
-      <p>Modulen <code>data</code> finns bara i Kodlabbet. Den har tre funktioner: <code>hamta_json(url)</code>, <code>hamta_text(url)</code> och <code>hamta_csv(url)</code>. På en riktig dator använder man biblioteket <code>requests</code> i stället, men principen är densamma.</p>
+      <p>Modulen <code>data</code> finns bara i Pythonlabbet. Den har tre funktioner: <code>hamta_json(url)</code>, <code>hamta_text(url)</code> och <code>hamta_csv(url)</code>. På en riktig dator använder man biblioteket <code>requests</code> i stället, men principen är densamma.</p>
       <h3>JSON</h3>
       <p>API:er svarar nästan alltid med <strong>JSON</strong> — ett textformat som ser ut precis som Pythons dictionaries och listor, och som blir just det när det packas upp. SMHI:s svar är en dictionary med nyckeln <code>"station"</code>, som innehåller en lista med en dictionary per mätstation, som i sin tur har en lista med mätvärden. Att gräva sig igenom sådana lager är en stor del av arbetet med riktig data.</p>
       <h3>Verklig data är trasig</h3>
@@ -1988,7 +2093,7 @@
     ].join("\n"),
     forklaring: `
       <h3>Allt du kan, i ett program</h3>
-      <p>Det här kapitlet använder nästan varje teknik från kursen: funktioner, dictionaries, felhantering, listbyggare, matematik och 3D. Skillnaden mot tidigare är att datan är verklig och att du inte vet i förväg hur den ser ut.</p>
+      <p>Det här kapitlet använder nästan varje teknik från kursen: funktioner, dictionaries, felhantering, listuttryck, matematik och 3D. Skillnaden mot tidigare är att datan är verklig och att du inte vet i förväg hur den ser ut.</p>
       <h3>Från jordklot till scen</h3>
       <p>SMHI ger latitud och longitud i grader. Scenen har koordinater runt origo. <code>till_scen</code> gör om mellan systemen: dra bort mitten av Sverige och multiplicera med en skala.</p>
       <p>Minustecknet på <code>z</code> är inte godtyckligt. I three.js pekar positiv z <em>mot</em> betraktaren, så utan minus hamnar norra Sverige längst fram och kartan blir spegelvänd. Sådana teckenfel är bland det vanligaste när man kopplar ihop data med grafik — och de syns direkt, vilket är tur.</p>
@@ -2377,7 +2482,7 @@
       "print()",
       "",
       "# ===== 6. Hur mycket är avskrivet? =====",
-      "# En trigram-modell kan ALDRIG hitta på en ny ordtripplett — den väljer",
+      "# En trigram-modell kan ALDRIG hitta på en ny följd av tre ord — den väljer",
       "# ju alltid nästa ord bland dem som följt just det paret i texten.",
       "# Vi mäter därför längre sträckor: fem ord i rad.",
       "FONSTER = 5",
@@ -2417,7 +2522,7 @@
       <p>Kapitel 21 tittade ett ord bakåt. Här är nyckeln ett <strong>par</strong> av ord, alltså två ords sammanhang. Meningarna blir omedelbart mer grammatiska — modellen vet skillnad på vad som kan följa efter "risk för" och efter "övergår i".</p>
       <p>Priset syns i steg 6: ju mer sammanhang modellen har, desto mer liknar resultatet träningstexten. Med tillräckligt långt minne skriver den bara av. Det är avvägningen som all språkmodellering brottas med.</p>
       <h3>Mät hur mycket som är nytt</h3>
-      <p>Sista steget jämför modellens meningar mot träningstexten. En detalj gör mätningen klurig: en trigram-modell kan <em>aldrig</em> hitta på en ny ordtripplett, eftersom den alltid väljer nästa ord bland dem som faktiskt följt just det ordparet. Mäter man tripletter blir svaret garanterat noll procent, oavsett hur bra modellen är.</p>
+      <p>Sista steget jämför modellens meningar mot träningstexten. En detalj gör mätningen klurig: en trigram-modell kan <em>aldrig</em> hitta på en ny följd av tre ord, eftersom den alltid väljer nästa ord bland dem som faktiskt följt just det ordparet. Mäter man tripletter blir svaret garanterat noll procent, oavsett hur bra modellen är.</p>
       <p>Därför mäter vi längre sträckor, fem ord i rad. Där kan modellen kombinera ihop bitar från olika meningar till något som inte stod någonstans. Ändra <code>FONSTER</code> till 4, 6 och 8 och se hur siffran faller — ju längre sträcka du kräver, desto mer avskrivet ser resultatet ut.</p>
       <p>Samma fråga ställs om de riktiga stora modellerna, och det är där diskussionen om upphovsrätt och plagiat börjar. Nu kan du mäta det själv på trettio rader kod — och du har också sett hur mycket svaret beror på hur man väljer att mäta.</p>
       <h3>Temperatur</h3>
@@ -2426,7 +2531,7 @@
       <div class="uppgift"><strong>Uppgift:</strong> byt tillbaka till bigram genom att använda bara ett ord som nyckel, och jämför både språkkvaliteten och hur stor andel som blir nytt. Bygg sedan ut korpusen — hämta fler exempelvarningar eller klistra in en egen text — och se om modellen blir bättre av mer data.</div>`
   },
   {
-    del: "Slutprojekt", titel: "Uppmärksamhet", fil: "28_attention.py",
+    del: "Slutprojekt", titel: "Transformers", fil: "28_attention.py",
     kod: [
       "import data",
       "import numpy as np",
@@ -2505,26 +2610,26 @@
       "print(\"Varje ord är nu 16 tal, uträknade ur texten.\")",
       "print()",
       "",
-      "# ===== 3. Uppmärksamhet =====",
+      "# ===== 3. Attention: kärnan i en transformer =====",
       "# Varje ord frågar: vilka av de tidigare orden är relevanta för mig?",
       "# Svaret är likheten mellan ordens vektorer.",
-      "def mjukmax(x):",
+      "def softmax(x):",
       "    e = np.exp(x - x.max(axis=-1, keepdims=True))",
       "    return e / e.sum(axis=-1, keepdims=True)",
       "",
-      "def uppmarksamhet(orden, maskera=True):",
+      "def attention(orden, maskera=True):",
       "    X = np.array([E[index[o]] for o in orden])",
       "    poang = X @ X.T * 4                      # likhet mellan alla ordpar",
       "    np.fill_diagonal(poang, -1e9)             # ordet självt räknas inte",
       "    if maskera:                               # ord får bara titta bakåt",
       "        poang = np.where(np.triu(np.ones_like(poang), 0) > 0, -1e9, poang)",
       "    forbjudet = poang < -1e8",
-      "    vikter = mjukmax(poang)",
+      "    vikter = softmax(poang)",
       "    vikter[forbjudet] = np.nan                # markera det som är avstängt",
       "    return vikter",
       "",
       "mening = max(meningar, key=len)[:11]",
-      "vikter = uppmarksamhet(mening)",
+      "vikter = attention(mening)",
       "",
       "print(\"Mening:\", \" \".join(mening))",
       "print()",
@@ -2542,7 +2647,7 @@
       "    (rutor[0], True, \"Med mask\\nvarje ord ser bara bakåt\"),",
       "    (rutor[1], False, \"Utan mask\\nvarje ord ser hela meningen\"),",
       "]:",
-      "    m = uppmarksamhet(mening, maskera=mask)",
+      "    m = attention(mening, maskera=mask)",
       "    farger = plt.get_cmap(\"YlGnBu\").copy()",
       "    farger.set_bad(\"#d8dee9\")               # grått där inget får ses",
       "    bild = ruta.imshow(m, cmap=farger, vmin=0)",
@@ -2566,16 +2671,16 @@
     forklaring: `
       <h3>Vad kapitel 27 inte gjorde</h3>
       <p>Trigram-modellen var en uppslagstabell: räkna hur ofta varje ord följt på varje ordpar, slå upp, välj. Den minns exakt två ord bakåt och vet ingenting om att ord kan likna varandra.</p>
-      <p>Uppmärksamhet — <em>attention</em> — löser båda problemen på en gång, och är mekanismen som moderna språkmodeller bygger på. Samma text, helt annan idé.</p>
+      <p><em>Attention</em> — uppmärksamhet — löser båda problemen på en gång, och är mekanismen som moderna språkmodeller bygger på. Samma text, helt annan idé.</p>
       <h3>Grundtanken</h3>
       <p>Varje ord ställer en fråga: <strong>vilka av de tidigare orden är relevanta för mig?</strong> Sedan hämtar det information därifrån, mest från de mest relevanta.</p>
       <p>Det är hela principen. Ingen fast minneslängd, ingen bestämd ordning — ordet avgör själv vad det behöver titta på, och kan lika gärna nå tio ord bakåt som ett.</p>
       <h3>Hur relevansen räknas ut</h3>
       <p>Varje ord är redan 16 tal, uträknade ur SMHI-texten med samma samförekomstmetod som i kapitel 23. Ord som förekommer i samma sällskap får liknande vektorer.</p>
-      <p><code>X @ X.T</code> jämför alla ord med alla andra på en gång och ger en tabell av likheter. Multiplikationen med 4 gör skillnaderna tydligare innan nästa steg. <code>mjukmax</code> gör sedan om varje rad till andelar som summerar till 1 — så "hur lika är de" blir "hur stor del av min uppmärksamhet får var och en".</p>
+      <p><code>X @ X.T</code> jämför alla ord med alla andra på en gång och ger en tabell av likheter. Multiplikationen med 4 gör skillnaderna tydligare innan nästa steg. <code>softmax</code> gör sedan om varje rad till andelar som summerar till 1 — så "hur lika är de" blir "hur stor del av min uppmärksamhet får var och en".</p>
       <p>Två rader kod. Det är samma uträkning som sitter i en riktig transformer.</p>
       <h3>Masken</h3>
-      <p><code>np.triu</code> ger den övre triangeln av en matris. Genom att sätta den till ett stort negativt tal före <code>mjukmax</code> blir vikterna där noll — orden kan inte se framåt.</p>
+      <p><code>np.triu</code> ger den övre triangeln av en matris. Genom att sätta den till ett stort negativt tal före <code>softmax</code> blir vikterna där noll — orden kan inte se framåt.</p>
       <p>Det är nödvändigt för en modell som ska <em>skriva</em>: den får inte se svaret innan den gissar nästa ord. Ska den i stället <em>förstå</em> en färdig text är masken onödig, och båda varianterna finns i verkliga modeller. Bilden visar dem sida vid sida.</p>
       <h3>Vad som saknas jämfört med en riktig modell</h3>
       <p>Här jämförs orden direkt med varandra. I en tränad transformer går varje ord först genom tre inlärda matriser och blir tre olika saker: en fråga, en nyckel och ett innehåll. Då kan modellen leta efter något mer specifikt än ren likhet — till exempel "vilket verb hör till mig" i stället för "vilket ord liknar mig".</p>
@@ -2586,7 +2691,7 @@
   ];
 
   var STARTKOD = [
-    "# Välkommen till Kodlabbet!",
+    "# Välkommen till Pythonlabbet!",
     "# Tryck på Kör (eller Ctrl + Enter) och se vad som händer.",
     "",
     "print(\"Hej världen!\")",
@@ -3765,7 +3870,30 @@
   function markeraVald(index) {
     var alla = document.getElementById("lektionslista").querySelectorAll(".lektion");
     for (var i = 0; i < alla.length; i++) alla[i].classList.toggle("vald", i === index);
+    startKnapp.classList.toggle("vald", index === -2);
   }
+
+  var STARTSIDA = lektionstext.innerHTML;
+
+  function visaStartsida() {
+    if (andrad && kodruta.value.trim()) {
+      if (!confirm("Gå till Start? Koden i rutan är inte sparad.")) return;
+    }
+    kodruta.value = STARTKOD;
+    kodruta.scrollTop = 0;
+    kodruta.setSelectionRange(0, 0);
+    filnamn = "nytt_program.py";
+    filhandtag = null;
+    aktivLektion = null;
+    markeraSparad();
+    markeraVald(-2);
+    lektionstext.innerHTML = STARTSIDA;
+    lektionstext.className = "lektionstext start";
+    panelLektion.scrollTop = 0;
+    visaFlik("lektion");
+    rensaKonsol();
+  }
+  startKnapp.addEventListener("click", visaStartsida);
 
   function oppnaLektion(i) {
     var lek = LEKTIONER[i];
@@ -3781,6 +3909,7 @@
     markeraSparad();
     markeraVald(i);
     lektionstext.innerHTML = "<h3>Kapitel " + (i + 1) + " — " + lek.titel + "</h3>" + lek.forklaring;
+    lektionstext.className = "lektionstext";
     panelLektion.scrollTop = 0;
     visaFlik("lektion");
     rensaKonsol();
@@ -3857,14 +3986,14 @@
 
   var LABB_FAKTA = [
     "Eleven är ungefär 12 år och nybörjare på Python.",
-    "Koden körs i Kodlabbet: Python via Pyodide inuti en webbläsare.",
+    "Koden körs i Pythonlabbet: Python via Pyodide inuti en webbläsare.",
     "Detta gäller i miljön:",
     "- open() skriver till ett filsystem i minnet, inte till hårddisken. Filer försvinner vid omladdning.",
     "- Python kan inte läsa filer från datorn. Man använder data.oppna_fil() eller data.oppna_csv() som visar en filväljare.",
     "- data.ladda_ner(filnamn) laddar ner en fil till datorn.",
     "- Nätverk går bara via data.hamta_json/hamta_text/hamta_csv, och bara mot servrar som tillåter CORS.",
     "- Inget pip install. Paket som finns: numpy, pandas, matplotlib, scikit-learn, xgboost, nltk, sqlite3 och standardbiblioteket.",
-    "- nltk.download() fungerar INTE (inget nätverk från Python). Snowball-stammaren fungerar utan nedladdning.",
+    "- nltk.download() fungerar INTE (inget nätverk från Python). Snowball-stemmern fungerar utan nedladdning.",
     "- pygame, tkinter, requests och GPU/CUDA fungerar inte.",
     "- 3D görs med modulen scen (scen.kub, scen.stapel, scen.panel, scen.diagrampanel med flera).",
     "- input() fungerar och frågar i utskriftsrutan.",
@@ -4024,7 +4153,7 @@
       "Förklara på ett vänligt sätt: 1) vad feltypen betyder i allmänhet, " +
       "2) vad som konkret är fel i just den här koden, och 3) en ledtråd om hur " +
       "eleven själv kan rätta det. Skriv inte den rättade koden. " +
-      "Om felet beror på en begränsning i Kodlabbet — till exempel nedladdning av " +
+      "Om felet beror på en begränsning i Pythonlabbet — till exempel nedladdning av " +
       "paket, filåtkomst, nätverk eller något som inte finns i webbläsarens Python — " +
       "så säg det tydligt och berätta vad som fungerar i stället.";
     aiUppdrag("Vad betyder felet?", fraga);
