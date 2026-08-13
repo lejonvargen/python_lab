@@ -211,6 +211,39 @@
   #app-root .ai-status.fel { color: var(--coral); }
   #app-root .ai-not { font-size: 11.5px; color: var(--chalk-dim); margin: 10px 0 0; line-height: 1.5; }
   #app-root .ai-svar { max-width: 760px; font-size: 14px; line-height: 1.6; }
+
+  #app-root .ai-chatt { display: flex; flex-direction: column; min-height: 0; }
+  #app-root .ai-snabb { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  #app-root button.ai-chip {
+    font-family: var(--sans); font-size: 12px;
+    background: var(--panel-2); color: var(--chalk);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 12px; cursor: pointer;
+  }
+  #app-root button.ai-chip:hover { border-color: var(--amber); }
+  #app-root button.ai-chip.mild { color: var(--chalk-dim); margin-left: auto; }
+  #app-root button.ai-chip:disabled { opacity: .4; cursor: default; }
+
+  #app-root .ai-skriv { margin-top: 14px; max-width: 760px; }
+  #app-root .ai-kontext {
+    display: block; font-family: var(--mono); font-size: 10.5px;
+    color: var(--chalk-dim); margin-bottom: 5px; letter-spacing: 0.06em;
+  }
+  #app-root .ai-skrivrad { display: flex; gap: 8px; align-items: flex-end; }
+  #app-root #ai-fraga {
+    flex: 1 1 auto; resize: vertical; min-height: 44px;
+    background: var(--blueprint); border: 1px solid var(--line);
+    border-radius: 8px; color: var(--chalk);
+    font-family: var(--sans); font-size: 13.5px; line-height: 1.5;
+    padding: 8px 10px; outline: none;
+  }
+  #app-root #ai-fraga:focus { border-color: var(--amber); }
+  #app-root #ai-skicka { flex: 0 0 auto; }
+
+  #app-root .ai-svar .fran-mig {
+    border-left: 2px solid var(--mint); padding: 2px 0 2px 14px;
+    margin: 14px 0 4px; white-space: pre-wrap; color: var(--chalk-dim);
+  }
   #app-root .ai-svar .fraga-eko {
     font-family: var(--mono); font-size: 11.5px; color: var(--chalk-dim);
     letter-spacing: 0.08em; text-transform: uppercase; margin: 16px 0 6px;
@@ -479,7 +512,25 @@
           </div>
           <p class="ai-not">Nyckeln sparas aldrig — skriv in den igen om du laddar om sidan. Kör du Ollama eller LM Studio lokalt behövs ingen nyckel alls.</p>
         </div>
-        <div class="ai-svar" id="ai-svar"></div>
+
+        <div class="ai-chatt" id="ai-chatt" hidden>
+          <div class="ai-snabb" id="ai-snabb">
+            <button class="ai-chip" data-uppdrag="kapitel">Förklara kapitlet</button>
+            <button class="ai-chip" data-uppdrag="kod">Förklara koden</button>
+            <button class="ai-chip" data-uppdrag="markering">Förklara markeringen</button>
+            <button class="ai-chip" data-uppdrag="andra">Hur ändrar jag koden?</button>
+            <button class="ai-chip" data-uppdrag="nasta">Vad ska jag prova?</button>
+            <button class="ai-chip mild" id="ai-rensa-samtal">Rensa samtalet</button>
+          </div>
+          <div class="ai-svar" id="ai-svar"></div>
+          <div class="ai-skriv">
+            <span class="ai-kontext" id="ai-kontext"></span>
+            <div class="ai-skrivrad">
+              <textarea id="ai-fraga" rows="2" placeholder="Fråga något om koden eller kapitlet …"></textarea>
+              <button class="knapp kor" id="ai-skicka">Skicka</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -3892,6 +3943,7 @@
     panelLektion.scrollTop = 0;
     visaFlik("lektion");
     rensaKonsol();
+    byteAvSamtal();
   }
   startKnapp.addEventListener("click", visaStartsida);
 
@@ -3913,6 +3965,7 @@
     panelLektion.scrollTop = 0;
     visaFlik("lektion");
     rensaKonsol();
+    byteAvSamtal();
   }
 
   function ritaLektioner() {
@@ -3972,10 +4025,14 @@
     aiToggle.checked = ai.pa;
     flikAi.hidden = !ai.pa;
     forklaraKnapp.hidden = !ai.pa;
+    chattEl.hidden = !ai.pa;
+    byteAvSamtal();
     if (!ai.pa) {
       var nyckelfalt = aiElement("ai-nyckel");
       if (nyckelfalt) nyckelfalt.value = "";
       ai.ansluten = false;
+      samtalen = {};
+      aiElement("ai-svar").textContent = "";
       sattAiStatus("Inte ansluten", "");
       var knappar = konsol.querySelectorAll(".ai-knapp");
       for (var i = 0; i < knappar.length; i++) knappar[i].remove();
@@ -4015,7 +4072,24 @@
     LABB_FAKTA
   ].join("\n");
 
+  /* Byggs ur kapitellistan så den aldrig blir inaktuell. */
+  var KURSEN = (function () {
+    var rader = ["KURSENS UPPLÄGG (för att kunna hänvisa bakåt och framåt)"];
+    LEKTIONER.forEach(function (lek, i) {
+      rader.push((i + 1) + ". " + lek.titel + "  [" + lek.del + "]");
+    });
+    rader.push("Varje kapitel har sin egen chatt. Eleven kan ha frågat om annat " +
+               "i andra kapitel — du minns bara den här chatten, men du får " +
+               "gärna hänvisa till vad tidigare kapitel handlade om.");
+    return rader.join("\n");
+  })();
+
   function aiElement(id) { return document.getElementById(id); }
+
+  var chattEl = aiElement("ai-chatt");
+  var fragaFalt = aiElement("ai-fraga");
+  var skickaKnapp = aiElement("ai-skicka");
+  var kontextEl = aiElement("ai-kontext");
 
   function fyllStandard() {
     var namn = aiElement("ai-leverantor").value;
@@ -4031,7 +4105,96 @@
     el.className = "ai-status " + (klass || "");
   }
 
-  async function fragaModellen(fraga, systemtillagg) {
+  var samtalen = {};          // en chatt per kapitel, plus en för egna filer
+  var arbetar = false;
+
+  function samtalsnyckel() {
+    if (aktivLektion !== null) return "kap:" + aktivLektion;
+    return "fil:" + filnamn;
+  }
+
+  function aktivtSamtal() {
+    var nyckel = samtalsnyckel();
+    if (!samtalen[nyckel]) samtalen[nyckel] = { visning: [], meddelanden: [] };
+    return samtalen[nyckel];
+  }
+
+  /* Ritar om chattrutan från det sparade samtalet. */
+  function ritaSamtal() {
+    var svarsyta = aiElement("ai-svar");
+    svarsyta.textContent = "";
+    var s = aktivtSamtal();
+    if (!s.visning.length) {
+      var tom = document.createElement("div");
+      tom.className = "bubbla arbetar";
+      tom.textContent = aktivLektion !== null
+        ? "Ny chatt för " + kapitelnamn() + ". Fråga vad du vill, eller använd knapparna ovanför."
+        : "Ny chatt. Fråga vad du vill om koden du har framme.";
+      svarsyta.appendChild(tom);
+      return;
+    }
+    s.visning.forEach(function (post) {
+      ritaBubbla(post.rubrik, post.text, post.klass);
+    });
+    svarsyta.scrollTop = svarsyta.scrollHeight;
+  }
+
+  function byteAvSamtal() {
+    if (!ai.pa) return;
+    visaKontext();
+    ritaSamtal();
+  }
+
+  /* Plockar ut ren text ur kapitelrutan. */
+  function kapiteltext() {
+    var kopia = document.createElement("div");
+    kopia.innerHTML = lektionstext.innerHTML;
+    var text = (kopia.textContent || "").replace(/\s+/g, " ").trim();
+    return text.length > 2600 ? text.slice(0, 2600) + " …" : text;
+  }
+
+  function kapitelnamn() {
+    if (aktivLektion === null) return "Startsidan (inget kapitel valt)";
+    return "Kapitel " + (aktivLektion + 1) + ": " + LEKTIONER[aktivLektion].titel;
+  }
+
+  /* Sammanställer vad eleven har framför sig just nu. */
+  function nulage() {
+    var kod = kodruta.value;
+    if (kod.length > 4000) kod = kod.slice(0, 4000) + "\n# … (koden är avkortad)";
+    var delar = [
+      "ELEVENS NULÄGE",
+      "Öppet just nu: " + kapitelnamn(),
+      "",
+      "Kapitlets förklaringstext:",
+      kapiteltext() || "(ingen text)",
+      "",
+      "Koden i redigeraren:",
+      "```python",
+      kod,
+      "```"
+    ];
+    var vald = markeradKod();
+    if (vald.trim()) {
+      delar.push("", "Eleven har markerat den här delen:", "```python", vald.trim(), "```");
+    }
+    return delar.join("\n");
+  }
+
+  function markeradKod() {
+    var a = kodruta.selectionStart, b = kodruta.selectionEnd;
+    return b > a ? kodruta.value.slice(a, b) : "";
+  }
+
+  function visaKontext() {
+    var vald = markeradKod().trim();
+    var rader = vald ? vald.split("\n").length : 0;
+    kontextEl.textContent = vald
+      ? kapitelnamn() + "  ·  " + rader + " markerade rader skickas med"
+      : kapitelnamn() + "  ·  hela koden skickas med";
+  }
+
+  async function fragaModellen(meddelanden, systemtext) {
     var namn = aiElement("ai-leverantor").value;
     var stil = LEVERANTORER[namn].stil;
     var url = aiElement("ai-url").value.trim();
@@ -4040,7 +4203,7 @@
     if (!url) throw new Error("Ingen adress angiven.");
     if (!modell) throw new Error("Ingen modell angiven.");
 
-    var system = LARARROLL + (systemtillagg ? "\n\n" + systemtillagg : "");
+    var system = systemtext || LARARROLL;
     var huvud = { "Content-Type": "application/json" };
     var kropp;
 
@@ -4048,14 +4211,13 @@
       huvud["x-api-key"] = nyckel;
       huvud["anthropic-version"] = "2023-06-01";
       huvud["anthropic-dangerous-direct-browser-access"] = "true";
-      kropp = { model: modell, max_tokens: 700, system: system,
-                messages: [{ role: "user", content: fraga }] };
+      kropp = { model: modell, max_tokens: 900, system: system, messages: meddelanden };
     } else {
       if (nyckel) huvud["Authorization"] = "Bearer " + nyckel;
-      kropp = { model: modell, max_tokens: 700, messages: [
-        { role: "system", content: system },
-        { role: "user", content: fraga }
-      ] };
+      kropp = {
+        model: modell, max_tokens: 900,
+        messages: [{ role: "system", content: system }].concat(meddelanden)
+      };
     }
 
     var svar;
@@ -4079,45 +4241,105 @@
     return ((j.choices && j.choices[0] && j.choices[0].message.content) || "").trim();
   }
 
-  function aiBubbla(rubrik, text, klass) {
+  function ritaBubbla(rubrik, text, klass) {
     var svarsyta = aiElement("ai-svar");
-    var titel = document.createElement("p");
-    titel.className = "fraga-eko";
-    titel.textContent = rubrik;
+    if (rubrik) {
+      var titel = document.createElement("p");
+      titel.className = "fraga-eko";
+      titel.textContent = rubrik;
+      svarsyta.appendChild(titel);
+    }
     var bubbla = document.createElement("div");
-    bubbla.className = "bubbla" + (klass ? " " + klass : "");
+    bubbla.className = klass || "bubbla";
     bubbla.textContent = text;
-    svarsyta.appendChild(titel);
     svarsyta.appendChild(bubbla);
     svarsyta.scrollTop = svarsyta.scrollHeight;
+    if (bubbla.scrollIntoView) bubbla.scrollIntoView({ block: "nearest" });
     return bubbla;
   }
 
-  async function aiUppdrag(rubrik, fraga, systemtillagg) {
+  /* Ritar och sparar, så att bubblan finns kvar när man byter kapitel. */
+  function aiBubbla(rubrik, text, klass, spara) {
+    if (spara !== false) {
+      aktivtSamtal().visning.push({ rubrik: rubrik, text: text, klass: klass });
+    }
+    return ritaBubbla(rubrik, text, klass);
+  }
+
+  /* Skickar en fråga och håller samtalet levande. */
+  async function skicka(fraga, etikett) {
+    if (arbetar || !fraga.trim()) return;
     visaFlik("ai");
-    var bubbla = aiBubbla(rubrik, "Tänker …", "arbetar");
+    arbetar = true;
+    skickaKnapp.disabled = true;
+
+    var s = aktivtSamtal();
+    var nyckel = samtalsnyckel();
+    if (!s.visning.length) aiElement("ai-svar").textContent = "";
+
+    aiBubbla(etikett || "Du frågar", fraga, "fran-mig");
+    var bubbla = ritaBubbla(null, "Tänker …", "bubbla arbetar");
+
+    // Nuläget skickas som färsk systemtext varje gång, så modellen
+    // alltid ser den kod som ligger i rutan just nu.
+    var system = LARARROLL + "\n\n" + KURSEN + "\n\n" + nulage();
+    s.meddelanden.push({ role: "user", content: fraga });
+    if (s.meddelanden.length > 12) s.meddelanden = s.meddelanden.slice(-12);
+
     try {
-      bubbla.textContent = await fragaModellen(fraga, systemtillagg);
-      bubbla.className = "bubbla";
+      var svar = await fragaModellen(s.meddelanden, system);
+      s.visning.push({ rubrik: null, text: svar, klass: "bubbla" });
+      s.meddelanden.push({ role: "assistant", content: svar });
+      if (samtalsnyckel() === nyckel) {
+        bubbla.textContent = svar;
+        bubbla.className = "bubbla";
+      }
     } catch (e) {
-      bubbla.textContent = (e && e.message) || String(e);
-      bubbla.className = "bubbla fel";
+      var fel = (e && e.message) || String(e);
+      s.visning.push({ rubrik: null, text: fel, klass: "bubbla fel" });
+      s.meddelanden.pop();
+      if (samtalsnyckel() === nyckel) {
+        bubbla.textContent = fel;
+        bubbla.className = "bubbla fel";
+      }
+    } finally {
+      arbetar = false;
+      skickaKnapp.disabled = false;
+      fragaFalt.focus();
     }
   }
 
-  function markeradKod() {
-    var a = kodruta.selectionStart, b = kodruta.selectionEnd;
-    return b > a ? kodruta.value.slice(a, b) : "";
-  }
+  var UPPDRAG = {
+    kapitel: function () {
+      return "Förklara det här kapitlet med egna ord, som om du berättade det " +
+             "för mig. Ta det viktigaste först och ge gärna en jämförelse ur " +
+             "vardagen. Utgå från kapitlets text ovan.";
+    },
+    kod: function () {
+      return "Gå igenom koden i redigeraren rad för rad och förklara vad varje " +
+             "del gör och varför den behövs.";
+    },
+    markering: function () {
+      if (!markeradKod().trim()) {
+        return null;
+      }
+      return "Förklara den markerade delen av koden noggrant. Vad gör den, " +
+             "varför ser den ut så, och vad skulle hända om jag tog bort den?";
+    },
+    andra: function () {
+      return "Jag vill ändra koden men vet inte hur. Fråga mig först vad jag " +
+             "vill att programmet ska göra i stället, och föreslå sedan vilken " +
+             "syntax jag behöver — utan att skriva hela lösningen åt mig.";
+    },
+    nasta: function () {
+      return "Vad borde jag prova härnäst för att förstå det här bättre? " +
+             "Ge mig en liten uppgift som bygger på koden jag har.";
+    }
+  };
 
   function forklaraKod() {
-    var vald = markeradKod();
-    var kod = vald || kodruta.value;
-    if (!kod.trim()) return;
-    var rubrik = vald ? "Förklaring av markeringen" : "Förklaring av hela programmet";
-    aiUppdrag(rubrik,
-      "Förklara vad den här Python-koden gör, steg för steg och på en nivå som passar " +
-      "en nybörjare. Lyft fram det som är viktigast att förstå.\n\n```python\n" + kod + "\n```");
+    skicka(markeradKod().trim() ? UPPDRAG.markering() : UPPDRAG.kod(),
+           markeradKod().trim() ? "Förklara markeringen" : "Förklara koden");
   }
 
   /* Felförklaring: tar med raden felet pekar på och koden runt omkring. */
@@ -4142,21 +4364,17 @@
   function forklaraFel(feltext) {
     var rad = radUrFel(feltext);
     var utdrag = kodutdrag(rad, 4);
-    var fraga =
-      "Eleven körde sitt program och fick det här felet:\n\n" + feltext + "\n\n";
+    var fraga = "Jag körde programmet och fick det här felet:\n\n" + feltext + "\n\n";
     if (utdrag) {
       fraga += "Raden med >> är den felet pekar på:\n\n```\n" + utdrag + "\n```\n\n";
-    } else {
-      fraga += "Hela programmet:\n\n```python\n" + kodruta.value + "\n```\n\n";
     }
     fraga +=
-      "Förklara på ett vänligt sätt: 1) vad feltypen betyder i allmänhet, " +
-      "2) vad som konkret är fel i just den här koden, och 3) en ledtråd om hur " +
-      "eleven själv kan rätta det. Skriv inte den rättade koden. " +
-      "Om felet beror på en begränsning i Pythonlabbet — till exempel nedladdning av " +
-      "paket, filåtkomst, nätverk eller något som inte finns i webbläsarens Python — " +
-      "så säg det tydligt och berätta vad som fungerar i stället.";
-    aiUppdrag("Vad betyder felet?", fraga);
+      "Förklara: 1) vad feltypen betyder i allmänhet, 2) vad som konkret är fel " +
+      "i just min kod, och 3) en ledtråd om hur jag själv kan rätta det. " +
+      "Skriv inte den rättade koden. Om felet beror på en begränsning i " +
+      "Pythonlabbet — paket, filåtkomst, nätverk eller något som inte finns i " +
+      "webbläsarens Python — så säg det tydligt och berätta vad som fungerar i stället.";
+    skicka(fraga, "Vad betyder felet?");
   }
 
   function bryttAnslutning() {
@@ -4175,6 +4393,43 @@
     bryttAnslutning();
   });
   aiToggle.addEventListener("change", function () { sattAiStod(aiToggle.checked); });
+  document.getElementById("ai-snabb").addEventListener("click", function (e) {
+    var knapp = e.target.closest("[data-uppdrag]");
+    if (!knapp) return;
+    var bygg = UPPDRAG[knapp.dataset.uppdrag];
+    if (!bygg) return;
+    var fraga = bygg();
+    if (fraga === null) {
+      aiBubbla("Ingen markering", "Markera först en bit kod i redigeraren ovanför, " +
+               "så förklarar jag just den delen.", "bubbla arbetar");
+      return;
+    }
+    skicka(fraga, knapp.textContent);
+  });
+
+  document.getElementById("ai-rensa-samtal").addEventListener("click", function () {
+    samtalen[samtalsnyckel()] = { visning: [], meddelanden: [] };
+    ritaSamtal();
+  });
+
+  skickaKnapp.addEventListener("click", function () {
+    var text = fragaFalt.value.trim();
+    if (!text) return;
+    fragaFalt.value = "";
+    skicka(text);
+  });
+
+  fragaFalt.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      skickaKnapp.click();
+    }
+  });
+
+  ["keyup", "mouseup", "input"].forEach(function (h) {
+    kodruta.addEventListener(h, visaKontext);
+  });
+
   aiElement("ai-testa").addEventListener("click", async function () {
     var namn = aiElement("ai-leverantor").value;
     if (LEVERANTORER[namn].nyckel && !aiElement("ai-nyckel").value.trim()) {
@@ -4184,18 +4439,20 @@
     }
     sattAiStatus("Testar …", "");
     try {
-      var svar = await fragaModellen("Svara med exakt ordet: klart");
+      var svar = await fragaModellen([{ role: "user", content: "Svara med exakt ordet: klart" }]);
       ai.ansluten = true;
       sattAiStod(true);
-      sattAiStatus("Ansluten — AI-stödet är aktivt", "ok");
-      aiBubbla("Anslutningstest", svar || "(tomt svar)");
+      sattAiStatus("Ansluten — AI-hjälpen är aktiv", "ok");
+      visaKontext();
+      ritaSamtal();
     } catch (e) {
       ai.ansluten = false;
       ai.pa = false;
       aiToggle.checked = false;
       forklaraKnapp.hidden = true;
+      chattEl.hidden = true;
       sattAiStatus("Kunde inte ansluta — stödet är avstängt", "fel");
-      aiBubbla("Anslutningstest misslyckades", (e && e.message) || String(e), "fel");
+      aiBubbla("Anslutningstest misslyckades", (e && e.message) || String(e), "bubbla fel");
     }
   });
   fyllStandard();
