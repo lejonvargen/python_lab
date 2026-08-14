@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.02";
+  window.PYTHONLABBET_VERSION = "1.03";
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pythonlabbet</title>
@@ -285,11 +285,31 @@
   }
   #app-root #panel-scen:fullscreen .scenruta canvas { border-radius: 0; }
 
-  #app-root .ai-installningar {
-    border: 1px solid var(--line); border-radius: 10px;
-    padding: 14px 16px; margin-bottom: 14px; max-width: 620px;
-    background: rgba(27, 50, 85, 0.35);
+  /* ---- dialogruta för anslutning ---- */
+  #app-root .overlagring {
+    position: absolute; inset: 0; z-index: 70;
+    background: rgba(8, 16, 30, 0.72);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
   }
+  #app-root .overlagring[hidden] { display: none; }
+  #app-root .dialog {
+    width: 100%; max-width: 470px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px 22px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .45);
+    max-height: 90%; overflow-y: auto;
+  }
+  #app-root .dialog-rubrik {
+    margin: 0 0 6px; font-size: 17px; font-weight: 600; color: var(--chalk);
+  }
+  #app-root .dialog-ingress {
+    margin: 0 0 16px; font-size: 13px; color: var(--chalk-dim); line-height: 1.5;
+  }
+  #app-root .dialog-fot {
+    display: flex; align-items: center; gap: 9px; margin-top: 16px;
+    padding-top: 14px; border-top: 1px solid var(--line);
+  }
+  #app-root .dialog-fot .ai-status { margin-right: auto; }
   #app-root .ai-rad { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   #app-root .ai-rad label {
     flex: 0 0 92px; font-size: 12.5px; color: var(--chalk-dim);
@@ -297,18 +317,30 @@
   #app-root .ai-rad input, #app-root .ai-rad select {
     flex: 1 1 auto; min-width: 0; background: var(--blueprint);
     border: 1px solid var(--line); border-radius: 7px; color: var(--chalk);
-    font-family: var(--mono); font-size: 12.5px; padding: 6px 9px; outline: none;
+    font-family: var(--mono); font-size: 12.5px; padding: 7px 9px; outline: none;
   }
   #app-root .ai-rad input:focus, #app-root .ai-rad select:focus { border-color: var(--amber); }
-  #app-root .ai-knappar { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
   #app-root .ai-status { font-family: var(--mono); font-size: 11.5px; color: var(--chalk-dim); }
   #app-root .ai-status.ok { color: var(--mint); }
   #app-root .ai-status.fel { color: var(--coral); }
-  #app-root .ai-not { font-size: 11.5px; color: var(--chalk-dim); margin: 10px 0 0; line-height: 1.5; }
+  #app-root .dialog-fel {
+    margin: 12px 0 0; padding: 9px 11px; font-size: 12.5px; line-height: 1.5;
+    color: var(--coral); border: 1px solid rgba(255,125,107,.35);
+    border-radius: 8px; background: rgba(255,125,107,.08);
+  }
+  #app-root .dialog-fel[hidden] { display: none; }
+  #app-root .ai-not { font-size: 11.5px; color: var(--chalk-dim); margin: 14px 0 0; line-height: 1.5; }
+
   #app-root .ai-svar { max-width: 760px; font-size: 14px; line-height: 1.6; }
 
-  #app-root .ai-chatt { display: flex; flex-direction: column; min-height: 0; }
-  #app-root .ai-snabb { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  #app-root .ai-chatt { display: block; min-height: 0; }
+  #app-root .ai-snabb {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    position: sticky; top: 0; z-index: 4;
+    margin: 0 0 12px; padding: 2px 0 10px;
+    background: var(--blueprint);
+    box-shadow: 0 6px 10px -8px rgba(0, 0, 0, .8);
+  }
   #app-root button.ai-chip {
     font-family: var(--sans); font-size: 12px;
     background: var(--panel-2); color: var(--chalk);
@@ -317,6 +349,7 @@
   }
   #app-root button.ai-chip:hover { border-color: var(--amber); }
   #app-root button.ai-chip.mild { color: var(--chalk-dim); margin-left: auto; }
+  #app-root #ai-rensa-samtal { color: var(--chalk-dim); }
   #app-root button.ai-chip:disabled { opacity: .4; cursor: default; }
 
   #app-root .ai-skriv { margin-top: 14px; max-width: 760px; }
@@ -640,39 +673,6 @@
         <div id="scenruta" class="scenruta"><p class="tomt">Ingen scen igång. Kör <code>scen.starta()</code> i ett program så dyker den upp här.</p></div>
       </div>
       <div class="flikinnehall" id="panel-ai" hidden>
-        <div class="ai-installningar" id="ai-installningar">
-          <p class="rubrik" style="margin:0 0 10px">Koppla till en språkmodell</p>
-          <div class="ai-rad">
-            <label for="ai-leverantor">Tjänst</label>
-            <select id="ai-leverantor">
-              <option value="ollama">Ollama (lokalt på din dator)</option>
-              <option value="lmstudio">LM Studio (lokalt)</option>
-              <option value="mistral">Mistral (Frankrike)</option>
-              <option value="openai-kompatibel">Annan OpenAI-kompatibel</option>
-              <option value="anthropic">Anthropic</option>
-              <option value="openai">OpenAI</option>
-            </select>
-          </div>
-          <div class="ai-rad">
-            <label for="ai-url">Adress</label>
-            <input type="text" id="ai-url" spellcheck="false">
-          </div>
-          <div class="ai-rad">
-            <label for="ai-modell">Modell</label>
-            <input type="text" id="ai-modell" spellcheck="false">
-          </div>
-          <div class="ai-rad" id="ai-nyckel-rad">
-            <label for="ai-nyckel">API-nyckel</label>
-            <input type="password" id="ai-nyckel" spellcheck="false" autocomplete="off"
-                   placeholder="lagras bara i minnet, aldrig på disk">
-          </div>
-          <div class="ai-knappar">
-            <button class="knapp" id="ai-testa">Testa anslutningen</button>
-            <span class="ai-status" id="ai-status">Inte ansluten</span>
-          </div>
-          <p class="ai-not">Nyckeln sparas aldrig — skriv in den igen om du laddar om sidan. Kör du Ollama eller LM Studio lokalt behövs ingen nyckel alls.</p>
-        </div>
-
         <div class="ai-chatt" id="ai-chatt" hidden>
           <div class="ai-snabb" id="ai-snabb">
             <button class="ai-chip" data-uppdrag="kapitel">Sammanfatta kapitlet</button>
@@ -680,7 +680,8 @@
             <button class="ai-chip" data-uppdrag="markering">Förklara markeringen</button>
             <button class="ai-chip" data-uppdrag="andra">Ändra koden</button>
             <button class="ai-chip" data-uppdrag="nasta">Nästa steg</button>
-            <button class="ai-chip mild" id="ai-rensa-samtal">Rensa samtalet</button>
+            <button class="ai-chip mild" id="ai-installningar-knapp" title="Anslutning">Anslutning</button>
+            <button class="ai-chip" id="ai-rensa-samtal">Rensa samtalet</button>
           </div>
           <div class="ai-svar" id="ai-svar"></div>
           <div class="ai-skriv">
@@ -694,6 +695,50 @@
       </div>
     </div>
   </section>
+</div>
+
+<div class="overlagring" id="ai-overlagring" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="ai-dialog-rubrik">
+    <h2 class="dialog-rubrik" id="ai-dialog-rubrik">Koppla in AI-hjälpen</h2>
+    <p class="dialog-ingress">Välj en språkmodell att arbeta mot. Anslutningen måste
+      fungera innan hjälpen aktiveras.</p>
+
+    <div class="ai-rad">
+      <label for="ai-leverantor">Tjänst</label>
+      <select id="ai-leverantor">
+        <option value="ollama">Ollama (lokalt på din dator)</option>
+        <option value="lmstudio">LM Studio (lokalt)</option>
+        <option value="mistral">Mistral (Frankrike)</option>
+        <option value="openai-kompatibel">Annan OpenAI-kompatibel</option>
+        <option value="anthropic">Anthropic</option>
+        <option value="openai">OpenAI</option>
+      </select>
+    </div>
+    <div class="ai-rad">
+      <label for="ai-url">Adress</label>
+      <input type="text" id="ai-url" spellcheck="false">
+    </div>
+    <div class="ai-rad">
+      <label for="ai-modell">Modell</label>
+      <input type="text" id="ai-modell" spellcheck="false">
+    </div>
+    <div class="ai-rad" id="ai-nyckel-rad">
+      <label for="ai-nyckel">API-nyckel</label>
+      <input type="password" id="ai-nyckel" spellcheck="false" autocomplete="off"
+             placeholder="lagras bara i minnet, aldrig på disk">
+    </div>
+
+    <p class="ai-not">Nyckeln sparas aldrig — skriv in den igen om du laddar om sidan.
+      Ollama och LM Studio kör lokalt och behöver ingen nyckel.</p>
+
+    <p class="dialog-fel" id="ai-dialog-fel" hidden></p>
+
+    <div class="dialog-fot">
+      <span class="ai-status" id="ai-status">Inte ansluten</span>
+      <button class="knapp" id="ai-avbryt">Avbryt</button>
+      <button class="knapp kor" id="ai-testa">Anslut</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -4232,17 +4277,23 @@
 
   var ai = { nyckel: "", ansluten: false, pa: false };
 
+  function oppnaDialog() {
+    if (!aiElement("ai-url").value.trim()) fyllStandard();
+    sattAiStatus(ai.ansluten ? "Ansluten" : "Inte ansluten", ai.ansluten ? "ok" : "");
+    overlagring.hidden = false;
+    setTimeout(function () { aiElement("ai-leverantor").focus(); }, 20);
+  }
+
+  function stangDialog() {
+    overlagring.hidden = true;
+  }
+
   function sattAiStod(pa) {
     if (pa && !ai.ansluten) {
-      // Slås på men är inte verifierad än: visa inställningarna, inga knappar.
+      // Slås på men inte verifierad än: fråga efter anslutning först.
       ai.pa = false;
       aiToggle.checked = true;
-      flikAi.hidden = false;
-      forklaraKnapp.hidden = true;
-      visaFlik("ai");
-      if (!aiElement("ai-url").value.trim()) fyllStandard();
-      sattAiStatus("Testa anslutningen för att aktivera", "");
-      aiElement("ai-testa").focus();
+      oppnaDialog();
       return;
     }
     ai.pa = !!pa;
@@ -4261,6 +4312,7 @@
       var knappar = konsol.querySelectorAll(".ai-knapp");
       for (var i = 0; i < knappar.length; i++) knappar[i].remove();
       panelAi.hidden = true;
+      stangDialog();
       if (flikAi.classList.contains("vald")) visaFlik("utskrift");
     }
   }
@@ -4332,6 +4384,8 @@
   var fragaFalt = aiElement("ai-fraga");
   var skickaKnapp = aiElement("ai-skicka");
   var kontextEl = aiElement("ai-kontext");
+  var overlagring = aiElement("ai-overlagring");
+  var dialogFel = aiElement("ai-dialog-fel");
 
   function fyllStandard() {
     var namn = aiElement("ai-leverantor").value;
@@ -4434,6 +4488,16 @@
       return kodruta.value.slice(sistaMarkering.start, sistaMarkering.slut);
     }
     return "";
+  }
+
+  /* Lägger tillbaka markeringen och fokus i kodrutan, så att den syns
+     kvar efter att man klickat på en knapp som arbetar mot den. */
+  function aterstallMarkering() {
+    if (sistaMarkering.slut > sistaMarkering.start &&
+        sistaMarkering.slut <= kodruta.value.length) {
+      kodruta.focus();
+      kodruta.setSelectionRange(sistaMarkering.start, sistaMarkering.slut);
+    }
   }
 
   function kommIhagMarkering() {
@@ -4731,7 +4795,7 @@
   }
 
   /* Skickar en fråga och håller samtalet levande. */
-  async function skicka(fraga, etikett) {
+  async function skicka(fraga, etikett, behallMarkering) {
     if (arbetar || !fraga.trim()) return;
     visaFlik("ai");
     arbetar = true;
@@ -4769,7 +4833,8 @@
     } finally {
       arbetar = false;
       skickaKnapp.disabled = false;
-      fragaFalt.focus();
+      if (behallMarkering) aterstallMarkering();
+      else fragaFalt.focus();
     }
   }
 
@@ -4801,8 +4866,10 @@
   };
 
   function forklaraKod() {
-    skicka(markeradKod().trim() ? UPPDRAG.markering() : UPPDRAG.kod(),
-           markeradKod().trim() ? "Förklara markeringen" : "Förklara koden");
+    var harMarkering = !!markeradKod().trim();
+    skicka(harMarkering ? UPPDRAG.markering() : UPPDRAG.kod(),
+           harMarkering ? "Förklara markeringen" : "Förklara koden",
+           harMarkering);
   }
 
   /* Felförklaring: tar med raden felet pekar på och koden runt omkring. */
@@ -4841,6 +4908,7 @@
   }
 
   function bryttAnslutning() {
+    if (dialogFel) dialogFel.hidden = true;
     if (!ai.ansluten && !ai.pa) return;
     ai.ansluten = false;
     ai.pa = false;
@@ -4867,7 +4935,7 @@
                "förklaras just den delen.", "bubbla arbetar");
       return;
     }
-    skicka(fraga, knapp.textContent);
+    skicka(fraga, knapp.textContent, knapp.dataset.uppdrag === "markering");
   });
 
   document.getElementById("ai-rensa-samtal").addEventListener("click", function () {
@@ -4905,7 +4973,23 @@
     });
   });
 
+  aiElement("ai-avbryt").addEventListener("click", function () {
+    stangDialog();
+    if (!ai.ansluten) { ai.pa = false; aiToggle.checked = false; }
+  });
+
+  aiElement("ai-installningar-knapp").addEventListener("click", oppnaDialog);
+
+  overlagring.addEventListener("click", function (e) {
+    if (e.target === overlagring) aiElement("ai-avbryt").click();
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !overlagring.hidden) aiElement("ai-avbryt").click();
+  });
+
   aiElement("ai-testa").addEventListener("click", async function () {
+    dialogFel.hidden = true;
     var namn = aiElement("ai-leverantor").value;
     if (LEVERANTORER[namn].nyckel && !aiElement("ai-nyckel").value.trim()) {
       sattAiStatus("Den här tjänsten kräver en API-nyckel", "fel");
@@ -4916,8 +5000,10 @@
     try {
       var svar = await fragaModellen([{ role: "user", content: "Svara med exakt ordet: klart" }]);
       ai.ansluten = true;
+      sattAiStatus("Ansluten", "ok");
+      stangDialog();
       sattAiStod(true);
-      sattAiStatus("Ansluten — AI-hjälpen är aktiv", "ok");
+      visaFlik("ai");
       visaKontext();
       ritaSamtal();
     } catch (e) {
@@ -4926,8 +5012,9 @@
       aiToggle.checked = false;
       forklaraKnapp.hidden = true;
       chattEl.hidden = true;
-      sattAiStatus("Kunde inte ansluta — stödet är avstängt", "fel");
-      aiBubbla("Anslutningstest misslyckades", (e && e.message) || String(e), "bubbla fel");
+      sattAiStatus("Kunde inte ansluta", "fel");
+      dialogFel.textContent = (e && e.message) || String(e);
+      dialogFel.hidden = false;
     }
   });
   fyllStandard();
