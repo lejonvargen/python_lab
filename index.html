@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.04";
+  window.PYTHONLABBET_VERSION = "1.08";
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pythonlabbet</title>
@@ -1739,8 +1739,9 @@
       "",
       "scen.varje_bildruta(uppdatera)",
       "",
-      "print(\"Dra med musen för att snurra, rulla för att zooma.\")",
-      "print(\"Piltangenterna flyttar dig runt i scenen. R återställer vyn.\")",
+      "print(\"Dra med musen för att se dig omkring, rulla för att flyga fram och tillbaka.\")",
+      "print(\"Piltangenterna flyger som en drönare: framåt dit du tittar.\")",
+      "print(\"Page Up och Page Down höjer och sänker. R återställer vyn.\")",
       ""
     ].join("\n"),
     forklaring: `
@@ -1817,8 +1818,9 @@
       "",
       "scen.varje_bildruta(uppdatera)",
       "",
-      "print(\"Dra med musen för att snurra runt världen, rulla för att zooma.\")",
-      "print(\"Piltangenterna går framåt, bakåt och i sidled. R återställer vyn.\")",
+      "print(\"Dra med musen för att se dig omkring, rulla för att flyga fram och tillbaka.\")",
+      "print(\"Piltangenterna flyger som en drönare: framåt dit du tittar.\")",
+      "print(\"Page Up och Page Down höjer och sänker. R återställer vyn.\")",
       ""
     ].join("\n"),
     forklaring: `
@@ -2351,8 +2353,8 @@
       "",
       "scen.varje_bildruta(animera)",
       "print()",
-      "print(\"Dra med musen för att snurra kartan, rulla för att zooma.\")",
-      "print(\"Piltangenterna flyttar dig framåt, bakåt och i sidled.\")",
+      "print(\"Dra med musen för att se dig omkring, rulla för att flyga fram och tillbaka.\")",
+      "print(\"Piltangenterna flyger som en drönare: framåt dit du tittar.\")",
       "print(\"R eller Återställ vy tar dig tillbaka. Helskärm finns uppe till höger.\")",
       ""
     ].join("\n"),
@@ -2368,7 +2370,8 @@
       <h3>Mjuk animation</h3>
       <p><code>andel * andel * (3 - 2 * andel)</code> ser ut som trolleri men är en välkänd kurva som kallas <em>smoothstep</em>. Den går från 0 till 1 precis som <code>andel</code>, men startar och slutar mjukt i stället för att rycka till. Nästan all rörelse i spel och gränssnitt går genom någon sådan kurva — rak linjär rörelse ser mekanisk ut för ögat.</p>
       <h3>Kameran</h3>
-      <p>Nu går det att dra med musen för att snurra runt scenen och rulla för att zooma. Kameran rör sig på en sfär runt en punkt: <code>theta</code> är varvet runt, <code>phi</code> är höjden över horisonten, och radien är avståndet. Det är samma sfäriska koordinater som används i astronomi.</p>
+      <p>Nu går det att dra med musen för att snurra runt scenen och rulla för att flyga fram och tillbaka. Kameran rör sig på en sfär runt en punkt: <code>theta</code> är varvet runt, <code>phi</code> är höjden över horisonten, och radien är avståndet. Det är samma sfäriska koordinater som används i astronomi.</p>
+      <p>Piltangenterna flyger som en drönare: framåt går i den riktning du tittar, så pekar du nedåt sjunker du. Vänster och höger håller alltid höjden, och Page Up och Page Down går rakt upp och ner. R eller knappen Återställ vy tar dig tillbaka till utgångsläget.</p>
       <p><code>scen.helskarm()</code> eller knappen i 3D-fliken fyller hela skärmen. Escape tar dig tillbaka.</p>
       <div class="uppgift"><strong>Uppgift:</strong> byt parameter 1 mot 4 (vindhastighet) eller 6 (luftfuktighet) och se hur kartan ändrar karaktär. Bygg sedan om så att <em>höjden</em> visar temperatur och <em>färgen</em> vind — två storheter i samma bild.</div>`
   },
@@ -2565,8 +2568,8 @@
       "print(\"Breda gröna staplar = uppmätt. Smala gula = modellens gissning.\")",
       "print(\"Teckenförklaringen ligger infälld i golvet, nere till höger.\")",
       "print()",
-      "print(\"Styr vyn: dra med musen, rulla för att zooma.\")",
-      "print(\"Piltangenter flyttar dig framåt/bakåt och i sidled.\")",
+      "print(\"Styr vyn: dra med musen för att se dig omkring, rulla för att flyga.\")",
+      "print(\"Piltangenter flyger som en drönare: framåt dit du tittar.\")",
       "print(\"Tryck R eller Återställ vy för att komma tillbaka hit.\")",
       ""
     ].join("\n"),
@@ -3156,22 +3159,56 @@
   });
 
   /* ---- kamerastyrning med musen ---- */
-  var STARTBANA = { radie: 12, theta: 0.6, phi: 1.05, mal: { x: 0, y: 0, z: 0 } };
-  var bana = { radie: 12, theta: 0.6, phi: 1.05, mal: { x: 0, y: 0, z: 0 }, aktiv: false, x: 0, y: 0 };
+  /* ---- kameran ----
+     Kameran har en position i världen och en blickriktning. Att dra med
+     musen vrider blicken kring kamerans egen position, så man kan vända
+     sig om på stället. Piltangenterna flyttar positionen. */
+  var bana = {
+    pos: { x: 0, y: 5, z: 12 },   // var kameran står
+    theta: 0,                     // vridning i sidled, radianer
+    phi: Math.PI / 2,             // lutning: pi/2 är rakt fram, mindre är nedåt
+    skala: 12,                    // scenens storlek, styr steglängd
+    aktiv: false, x: 0, y: 0
+  };
+  var STARTBANA = { pos: { x: 0, y: 5, z: 12 }, theta: 0, phi: Math.PI / 2, skala: 12 };
+
+  /* Enhetsvektor i den riktning kameran tittar. */
+  function blickriktning() {
+    var p = bana.phi, t = bana.theta;
+    return {
+      x: Math.sin(p) * Math.sin(t),
+      y: Math.cos(p),
+      z: Math.sin(p) * Math.cos(t)
+    };
+  }
 
   function placeraKamera() {
     if (!tre.kamera) return;
-    var r = bana.radie, t = bana.theta, p = Math.max(0.08, Math.min(Math.PI - 0.08, bana.phi));
-    bana.phi = p;
-    tre.kamera.position.set(
-      bana.mal.x + r * Math.sin(p) * Math.sin(t),
-      bana.mal.y + r * Math.cos(p),
-      bana.mal.z + r * Math.sin(p) * Math.cos(t)
-    );
-    tre.kamera.lookAt(bana.mal.x, bana.mal.y, bana.mal.z);
+    bana.phi = Math.max(0.06, Math.min(Math.PI - 0.06, bana.phi));
+    var r = blickriktning();
+    tre.kamera.position.set(bana.pos.x, bana.pos.y, bana.pos.z);
+    tre.kamera.lookAt(bana.pos.x + r.x, bana.pos.y + r.y, bana.pos.z + r.z);
   }
 
-  /* Nedtryckta tangenter och en hastighet som ökar och avtar mjukt. */
+  /* Ställer kameran på en punkt och riktar blicken mot en annan. */
+  function sikta(fran, mot) {
+    var dx = mot.x - fran.x, dy = mot.y - fran.y, dz = mot.z - fran.z;
+    var d = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+    bana.pos = { x: fran.x, y: fran.y, z: fran.z };
+    bana.phi = Math.acos(Math.max(-1, Math.min(1, dy / d)));
+    bana.theta = Math.atan2(dx, dz);
+    bana.skala = d;
+    placeraKamera();
+  }
+
+  function sparaStartlage() {
+    STARTBANA = {
+      pos: { x: bana.pos.x, y: bana.pos.y, z: bana.pos.z },
+      theta: bana.theta, phi: bana.phi, skala: bana.skala
+    };
+  }
+
+  /* ---- förflyttning ---- */
   var tangenter = {};
   var fart = { framat: 0, isidled: 0, upp: 0 };
 
@@ -3193,7 +3230,18 @@
     return Math.max(-1, Math.min(1, summa));
   }
 
-  /* Anropas varje bildruta. Mjukar upp starten och låter rörelsen glida ut. */
+  /* Flyttar kameran som en drönare: framåt dit blicken pekar, sidled
+     vågrätt, och Page Up/Down rakt upp och ner. */
+  function flytta(framat, isidled, upp, langd) {
+    var r = blickriktning();
+    // Höger = blickriktningen korsad med världens uppåt, hållen vågrät.
+    var hx = -Math.cos(bana.theta), hz = Math.sin(bana.theta);
+    bana.pos.x += (r.x * framat + hx * isidled) * langd;
+    bana.pos.y += (r.y * framat + upp) * langd;
+    bana.pos.z += (r.z * framat + hz * isidled) * langd;
+    placeraKamera();
+  }
+
   function uppdateraForflyttning(dt) {
     var MJUKHET = 7;                    // högre = snabbare respons
     var andel = Math.min(1, MJUKHET * dt);
@@ -3204,21 +3252,15 @@
       else rorelse = true;
     });
     if (!rorelse) return;
-
-    var steg = Math.max(0.35, bana.radie * 0.07) * 9 * dt;
-    var fx = -Math.sin(bana.theta), fz = -Math.cos(bana.theta);
-    var hx = Math.cos(bana.theta), hz = -Math.sin(bana.theta);
-    bana.mal.x += (fx * fart.framat + hx * fart.isidled) * steg;
-    bana.mal.z += (fz * fart.framat + hz * fart.isidled) * steg;
-    bana.mal.y += fart.upp * steg;
-    placeraKamera();
+    var steg = Math.max(0.35, bana.skala * 0.07) * 9 * dt;
+    flytta(fart.framat, fart.isidled, fart.upp, steg);
   }
 
   function aterstallVy() {
-    bana.radie = STARTBANA.radie;
+    bana.pos = { x: STARTBANA.pos.x, y: STARTBANA.pos.y, z: STARTBANA.pos.z };
     bana.theta = STARTBANA.theta;
     bana.phi = STARTBANA.phi;
-    bana.mal = { x: STARTBANA.mal.x, y: STARTBANA.mal.y, z: STARTBANA.mal.z };
+    bana.skala = STARTBANA.skala;
     fart = { framat: 0, isidled: 0, upp: 0 };
     placeraKamera();
   }
@@ -3243,6 +3285,7 @@
   document.addEventListener("keyup", function (e) { delete tangenter[e.key]; });
   window.addEventListener("blur", function () { tangenter = {}; });
 
+  /* ---- musstyrning ---- */
   function kopplaMus(duk) {
     duk.style.cursor = "grab";
     duk.addEventListener("pointerdown", function (e) {
@@ -3252,18 +3295,20 @@
     });
     duk.addEventListener("pointermove", function (e) {
       if (!bana.aktiv) return;
-      bana.theta -= (e.clientX - bana.x) * 0.006;
-      bana.phi -= (e.clientY - bana.y) * 0.006;
+      // Vrider blicken kring kamerans egen position.
+      bana.theta -= (e.clientX - bana.x) * 0.005;
+      bana.phi += (e.clientY - bana.y) * 0.005;
       bana.x = e.clientX; bana.y = e.clientY;
       placeraKamera();
     });
     ["pointerup", "pointercancel"].forEach(function (h) {
       duk.addEventListener(h, function () { bana.aktiv = false; duk.style.cursor = "grab"; });
     });
+    // Hjulet flyttar kameran fram och tillbaka längs blickriktningen.
     duk.addEventListener("wheel", function (e) {
       e.preventDefault();
-      bana.radie = Math.max(2, Math.min(200, bana.radie * (1 + e.deltaY * 0.0012)));
-      placeraKamera();
+      var steg = Math.max(0.3, bana.skala * 0.06) * (e.deltaY > 0 ? -1 : 1);
+      flytta(steg > 0 ? 1 : -1, 0, 0, Math.abs(steg));
     }, { passive: false });
   }
 
@@ -3311,7 +3356,7 @@
     var platshallare = scenruta.querySelector("p");
     if (platshallare) scenruta.removeChild(platshallare);
     tre.scen = new T.Scene();
-    tre.kamera = new T.PerspectiveCamera(60, 16 / 9, 0.1, 1000);
+    tre.kamera = new T.PerspectiveCamera(60, 16 / 9, 0.05, 20000);
     tre.kamera.position.set(0, 2.5, 7);
     tre.kamera.lookAt(0, 0, 0);
     if (!tre.renderare) {
@@ -3325,12 +3370,11 @@
     tre.scen.add(new T.AmbientLight(0x8fb4ff, 0.6));
     tre.objekt = [];
     tre.tid = 0;
-    bana.radie = 12; bana.theta = 0.6; bana.phi = 1.05;
-    bana.mal = { x: 0, y: 0, z: 0 };
     tre.forra = 0;
     fart = { framat: 0, isidled: 0, upp: 0 };
-    STARTBANA = { radie: 12, theta: 0.6, phi: 1.05, mal: { x: 0, y: 0, z: 0 } };
-    placeraKamera();
+    tre.blick = { x: 0, y: 0, z: 0 };            // senast angivna blickpunkt
+    sikta({ x: 0, y: 5.5, z: 11 }, tre.blick);
+    sparaStartlage();
     anpassaStorlek();
     ritaBildruta();
   }
@@ -3921,19 +3965,19 @@
       return skapaForm(new window.THREE.ConeGeometry(radie || 0.5, hojd || 1, 24), x, y, z, farg);
     },
     kamera: function (x, y, z) {
-      tre.kamera.position.set(x, y, z);
-      var d = Math.sqrt(x * x + y * y + z * z) || 12;
-      bana.radie = d;
-      bana.phi = Math.acos(Math.max(-1, Math.min(1, y / d)));
-      bana.theta = Math.atan2(x, z);
-      tre.kamera.lookAt(bana.mal.x, bana.mal.y, bana.mal.z);
-      STARTBANA = { radie: bana.radie, theta: bana.theta, phi: bana.phi,
-                    mal: { x: bana.mal.x, y: bana.mal.y, z: bana.mal.z } };
+      // Ställer kameran här och riktar blicken mot senaste blickpunkten.
+      sikta({ x: x, y: y, z: z }, tre.blick || { x: 0, y: 0, z: 0 });
+      sparaStartlage();
     },
     titta_pa: function (x, y, z) {
-      bana.mal = { x: x, y: y, z: z };
-      STARTBANA.mal = { x: x, y: y, z: z };
-      placeraKamera();
+      // Vrider blicken mot punkten utan att flytta kameran.
+      tre.blick = { x: x, y: y, z: z };
+      sikta(bana.pos, tre.blick);
+      sparaStartlage();
+    },
+    flytta_kamera: function (framat, isidled, upp) {
+      flytta(framat || 0, isidled || 0, upp || 0, bana.skala * 0.1);
+      sparaStartlage();
     },
     aterstall: aterstallVy,
     helskarm: helskarm,
@@ -5671,6 +5715,8 @@ _scen_modul.skarm = lambda x=0, y=6, z=0, bredd=12, hojd=6.5, bild=None, stativ=
 _scen_modul.diagram_till_bild = _diagram_till_bild
 _scen_modul.aterstall = lambda: _bro.aterstall()
 _scen_modul.titta_pa = lambda x=0, y=0, z=0: _bro.titta_pa(x, y, z)
+_scen_modul.flytta_kamera = lambda framat=0, isidled=0, upp=0: (
+    _bro.flytta_kamera(framat, isidled, upp))
 _scen_modul.helskarm = lambda: _bro.helskarm()
 
 from pyodide.ffi import create_proxy as _create_proxy
