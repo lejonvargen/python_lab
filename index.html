@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.03";
+  window.PYTHONLABBET_VERSION = "1.04";
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pythonlabbet</title>
@@ -566,7 +566,6 @@
         <button class="knapp" id="oppna-knapp">Öppna fil</button>
         <button class="knapp" id="spara-knapp">Spara</button>
         <button class="knapp" id="spara-som-knapp">Spara som</button>
-        <button class="knapp" id="forklara-knapp">Förklara</button>
         <button class="knapp kor" id="kor-knapp" disabled>Kör</button>
       </div>
       <textarea id="kod" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
@@ -777,7 +776,6 @@
   var flikAi = document.getElementById("flik-ai");
   var panelAi = document.getElementById("panel-ai");
   var aiToggle = document.getElementById("ai-toggle");
-  var forklaraKnapp = document.getElementById("forklara-knapp");
   var filvaljare = document.getElementById("filvaljare");
   var redigerare = document.getElementById("redigerare");
 
@@ -4299,7 +4297,6 @@
     ai.pa = !!pa;
     aiToggle.checked = ai.pa;
     flikAi.hidden = !ai.pa;
-    forklaraKnapp.hidden = !ai.pa;
     chattEl.hidden = !ai.pa;
     byteAvSamtal();
     if (!ai.pa) {
@@ -4865,12 +4862,6 @@
     }
   };
 
-  function forklaraKod() {
-    var harMarkering = !!markeradKod().trim();
-    skicka(harMarkering ? UPPDRAG.markering() : UPPDRAG.kod(),
-           harMarkering ? "Förklara markeringen" : "Förklara koden",
-           harMarkering);
-  }
 
   /* Felförklaring: tar med raden felet pekar på och koden runt omkring. */
   function radUrFel(feltext) {
@@ -4912,7 +4903,6 @@
     if (!ai.ansluten && !ai.pa) return;
     ai.ansluten = false;
     ai.pa = false;
-    forklaraKnapp.hidden = true;
     sattAiStatus("Inställningarna ändrades — testa igen", "");
   }
   ["ai-url", "ai-modell", "ai-nyckel"].forEach(function (id) {
@@ -4966,11 +4956,8 @@
 
   /* Knappar som arbetar mot markeringen får inte stjäla fokus från
      textrutan — då försvinner den blå markeringen medan man klickar. */
-  ["ai-snabb", "forklara-knapp"].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) el.addEventListener("mousedown", function (e) {
-      if (e.target.closest("button")) e.preventDefault();
-    });
+  aiElement("ai-snabb").addEventListener("mousedown", function (e) {
+    if (e.target.closest("button")) e.preventDefault();
   });
 
   aiElement("ai-avbryt").addEventListener("click", function () {
@@ -5010,7 +4997,6 @@
       ai.ansluten = false;
       ai.pa = false;
       aiToggle.checked = false;
-      forklaraKnapp.hidden = true;
       chattEl.hidden = true;
       sattAiStatus("Kunde inte ansluta", "fel");
       dialogFel.textContent = (e && e.message) || String(e);
@@ -5157,7 +5143,6 @@ _plt.show = _labb_visa
   }
 
   document.getElementById("kor-knapp").addEventListener("click", kor);
-  document.getElementById("forklara-knapp").addEventListener("click", forklaraKod);
   document.getElementById("rensa-knapp").addEventListener("click", function () { rensaKonsol(); visaFlik("utskrift"); });
   document.getElementById("oppna-knapp").addEventListener("click", oppnaFil);
   document.getElementById("spara-knapp").addEventListener("click", function () { sparaFil(false); });
