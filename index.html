@@ -1,4 +1,14 @@
 <div id="app-root">
+<div class="laddskarm" id="laddskarm">
+  <div class="laddruta">
+    <p class="laddmark">Pythonlabbet</p>
+    <p class="laddrubrik" id="ladd-rubrik">Startar Python …</p>
+    <div class="laddspar"><div class="laddfyll" id="ladd-fyll"></div></div>
+    <p class="laddtext" id="ladd-text">Förbereder</p>
+    <p class="laddnot">Python hämtas till webbläsaren, ungefär 10 MB. Första gången
+      tar det en stund — sedan ligger det i cacheminnet och går snabbt.</p>
+  </div>
+</div>
 <style>
   #app-root {
     --blueprint: #0e1c33;
@@ -28,6 +38,50 @@
     border-radius: 10px;
   }
   #app-root * { box-sizing: border-box; }
+
+  /* ---- laddningsskärm ---- */
+  #app-root .laddskarm {
+    position: absolute; inset: 0; z-index: 60;
+    background: rgba(14, 28, 51, 0.97);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; transition: opacity .35s ease;
+  }
+  #app-root .laddskarm.klar { opacity: 0; pointer-events: none; }
+  #app-root .laddskarm[hidden] { display: none; }
+  #app-root .laddruta { width: 100%; max-width: 430px; text-align: left; }
+  #app-root .laddmark {
+    font-family: var(--mono); font-size: 13px; letter-spacing: 0.24em;
+    text-transform: uppercase; color: var(--amber); margin: 0 0 18px;
+  }
+  #app-root .laddrubrik { font-size: 17px; color: var(--chalk); margin: 0 0 12px; }
+  #app-root .laddspar {
+    height: 6px; border-radius: 999px; background: var(--panel-2);
+    border: 1px solid var(--line); overflow: hidden;
+  }
+  #app-root .laddfyll {
+    height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--amber), var(--mint));
+    transition: width .35s ease;
+  }
+  #app-root .laddfyll.obestamd {
+    width: 35%;
+    animation: glid 1.4s ease-in-out infinite;
+  }
+  @keyframes glid {
+    0% { margin-left: -35%; } 100% { margin-left: 100%; }
+  }
+  #app-root .laddtext {
+    font-family: var(--mono); font-size: 11.5px; color: var(--chalk-dim);
+    margin: 10px 0 0; min-height: 16px;
+  }
+  #app-root .laddnot {
+    font-size: 12.5px; color: var(--chalk-dim); line-height: 1.55; margin: 20px 0 0;
+  }
+  #app-root .laddskarm.trasig .laddfyll { background: var(--coral); animation: none; width: 100%; }
+  @media (prefers-reduced-motion: reduce) {
+    #app-root .laddfyll, #app-root .laddskarm { transition: none; }
+    #app-root .laddfyll.obestamd { animation: none; width: 100%; opacity: .4; }
+  }
 
   #app-root .topbar {
     display: flex; align-items: baseline; gap: 14px;
@@ -4513,13 +4567,21 @@
 
     if (pyodide.loadPackagesFromImports) {
       try {
-        statusText.textContent = "Kontrollerar paket …";
+        statusEl.className = "status";
+        statusText.textContent = "Hämtar paket …";
+        await andas();
         await pyodide.loadPackagesFromImports(kodruta.value, {
-          messageCallback: function (m) { skriv(m + "\n", "system"); }
+          messageCallback: function (m) {
+            skriv(m + "\n", "system");
+            var kort = String(m).replace(/^Loading /, "Hämtar ");
+            statusText.textContent = kort.length > 46 ? kort.slice(0, 46) + "…" : kort;
+          }
         });
+        await andas();
       } catch (e) {
         skriv("Kunde inte hämta ett paket: " + ((e && e.message) || e) + "\n", "fel");
       }
+      statusEl.className = "status klar";
       statusText.textContent = "Python är redo";
     }
 
@@ -4607,6 +4669,66 @@ _plt.show = _labb_visa
   /* =======================================================
      Starta Python
      ======================================================= */
+  /* ---- laddningsskärmen ---- */
+  var laddskarm = document.getElementById("laddskarm");
+  var laddRubrik = document.getElementById("ladd-rubrik");
+  var laddFyll = document.getElementById("ladd-fyll");
+  var laddText = document.getElementById("ladd-text");
+
+  function ladd(procent, rubrik, text) {
+    if (rubrik) laddRubrik.textContent = rubrik;
+    if (text !== undefined) laddText.textContent = text;
+    if (procent === null) {
+      laddFyll.classList.add("obestamd");
+    } else {
+      laddFyll.classList.remove("obestamd");
+      laddFyll.style.width = Math.max(0, Math.min(100, procent)) + "%";
+    }
+  }
+
+  /* Ger webbläsaren en chans att rita om. Utan detta hinner den aldrig
+     visa framstegen, och varnar för att sidan inte svarar. */
+  function andas() {
+    return new Promise(function (klar) {
+      requestAnimationFrame(function () { setTimeout(klar, 0); });
+    });
+  }
+
+  function megabyte(bytes) {
+    return (bytes / 1048576).toFixed(1) + " MB";
+  }
+
+  /* Hämtar den stora wasm-filen själv, med byte-räknare. Pyodide hittar
+     den sedan i webbläsarens cache och slipper hämta om den. */
+  async function forhamta(bas) {
+    var url = bas + "pyodide.asm.wasm";
+    try {
+      var svar = await fetch(url);
+      if (!svar.ok || !svar.body) return;
+      var totalt = parseInt(svar.headers.get("content-length") || "0", 10);
+      var lasare = svar.body.getReader();
+      var hamtat = 0;
+      var sist = 0;
+      while (true) {
+        var bit = await lasare.read();
+        if (bit.done) break;
+        hamtat += bit.value.length;
+        if (hamtat - sist > 262144) {          // uppdatera var 256:e kB
+          sist = hamtat;
+          ladd(totalt ? 8 + (hamtat / totalt) * 52 : null,
+               null,
+               totalt ? megabyte(hamtat) + " av " + megabyte(totalt)
+                      : megabyte(hamtat) + " hämtat");
+          await andas();
+        }
+      }
+      ladd(60, null, "Nedladdning klar");
+      await andas();
+    } catch (e) {
+      // Går det inte hämtar Pyodide filen själv i stället.
+    }
+  }
+
   var KALLOR = [
     { url: "https://cdn.jsdelivr.net/pyodide/v314.0.4/full/", namn: "jsDelivr v314.0.4" },
     { url: "https://cdn.jsdelivr.net/pyodide/v0.26.1/full/", namn: "jsDelivr v0.26.1" }
@@ -4637,11 +4759,26 @@ _plt.show = _labb_visa
       statusText.textContent = "Hämtar Python från " + kalla.namn + " …";
       skriv("Försöker hämta Python från " + kalla.namn + " …\n", "system");
       try {
+        ladd(4, "Hämtar Python", "Kontaktar " + kalla.namn);
+        await andas();
         await medTidsgrans(laddaSkript(kalla.url + "pyodide.js"), 25000, kalla.namn);
-        pyodide = await medTidsgrans(loadPyodide({ indexURL: kalla.url }), 90000, kalla.namn);
+
+        ladd(8, "Hämtar Python", "Laddar ner …");
+        await andas();
+        await forhamta(kalla.url);
+
+        ladd(null, "Startar Python", "Packar upp och startar tolken — sidan kan hacka till");
+        await andas();
+        await andas();
+        pyodide = await medTidsgrans(loadPyodide({ indexURL: kalla.url }), 120000, kalla.namn);
+
+        ladd(90, "Nästan klart", "Förbereder labbet");
+        await andas();
         return true;
       } catch (e) {
         skriv("Gick inte: " + ((e && e.message) || e) + "\n", "system");
+        ladd(4, "Försöker igen", "Byter källa");
+        await andas();
         try { delete window.loadPyodide; } catch (ignorera) { window.loadPyodide = undefined; }
       }
     }
@@ -4658,10 +4795,22 @@ _plt.show = _labb_visa
     if (!ok) {
       statusEl.className = "status trasig";
       statusText.textContent = "Python kunde inte startas";
+      laddskarm.className = "laddskarm trasig";
+      ladd(100, "Python kunde inte startas",
+           "Ingen av källorna svarade");
+      document.getElementById("ladd-text").textContent =
+        "Ladda om sidan och försök igen.";
+      setTimeout(function () {
+        laddskarm.classList.add("klar");
+        setTimeout(function () { laddskarm.hidden = true; }, 400);
+      }, 2600);
       skriv("\nIngen av källorna svarade. Ladda om sidan och försök igen. Hjälper det inte är nedladdningen blockerad här — då är det dags att installera Python på datorn i stället.\n", "fel");
       visaFlik("utskrift");
       return;
     }
+
+    ladd(96, "Nästan klart", "Kopplar in labbets verktyg");
+    await andas();
 
     pyodide.setStdout({ batched: function (t) { skriv(t + "\n", "ut"); } });
     pyodide.setStderr({ batched: function (t) { skriv(t + "\n", "fel"); } });
@@ -5223,6 +5372,11 @@ _sys.modules['data'] = _data_modul
     rensaKonsol();
     skriv("Python är redo. Välj ett kapitel till vänster, eller skriv något eget och tryck Kör.\n", "system");
     visaFlik("lektion");
+
+    ladd(100, "Klart", "Python är redo");
+    await andas();
+    laddskarm.classList.add("klar");
+    setTimeout(function () { laddskarm.hidden = true; }, 400);
 
     laddaThree().then(function (ok) {
       if (!ok) skriv("3D-motorn kunde inte hämtas. Kapitel 18 fungerar inte, resten gör det.\n", "system");
