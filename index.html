@@ -541,7 +541,7 @@
               <p><kbd>Spara</kbd> skriver koden till en riktig <code>.py</code>-fil på datorn och <kbd>Öppna fil</kbd> hämtar tillbaka den. Du kan också dra in en fil direkt i kodrutan.</p>
               <p>I Chrome och Edge sparas den tillbaka till samma ställe varje gång. I Firefox och Safari hamnar den i Hämtade filer — samma resultat, ett extra steg.</p>
               <h3>AI-hjälp</h3>
-              <p>Strömbrytaren uppe till höger kopplar in en språkmodell som förklarar kod och felmeddelanden. Den ger ledtrådar, inte färdiga svar. Ollama och LM Studio fungerar lokalt utan nyckel.</p>
+              <p>Strömbrytaren uppe till höger kopplar in en språkmodell som förklarar kod och felmeddelanden, och som du kan chatta med om kapitlet du arbetar i. Den ger ledtrådar och förklaringar snarare än färdiga lösningar — så att du behåller greppet om koden. Ollama och LM Studio fungerar lokalt utan nyckel.</p>
             </div>
             <div>
               <h3>Bra att veta</h3>
@@ -598,18 +598,18 @@
 
         <div class="ai-chatt" id="ai-chatt" hidden>
           <div class="ai-snabb" id="ai-snabb">
-            <button class="ai-chip" data-uppdrag="kapitel">Förklara kapitlet</button>
+            <button class="ai-chip" data-uppdrag="kapitel">Sammanfatta kapitlet</button>
             <button class="ai-chip" data-uppdrag="kod">Förklara koden</button>
             <button class="ai-chip" data-uppdrag="markering">Förklara markeringen</button>
-            <button class="ai-chip" data-uppdrag="andra">Hur ändrar jag koden?</button>
-            <button class="ai-chip" data-uppdrag="nasta">Vad ska jag prova?</button>
+            <button class="ai-chip" data-uppdrag="andra">Ändra koden</button>
+            <button class="ai-chip" data-uppdrag="nasta">Nästa steg</button>
             <button class="ai-chip mild" id="ai-rensa-samtal">Rensa samtalet</button>
           </div>
           <div class="ai-svar" id="ai-svar"></div>
           <div class="ai-skriv">
             <span class="ai-kontext" id="ai-kontext"></span>
             <div class="ai-skrivrad">
-              <textarea id="ai-fraga" rows="2" placeholder="Fråga något om koden eller kapitlet …"></textarea>
+              <textarea id="ai-fraga" rows="2" placeholder="Ställ en fråga om koden eller kapitlet …"></textarea>
               <button class="knapp kor" id="ai-skicka">Skicka</button>
             </div>
           </div>
@@ -4179,7 +4179,7 @@
   }
 
   var LABB_FAKTA = [
-    "Eleven är ungefär 12 år och nybörjare på Python.",
+    "Användaren arbetar i Pythonlabbet, en interaktiv Python-kurs i webbläsaren.",
     "Koden körs i Pythonlabbet: Python via Pyodide inuti en webbläsare.",
     "Detta gäller i miljön:",
     "- open() skriver till ett filsystem i minnet, inte till hårddisken. Filer försvinner vid omladdning.",
@@ -4196,15 +4196,29 @@
   ].join("\n");
 
   var LARARROLL = [
-    "Du är en tålmodig programmeringslärare som hjälper ett barn att lära sig Python.",
-    "Svara alltid på svenska, kort och konkret, i högst 150 ord om inget annat behövs.",
+    "Du är en kunnig och tålmodig handledare i Python. Användaren kan vara nybörjare,",
+    "erfaren programmerare som är ny i Python, eller något däremellan — och kan vara",
+    "i vilken ålder som helst.",
     "",
-    "Så här undervisar du:",
-    "- Ge ledtrådar och förklaringar, inte färdiga lösningar. Skriv aldrig hela programmet åt eleven.",
-    "- Om eleven har en bugg: peka på VAR felet är och FÖRKLARA varför, men låt eleven skriva rättelsen.",
-    "- Korta kodexempel på en eller två rader är okej för att visa en princip.",
-    "- Använd vardagliga jämförelser. Undvik engelska facktermer utan förklaring.",
-    "- Avsluta gärna med en fråga som får eleven att tänka vidare.",
+    "Ton och nivå:",
+    "- Skriv på svenska, sakligt och rakt på sak. Högst 150 ord om inget annat behövs.",
+    "- Tilltala användaren som en kapabel vuxen. Inga uppmuntrande utrop, inga smeknamn,",
+    "  ingen översvallande beröm. Skriv som till en kollega.",
+    "- Läs av nivån från frågorna och koden, och anpassa dig löpande. Är frågan",
+    "  grundläggande, förklara från grunden utan att göra det barnsligt. Är frågan",
+    "  avancerad, hoppa över det självklara.",
+    "- Använd korrekta facktermer, men förklara dem första gången de dyker upp.",
+    "- Jämförelser och exempel ska vara begripliga oavsett ålder. Undvik liknelser",
+    "  hämtade från skolvärlden eller barns vardag.",
+    "",
+    "Så här handleder du:",
+    "- Ge förklaringar och ledtrådar, inte färdiga lösningar. Skriv inte hela programmet.",
+    "- Vid buggar: peka på VAR felet finns och FÖRKLARA varför, men låt användaren",
+    "  skriva rättelsen själv.",
+    "- Korta kodexempel på en eller två rader är bra för att visa en princip.",
+    "- Ber användaren uttryckligen om en färdig lösning, förklara kort varför du hellre",
+    "  vägleder — och ge sedan så mycket struktur att de kommer vidare på egen hand.",
+    "- Avsluta gärna med en fråga eller ett förslag som leder vidare.",
     "",
     LABB_FAKTA
   ].join("\n");
@@ -4215,7 +4229,7 @@
     LEKTIONER.forEach(function (lek, i) {
       rader.push((i + 1) + ". " + lek.titel + "  [" + lek.del + "]");
     });
-    rader.push("Varje kapitel har sin egen chatt. Eleven kan ha frågat om annat " +
+    rader.push("Varje kapitel har sin egen chatt. Användaren kan ha frågat om annat " +
                "i andra kapitel — du minns bara den här chatten, men du får " +
                "gärna hänvisa till vad tidigare kapitel handlade om.");
     return rader.join("\n");
@@ -4265,8 +4279,8 @@
       var tom = document.createElement("div");
       tom.className = "bubbla arbetar";
       tom.textContent = aktivLektion !== null
-        ? "Ny chatt för " + kapitelnamn() + ". Fråga vad du vill, eller använd knapparna ovanför."
-        : "Ny chatt. Fråga vad du vill om koden du har framme.";
+        ? "Ny chatt för " + kapitelnamn() + ". Ställ en fråga, eller använd knapparna ovanför."
+        : "Ny chatt. Ställ en fråga om koden du har framme.";
       svarsyta.appendChild(tom);
       return;
     }
@@ -4295,12 +4309,12 @@
     return "Kapitel " + (aktivLektion + 1) + ": " + LEKTIONER[aktivLektion].titel;
   }
 
-  /* Sammanställer vad eleven har framför sig just nu. */
+  /* Sammanställer vad användaren har framför sig just nu. */
   function nulage() {
     var kod = kodruta.value;
     if (kod.length > 4000) kod = kod.slice(0, 4000) + "\n# … (koden är avkortad)";
     var delar = [
-      "ELEVENS NULÄGE",
+      "ANVÄNDARENS NULÄGE",
       "Öppet just nu: " + kapitelnamn(),
       "",
       "Kapitlets förklaringstext:",
@@ -4313,7 +4327,7 @@
     ];
     var vald = markeradKod();
     if (vald.trim()) {
-      delar.push("", "Eleven har markerat den här delen:", "```python", vald.trim(), "```");
+      delar.push("", "Användaren har markerat den här delen:", "```python", vald.trim(), "```");
     }
     return delar.join("\n");
   }
@@ -4448,29 +4462,28 @@
 
   var UPPDRAG = {
     kapitel: function () {
-      return "Förklara det här kapitlet med egna ord, som om du berättade det " +
-             "för mig. Ta det viktigaste först och ge gärna en jämförelse ur " +
-             "vardagen. Utgå från kapitlets text ovan.";
+      return "Sammanfatta det här kapitlet med egna ord. Ta det viktigaste först " +
+             "och lyft fram vad som är själva poängen. Utgå från kapitlets text.";
     },
     kod: function () {
-      return "Gå igenom koden i redigeraren rad för rad och förklara vad varje " +
-             "del gör och varför den behövs.";
+      return "Gå igenom koden i redigeraren och förklara vad varje del gör och " +
+             "varför den behövs.";
     },
     markering: function () {
       if (!markeradKod().trim()) {
         return null;
       }
-      return "Förklara den markerade delen av koden noggrant. Vad gör den, " +
-             "varför ser den ut så, och vad skulle hända om jag tog bort den?";
+      return "Förklara den markerade delen av koden. Vad gör den, varför ser den " +
+             "ut så, och vad skulle hända om den togs bort?";
     },
     andra: function () {
-      return "Jag vill ändra koden men vet inte hur. Fråga mig först vad jag " +
-             "vill att programmet ska göra i stället, och föreslå sedan vilken " +
-             "syntax jag behöver — utan att skriva hela lösningen åt mig.";
+      return "Jag vill ändra koden men är osäker på hur. Fråga först vad jag vill " +
+             "att programmet ska göra i stället, och beskriv sedan vilken syntax " +
+             "som behövs — utan att skriva hela lösningen.";
     },
     nasta: function () {
-      return "Vad borde jag prova härnäst för att förstå det här bättre? " +
-             "Ge mig en liten uppgift som bygger på koden jag har.";
+      return "Vad är ett bra nästa steg för att förstå det här djupare? Föreslå " +
+             "en konkret övning som bygger vidare på koden jag har.";
     }
   };
 
@@ -4507,10 +4520,10 @@
     }
     fraga +=
       "Förklara: 1) vad feltypen betyder i allmänhet, 2) vad som konkret är fel " +
-      "i just min kod, och 3) en ledtråd om hur jag själv kan rätta det. " +
+      "i den här koden, och 3) en ledtråd om hur jag kan rätta det själv. " +
       "Skriv inte den rättade koden. Om felet beror på en begränsning i " +
       "Pythonlabbet — paket, filåtkomst, nätverk eller något som inte finns i " +
-      "webbläsarens Python — så säg det tydligt och berätta vad som fungerar i stället.";
+      "webbläsarens Python — så säg det tydligt och beskriv vad som fungerar i stället.";
     skicka(fraga, "Vad betyder felet?");
   }
 
@@ -4537,8 +4550,8 @@
     if (!bygg) return;
     var fraga = bygg();
     if (fraga === null) {
-      aiBubbla("Ingen markering", "Markera först en bit kod i redigeraren ovanför, " +
-               "så förklarar jag just den delen.", "bubbla arbetar");
+      aiBubbla("Ingen markering", "Markera en bit kod i redigeraren ovanför, så " +
+               "förklaras just den delen.", "bubbla arbetar");
       return;
     }
     skicka(fraga, knapp.textContent);
