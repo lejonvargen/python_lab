@@ -1,3 +1,23 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pythonlabbet — lär dig programmera i Python</title>
+<meta name="description" content="Pythonlabbet är en interaktiv kurs i Python som körs direkt i webbläsaren. 28 kapitel från din första utskrift till 3D-grafik, maskininlärning och transformers.">
+<meta name="author" content="Pythonlabbet">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0e1c33">
+<meta name="application-name" content="Pythonlabbet">
+<meta name="apple-mobile-web-app-title" content="Pythonlabbet">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pythonlabbet">
+<meta property="og:description" content="Lär dig Python direkt i webbläsaren — 28 kapitel från print() till transformers.">
+<meta property="og:locale" content="sv_SE">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230e1c33'/%3E%3Cpath d='M14 20h10M14 32h10M14 44h10' stroke='%231b3255' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M30 18l10 14-10 14' fill='none' stroke='%23ffc94a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M44 46h8' stroke='%236ee7b7' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230e1c33'/%3E%3Cpath d='M14 20h10M14 32h10M14 44h10' stroke='%231b3255' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M30 18l10 14-10 14' fill='none' stroke='%23ffc94a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M44 46h8' stroke='%236ee7b7' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
 <div id="app-root">
 <div class="laddskarm" id="laddskarm">
   <div class="laddruta">
@@ -10,6 +30,13 @@
   </div>
 </div>
 <style>
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #0e1c33; color: #e8f0ff;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { overflow: hidden; }
+
   #app-root {
     --blueprint: #0e1c33;
     --panel: #142643;
@@ -35,7 +62,8 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border-radius: 10px;
+    border-radius: 0;
+    position: relative;
   }
   #app-root * { box-sizing: border-box; }
 
@@ -88,7 +116,7 @@
     padding: 13px 18px; border-bottom: 1px solid var(--line);
     background: rgba(14, 28, 51, 0.85); flex: 0 0 auto;
   }
-  #app-root .wordmark {
+  #app-root .wordmark { margin: 0; font-weight: 400;
     font-family: var(--mono); font-size: 15px; letter-spacing: 0.22em;
     text-transform: uppercase; color: var(--amber);
   }
@@ -402,7 +430,7 @@
 </style>
 
 <header class="topbar">
-  <span class="wordmark">Pythonlabbet</span>
+  <h1 class="wordmark">Pythonlabbet</h1>
   <label class="strombrytare" id="ai-toggle-etikett">
     <input type="checkbox" id="ai-toggle">
     <span class="spar-toggle"><span class="knopp"></span></span>
@@ -5442,3 +5470,5 @@ _sys.modules['data'] = _data_modul
 })();
 </script>
 </div>
+</body>
+</html>
