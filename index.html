@@ -2,8 +2,13 @@
 <html lang="sv">
 <head>
 <meta charset="utf-8">
+<script>
+  /* ===== Versionen definieras HÄR och bara här. =====
+     Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
+  window.PYTHONLABBET_VERSION = "1.02";
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Pythonlabbet (ver 1.01)</title>
+<title>Pythonlabbet</title>
 <meta name="description" content="Pythonlabbet är en interaktiv kurs i Python som körs direkt i webbläsaren. 28 kapitel från din första utskrift till 3D-grafik, maskininlärning och transformers.">
 <meta name="author" content="Pythonlabbet">
 <meta name="color-scheme" content="dark">
@@ -21,7 +26,7 @@
 <div id="app-root">
 <div class="laddskarm" id="laddskarm">
   <div class="laddruta">
-    <p class="laddmark">Pythonlabbet</p>
+    <p class="laddmark">Pythonlabbet <span class="version" data-version></span></p>
     <p class="laddrubrik" id="ladd-rubrik">Startar Python …</p>
     <div class="laddspar"><div class="laddfyll" id="ladd-fyll"></div></div>
     <p class="laddtext" id="ladd-text">Förbereder</p>
@@ -119,6 +124,14 @@
   #app-root .wordmark { margin: 0; font-weight: 400;
     font-family: var(--mono); font-size: 15px; letter-spacing: 0.22em;
     text-transform: uppercase; color: var(--amber);
+  }
+  #app-root .startversion {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--chalk-dim); margin: 0 0 16px;
+  }
+  #app-root .version {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+    color: var(--chalk-dim); text-transform: none; margin-left: 9px;
   }
   #app-root .strombrytare {
     display: inline-flex; align-items: center; gap: 8px;
@@ -360,6 +373,32 @@
     font-size: 12.8px; line-height: 1.55;
     color: var(--chalk); white-space: pre; display: block;
   }
+
+  /* ---- matematik ---- */
+  #app-root .matte {
+    font-family: "Latin Modern Math", "Cambria Math", "STIX Two Math", Georgia, serif;
+    font-size: 1.06em; white-space: nowrap; color: var(--chalk);
+  }
+  #app-root .matte.block {
+    display: block; text-align: center; margin: 12px 0;
+    font-size: 1.14em; overflow-x: auto; white-space: normal;
+  }
+  #app-root .matte sup, #app-root .matte sub {
+    font-size: 0.72em; line-height: 0;
+  }
+  #app-root .matte sup { vertical-align: 0.55em; }
+  #app-root .matte sub { vertical-align: -0.28em; }
+  #app-root .matte .brak {
+    display: inline-flex; flex-direction: column; vertical-align: -0.55em;
+    text-align: center; margin: 0 0.18em; line-height: 1.15;
+  }
+  #app-root .matte .brak .taljare { padding: 0 0.3em 1px; }
+  #app-root .matte .brak .namnare {
+    padding: 1px 0.3em 0; border-top: 1px solid currentColor;
+  }
+  #app-root .matte .rot {
+    border-top: 1px solid currentColor; padding: 1px 0.15em 0; margin-left: -0.1em;
+  }
   #app-root .ai-svar .fraga-eko {
     font-family: var(--mono); font-size: 11.5px; color: var(--chalk-dim);
     letter-spacing: 0.08em; text-transform: uppercase; margin: 16px 0 6px;
@@ -467,7 +506,7 @@
 </style>
 
 <header class="topbar">
-  <h1 class="wordmark">Pythonlabbet</h1>
+  <h1 class="wordmark">Pythonlabbet<span class="version" data-version></span></h1>
   <label class="strombrytare" id="ai-toggle-etikett">
     <input type="checkbox" id="ai-toggle">
     <span class="spar-toggle"><span class="knopp"></span></span>
@@ -521,6 +560,7 @@
       <div class="flikinnehall" id="panel-lektion">
         <div class="lektionstext start" id="lektionstext">
           <p class="valkomst">Välkommen till Pythonlabbet</p>
+          <p class="startversion" data-version></p>
           <p class="ingress">En riktig Python-tolk som kör inuti webbläsaren. Ingen installation, inget konto — koden körs på din egen dator. 28 kapitel tar dig från din första utskrift till hur en språkmodell fungerar inuti.</p>
 
           <div class="snabbstart">
@@ -659,6 +699,15 @@
 <script>
 (function () {
   "use strict";
+
+  /* ---- versionen skrivs in överallt den efterfrågas ---- */
+  var VERSION = window.PYTHONLABBET_VERSION || "okänd";
+  document.title = "Pythonlabbet (ver " + VERSION + ")";
+  var ogTitel = document.querySelector('meta[property="og:title"]');
+  if (ogTitel) ogTitel.setAttribute("content", document.title);
+  Array.prototype.forEach.call(document.querySelectorAll("[data-version]"), function (el) {
+    el.textContent = "ver " + VERSION;
+  });
 
   var kodruta = document.getElementById("kod");
   var konsol = document.getElementById("konsol");
@@ -4246,6 +4295,10 @@
     "  grundläggande, förklara från grunden utan att göra det barnsligt. Är frågan",
     "  avancerad, hoppa över det självklara.",
     "- Använd korrekta facktermer, men förklara dem första gången de dyker upp.",
+    "- Behöver du matematik: skriv den som LaTeX mellan $ … $ för löpande text",
+    "  eller $$ … $$ för egen rad. Chatten renderar exponenter, index, bråk,",
+    "  rötter, grekiska bokstäver och vanliga operatorer. Håll uttrycken enkla —",
+    "  matriser och flerradiga uppställningar renderas inte.",
     "- Jämförelser och exempel ska vara begripliga oavsett ålder. Undvik liknelser",
     "  hämtade från skolvärlden eller barns vardag.",
     "",
@@ -4461,11 +4514,27 @@
 
   function markdown(text) {
     var kodblock = [];
+    var matte = [];
+
     // 1. Plocka undan kodblock så de inte rörs av resten.
     var arbete = String(text).replace(/```([\w+-]*)\n?([\s\S]*?)```/g, function (_, sprak, kod) {
       kodblock.push('<pre class="kodblock"><code>' + fly(kod.replace(/\n$/, "")) + "</code></pre>");
       return "\u0000KOD" + (kodblock.length - 1) + "\u0000";
     });
+
+    // 2. Plocka undan matematik: $$…$$, \[…\], $…$ och \(…\).
+    function sparaMatte(inneh, block) {
+      matte.push('<span class="matte' + (block ? " block" : "") + '">' +
+                 latex(fly(inneh)) + "</span>");
+      return "\u0000MAT" + (matte.length - 1) + "\u0000";
+    }
+    arbete = arbete
+      .replace(/\$\$([\s\S]+?)\$\$/g, function (_, m) { return sparaMatte(m, true); })
+      .replace(/\\\[([\s\S]+?)\\\]/g, function (_, m) { return sparaMatte(m, true); })
+      .replace(/\\\(([\s\S]+?)\\\)/g, function (_, m) { return sparaMatte(m, false); })
+      .replace(/(^|[^\\$])\$([^$\n]+?)\$/g, function (_, fore, m) {
+        return fore + sparaMatte(m, false);
+      });
 
     arbete = fly(arbete);
     var rader = arbete.split("\n");
@@ -4524,8 +4593,110 @@
     stangStycke(); stangLista();
 
     var html = ut.join("\n");
-    // 2. Lägg tillbaka kodblocken.
-    return html.replace(/\u0000KOD(\d+)\u0000/g, function (_, i) { return kodblock[i]; });
+    // Lägg tillbaka kodblock och matematik.
+    return html
+      .replace(/\u0000KOD(\d+)\u0000/g, function (_, i) { return kodblock[i]; })
+      .replace(/\u0000MAT(\d+)\u0000/g, function (_, i) { return matte[i]; });
+  }
+
+  /* ---- liten LaTeX-tolk ----
+     Täcker det som faktiskt dyker upp i en programmeringskurs:
+     exponenter, index, bråk, rötter, grekiska bokstäver och operatorer.
+     Renderas med <sup>, <sub> och lite CSS — inget bibliotek behövs. */
+  var GREKISKA = {
+    alpha: "α", beta: "β", gamma: "γ", delta: "δ", epsilon: "ε", zeta: "ζ",
+    eta: "η", theta: "θ", iota: "ι", kappa: "κ", lambda: "λ", mu: "μ",
+    nu: "ν", xi: "ξ", pi: "π", rho: "ρ", sigma: "σ", tau: "τ", phi: "φ",
+    chi: "χ", psi: "ψ", omega: "ω",
+    Gamma: "Γ", Delta: "Δ", Theta: "Θ", Lambda: "Λ", Xi: "Ξ", Pi: "Π",
+    Sigma: "Σ", Phi: "Φ", Psi: "Ψ", Omega: "Ω"
+  };
+  var SYMBOLER = {
+    times: "×", cdot: "·", div: "÷", pm: "±", mp: "∓",
+    leq: "≤", le: "≤", geq: "≥", ge: "≥", neq: "≠", ne: "≠",
+    approx: "≈", equiv: "≡", propto: "∝", sim: "∼",
+    infty: "∞", partial: "∂", nabla: "∇", forall: "∀", exists: "∃",
+    in: "∈", notin: "∉", subset: "⊂", cup: "∪", cap: "∩",
+    sum: "∑", prod: "∏", int: "∫", sqrt: "√",
+    rightarrow: "→", to: "→", leftarrow: "←", Rightarrow: "⇒",
+    leftrightarrow: "↔", mapsto: "↦", ldots: "…", dots: "…", cdots: "⋯",
+    quad: " ", qquad: "  ", ",": " ", ";": " ", " ": " "
+  };
+
+  /* Läser en grupp: antingen {…} eller ett enda tecken. */
+  function grupp(src, i) {
+    if (src[i] === "{") {
+      var djup = 1, j = i + 1;
+      while (j < src.length && djup > 0) {
+        if (src[j] === "{") djup++;
+        else if (src[j] === "}") djup--;
+        j++;
+      }
+      return { text: src.slice(i + 1, j - 1), slut: j };
+    }
+    if (src[i] === "\\") {
+      var m = /^\\[a-zA-Z]+/.exec(src.slice(i));
+      if (m) return { text: m[0], slut: i + m[0].length };
+    }
+    return { text: src[i] || "", slut: i + 1 };
+  }
+
+  function latex(src) {
+    var ut = "";
+    var i = 0;
+    while (i < src.length) {
+      var c = src[i];
+
+      if (c === "^" || c === "_") {
+        var g = grupp(src, i + 1);
+        var tagg = c === "^" ? "sup" : "sub";
+        ut += "<" + tagg + ">" + latex(g.text) + "</" + tagg + ">";
+        i = g.slut;
+        continue;
+      }
+
+      if (c === "\\") {
+        var kommando = /^\\([a-zA-Z]+|.)/.exec(src.slice(i));
+        if (!kommando) { i++; continue; }
+        var namn = kommando[1];
+        var efter = i + kommando[0].length;
+
+        if (namn === "frac" || namn === "dfrac" || namn === "tfrac") {
+          var t = grupp(src, efter);
+          var n = grupp(src, t.slut);
+          ut += '<span class="brak"><span class="taljare">' + latex(t.text) +
+                '</span><span class="namnare">' + latex(n.text) + "</span></span>";
+          i = n.slut;
+          continue;
+        }
+        if (namn === "sqrt") {
+          var r = grupp(src, efter);
+          ut += '√<span class="rot">' + latex(r.text) + "</span>";
+          i = r.slut;
+          continue;
+        }
+        if (namn === "text" || namn === "mathrm" || namn === "mathbf" ||
+            namn === "operatorname" || namn === "mathit") {
+          var tx = grupp(src, efter);
+          var inneh = latex(tx.text);
+          ut += namn === "mathbf" ? "<strong>" + inneh + "</strong>" : inneh;
+          i = tx.slut;
+          continue;
+        }
+        if (namn === "left" || namn === "right") { i = efter; continue; }
+        if (GREKISKA[namn]) { ut += GREKISKA[namn]; i = efter; continue; }
+        if (SYMBOLER[namn] !== undefined) { ut += SYMBOLER[namn]; i = efter; continue; }
+        ut += namn;                      // okänt kommando: visa namnet
+        i = efter;
+        continue;
+      }
+
+      if (c === "{" || c === "}") { i++; continue; }
+      if (c === "*") { ut += "·"; i++; continue; }
+      ut += c;
+      i++;
+    }
+    return ut;
   }
 
   function ritaBubbla(rubrik, text, klass) {
