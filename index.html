@@ -425,6 +425,7 @@
       <div class="verktyg">
         <span class="filnamn" id="filnamn">nytt_program.py</span>
         <button class="knapp" id="ny-knapp">Nytt</button>
+        <button class="knapp" id="aterstall-kapitel" hidden>Återställ kapitel</button>
         <button class="knapp" id="oppna-knapp">Öppna fil</button>
         <button class="knapp" id="spara-knapp">Spara</button>
         <button class="knapp" id="spara-som-knapp">Spara som</button>
@@ -603,6 +604,7 @@
   var sparEl = document.getElementById("spar");
   var lektionstext = document.getElementById("lektionstext");
   var startKnapp = document.getElementById("start-knapp");
+  var aterstallKapitelKnapp = document.getElementById("aterstall-kapitel");
   var panelLektion = document.getElementById("panel-lektion");
   var panelUtskrift = document.getElementById("panel-utskrift");
   var flikLektion = document.getElementById("flik-lektion");
@@ -626,6 +628,7 @@
   var filnamn = "nytt_program.py";
   var andrad = false;
   var aktivLektion = null;
+  var oppenFil = null;
 
   /* =======================================================
      KAPITEL
@@ -3862,8 +3865,11 @@
       filnamnEl.appendChild(prick);
     }
   }
-  function markeraAndrad() { if (!andrad) { andrad = true; visaFilnamn(); } }
-  function markeraSparad() { andrad = false; visaFilnamn(); }
+  function markeraAndrad() {
+    if (!andrad) { andrad = true; visaFilnamn(); }
+    if (buffertar[buffertnyckel()]) buffertar[buffertnyckel()].kod = kodruta.value;
+  }
+  function markeraSparad() { andrad = false; visaFilnamn(); sparaBuffert(); }
 
   function harFilsystem() {
     return typeof window.showSaveFilePicker === "function";
@@ -3914,17 +3920,18 @@
   }
 
   function laddaText(text, namn, handtag) {
-    kodruta.value = text;
-    kodruta.scrollTop = 0;
-    kodruta.setSelectionRange(0, 0);
-    filnamn = namn;
-    filhandtag = handtag || null;
+    sparaBuffert();
     aktivLektion = null;
+    oppenFil = "fil:" + namn;
+    buffertar[oppenFil] = { kod: text, filnamn: namn, filhandtag: handtag || null,
+                            andrad: false, markor: 0, rullning: 0 };
+    laddaBuffert(oppenFil, text, namn);
     markeraVald(-1);
-    markeraSparad();
+    aterstallKapitelKnapp.hidden = true;
     visaFlik("utskrift");
     rensaKonsol();
     skriv("Öppnade " + namn + ".\n", "system");
+    byteAvSamtal();
   }
 
   async function oppnaFil() {
@@ -3966,7 +3973,12 @@
   });
 
   window.addEventListener("beforeunload", function (e) {
-    if (andrad && kodruta.value.trim()) { e.preventDefault(); e.returnValue = ""; }
+    sparaBuffert();
+    var osparat = andrad;
+    Object.keys(buffertar).forEach(function (n) {
+      if (buffertar[n].andrad && buffertar[n].kod.trim()) osparat = true;
+    });
+    if (osparat) { e.preventDefault(); e.returnValue = ""; }
   });
 
   /* =======================================================
@@ -3980,47 +3992,90 @@
 
   var STARTSIDA = lektionstext.innerHTML;
 
-  function visaStartsida() {
-    if (andrad && kodruta.value.trim()) {
-      if (!confirm("Gå till Start? Koden i rutan är inte sparad.")) return;
+  /* ---- en buffert per kapitel, som separata notebooks ---- */
+  var buffertar = {};
+
+  function buffertnyckel() {
+    if (aktivLektion !== null) return "kap:" + aktivLektion;
+    return oppenFil || "start";
+  }
+
+  function sparaBuffert() {
+    buffertar[buffertnyckel()] = {
+      kod: kodruta.value,
+      filnamn: filnamn,
+      filhandtag: filhandtag,
+      andrad: andrad,
+      markor: kodruta.selectionStart,
+      rullning: kodruta.scrollTop
+    };
+  }
+
+  /* Hämtar tillbaka en buffert, eller skapar den från originalkoden. */
+  function laddaBuffert(nyckel, standardkod, standardnamn) {
+    var b = buffertar[nyckel];
+    if (!b) {
+      b = { kod: standardkod, filnamn: standardnamn, filhandtag: null,
+            andrad: false, markor: 0, rullning: 0 };
+      buffertar[nyckel] = b;
     }
-    kodruta.value = STARTKOD;
-    kodruta.scrollTop = 0;
-    kodruta.setSelectionRange(0, 0);
-    filnamn = "nytt_program.py";
-    filhandtag = null;
+    kodruta.value = b.kod;
+    filnamn = b.filnamn;
+    filhandtag = b.filhandtag;
+    andrad = b.andrad;
+    visaFilnamn();
+    kodruta.scrollTop = b.rullning;
+    var pos = Math.min(b.markor, kodruta.value.length);
+    kodruta.setSelectionRange(pos, pos);
+    return b;
+  }
+
+  function visaStartsida() {
+    sparaBuffert();
     aktivLektion = null;
-    markeraSparad();
+    oppenFil = null;
+    laddaBuffert("start", STARTKOD, "nytt_program.py");
     markeraVald(-2);
     lektionstext.innerHTML = STARTSIDA;
     lektionstext.className = "lektionstext start";
     panelLektion.scrollTop = 0;
     visaFlik("lektion");
-    rensaKonsol();
+    aterstallKapitelKnapp.hidden = true;
     byteAvSamtal();
   }
   startKnapp.addEventListener("click", visaStartsida);
 
   function oppnaLektion(i) {
     var lek = LEKTIONER[i];
-    if (andrad && kodruta.value.trim()) {
-      if (!confirm("Öppna kapitel " + (i + 1) + "? Koden i rutan är inte sparad.")) return;
-    }
-    kodruta.value = lek.kod;
-    kodruta.scrollTop = 0;
-    kodruta.setSelectionRange(0, 0);
-    filnamn = lek.fil;
-    filhandtag = null;
+    sparaBuffert();
     aktivLektion = i;
-    markeraSparad();
+    oppenFil = null;
+    laddaBuffert("kap:" + i, lek.kod, lek.fil);
     markeraVald(i);
     lektionstext.innerHTML = "<h3>Kapitel " + (i + 1) + " — " + lek.titel + "</h3>" + lek.forklaring;
     lektionstext.className = "lektionstext";
     panelLektion.scrollTop = 0;
     visaFlik("lektion");
-    rensaKonsol();
+    aterstallKapitelKnapp.hidden = false;
     byteAvSamtal();
   }
+
+  /* Lägger tillbaka kapitlets originalkod. */
+  function aterstallKapitel() {
+    if (aktivLektion === null) return;
+    var lek = LEKTIONER[aktivLektion];
+    if (kodruta.value !== lek.kod &&
+        !confirm("Lägga tillbaka originalkoden för kapitel " +
+                 (aktivLektion + 1) + "? Dina ändringar försvinner.")) return;
+    delete buffertar["kap:" + aktivLektion];
+    laddaBuffert("kap:" + aktivLektion, lek.kod, lek.fil);
+    kodruta.scrollTop = 0;
+    kodruta.setSelectionRange(0, 0);
+    rensaKonsol();
+    kodruta.focus();
+  }
+  aterstallKapitelKnapp.addEventListener("click", aterstallKapitel);
+
 
   function ritaLektioner() {
     var behallare = document.getElementById("lektionslista");
@@ -4655,14 +4710,16 @@ _plt.show = _labb_visa
   document.getElementById("spara-knapp").addEventListener("click", function () { sparaFil(false); });
   document.getElementById("spara-som-knapp").addEventListener("click", function () { sparaFil(true); });
   document.getElementById("ny-knapp").addEventListener("click", function () {
-    if (andrad && kodruta.value.trim() && !confirm("Börja om? Koden i rutan är inte sparad.")) return;
-    kodruta.value = STARTKOD;
-    kodruta.scrollTop = 0;
-    filnamn = "nytt_program.py";
-    filhandtag = null;
+    sparaBuffert();
     aktivLektion = null;
+    oppenFil = "fil:nytt_program_" + Date.now() + ".py";
+    buffertar[oppenFil] = { kod: STARTKOD, filnamn: "nytt_program.py",
+                            filhandtag: null, andrad: false, markor: 0, rullning: 0 };
+    laddaBuffert(oppenFil, STARTKOD, "nytt_program.py");
     markeraVald(-1);
-    markeraSparad();
+    aterstallKapitelKnapp.hidden = true;
+    rensaKonsol();
+    byteAvSamtal();
     kodruta.focus();
   });
 
