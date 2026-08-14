@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Pythonlabbet (ver 1.0)</title>
+<title>Pythonlabbet (ver 1.01)</title>
 <meta name="description" content="Pythonlabbet är en interaktiv kurs i Python som körs direkt i webbläsaren. 28 kapitel från din första utskrift till 3D-grafik, maskininlärning och transformers.">
 <meta name="author" content="Pythonlabbet">
 <meta name="color-scheme" content="dark">
@@ -366,8 +366,11 @@
   }
   #app-root .ai-svar .bubbla {
     border-left: 2px solid var(--amber); padding: 2px 0 2px 14px;
-    white-space: pre-wrap; word-break: break-word;
+    word-break: break-word;
+    white-space: normal;          /* markdown ger egna block */
   }
+  #app-root .ai-svar .bubbla.arbetar,
+  #app-root .ai-svar .bubbla.fel { white-space: pre-wrap; }
   #app-root .ai-svar .bubbla.arbetar { border-color: var(--chalk-dim); color: var(--chalk-dim); }
   #app-root .ai-svar .bubbla.fel { border-color: var(--coral); color: var(--coral); }
   #app-root .ai-svar code {
@@ -4089,6 +4092,7 @@
     kodruta.scrollTop = b.rullning;
     var pos = Math.min(b.markor, kodruta.value.length);
     kodruta.setSelectionRange(pos, pos);
+    sistaMarkering = { start: 0, slut: 0 };
     return b;
   }
 
@@ -4366,9 +4370,23 @@
     return delar.join("\n");
   }
 
+  var sistaMarkering = { start: 0, slut: 0 };
+
   function markeradKod() {
     var a = kodruta.selectionStart, b = kodruta.selectionEnd;
-    return b > a ? kodruta.value.slice(a, b) : "";
+    if (b > a) return kodruta.value.slice(a, b);
+    // Textrutan kan ha tappat markeringen när fokus flyttades.
+    if (sistaMarkering.slut > sistaMarkering.start &&
+        sistaMarkering.slut <= kodruta.value.length) {
+      return kodruta.value.slice(sistaMarkering.start, sistaMarkering.slut);
+    }
+    return "";
+  }
+
+  function kommIhagMarkering() {
+    var a = kodruta.selectionStart, b = kodruta.selectionEnd;
+    if (b > a) sistaMarkering = { start: a, slut: b };
+    else sistaMarkering = { start: 0, slut: 0 };
   }
 
   function visaKontext() {
@@ -4700,8 +4718,20 @@
     }
   });
 
-  ["keyup", "mouseup", "input"].forEach(function (h) {
-    kodruta.addEventListener(h, visaKontext);
+  ["keyup", "mouseup", "input", "select"].forEach(function (h) {
+    kodruta.addEventListener(h, function () {
+      kommIhagMarkering();
+      visaKontext();
+    });
+  });
+
+  /* Knappar som arbetar mot markeringen får inte stjäla fokus från
+     textrutan — då försvinner den blå markeringen medan man klickar. */
+  ["ai-snabb", "forklara-knapp"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener("mousedown", function (e) {
+      if (e.target.closest("button")) e.preventDefault();
+    });
   });
 
   aiElement("ai-testa").addEventListener("click", async function () {
