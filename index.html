@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Pythonlabbet — lär dig programmera i Python</title>
+<title>Pythonlabbet (ver 1.0)</title>
 <meta name="description" content="Pythonlabbet är en interaktiv kurs i Python som körs direkt i webbläsaren. 28 kapitel från din första utskrift till 3D-grafik, maskininlärning och transformers.">
 <meta name="author" content="Pythonlabbet">
 <meta name="color-scheme" content="dark">
@@ -325,6 +325,40 @@
   #app-root .ai-svar .fran-mig {
     border-left: 2px solid var(--mint); padding: 2px 0 2px 14px;
     margin: 14px 0 4px; white-space: pre-wrap; color: var(--chalk-dim);
+  }
+
+  /* ---- markdown i assistentens svar ---- */
+  #app-root .ai-svar .bubbla > *:first-child { margin-top: 0; }
+  #app-root .ai-svar .bubbla > *:last-child { margin-bottom: 0; }
+  #app-root .ai-svar .bubbla p { margin: 0 0 9px; }
+  #app-root .ai-svar .bubbla h3,
+  #app-root .ai-svar .bubbla h4 {
+    font-size: 13.5px; color: var(--amber); font-weight: 600;
+    margin: 14px 0 6px; letter-spacing: 0.01em; text-transform: none;
+    font-family: var(--sans);
+  }
+  #app-root .ai-svar .bubbla ul,
+  #app-root .ai-svar .bubbla ol { margin: 0 0 9px; padding-left: 20px; }
+  #app-root .ai-svar .bubbla li { margin-bottom: 4px; }
+  #app-root .ai-svar .bubbla strong { color: var(--chalk); font-weight: 650; }
+  #app-root .ai-svar .bubbla em { font-style: italic; color: var(--chalk); }
+  #app-root .ai-svar .bubbla hr {
+    border: 0; border-top: 1px solid var(--line); margin: 12px 0;
+  }
+  #app-root .ai-svar .bubbla code {
+    font-family: var(--mono); font-size: 12.5px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 4px; padding: 1px 5px; color: var(--chalk);
+  }
+  #app-root .ai-svar .kodblock {
+    background: var(--blueprint); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px 12px; margin: 0 0 10px;
+    overflow-x: auto;
+  }
+  #app-root .ai-svar .kodblock code {
+    background: none; border: 0; padding: 0;
+    font-size: 12.8px; line-height: 1.55;
+    color: var(--chalk); white-space: pre; display: block;
   }
   #app-root .ai-svar .fraga-eko {
     font-family: var(--mono); font-size: 11.5px; color: var(--chalk-dim);
@@ -4392,6 +4426,90 @@
     return ((j.choices && j.choices[0] && j.choices[0].message.content) || "").trim();
   }
 
+  /* Liten markdown-tolk. Allt escapas först, så modellens svar kan
+     aldrig injicera HTML i sidan. */
+  function fly(text) {
+    return String(text)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function inline(rad) {
+    return rad
+      .replace(/`([^`]+)`/g, function (_, k) { return "<code>" + k + "</code>"; })
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;:)!?]|$)/g, "$1<em>$2</em>")
+      .replace(/(^|[\s(])_([^_\n]+)_(?=[\s.,;:)!?]|$)/g, "$1<em>$2</em>");
+  }
+
+  function markdown(text) {
+    var kodblock = [];
+    // 1. Plocka undan kodblock så de inte rörs av resten.
+    var arbete = String(text).replace(/```([\w+-]*)\n?([\s\S]*?)```/g, function (_, sprak, kod) {
+      kodblock.push('<pre class="kodblock"><code>' + fly(kod.replace(/\n$/, "")) + "</code></pre>");
+      return "\u0000KOD" + (kodblock.length - 1) + "\u0000";
+    });
+
+    arbete = fly(arbete);
+    var rader = arbete.split("\n");
+    var ut = [];
+    var lista = null;          // "ul" eller "ol" när vi är inne i en lista
+    var stycke = [];
+
+    function stangStycke() {
+      if (stycke.length) {
+        ut.push("<p>" + inline(stycke.join(" ")) + "</p>");
+        stycke = [];
+      }
+    }
+    function stangLista() {
+      if (lista) { ut.push("</" + lista + ">"); lista = null; }
+    }
+
+    rader.forEach(function (rad) {
+      var trim = rad.trim();
+
+      if (/^\u0000KOD\d+\u0000$/.test(trim)) {
+        stangStycke(); stangLista();
+        ut.push(trim);
+        return;
+      }
+      if (!trim) { stangStycke(); stangLista(); return; }
+
+      var rubrik = trim.match(/^(#{1,4})\s+(.*)$/);
+      if (rubrik) {
+        stangStycke(); stangLista();
+        var niva = Math.min(4, rubrik[1].length + 2);
+        ut.push("<h" + niva + ">" + inline(rubrik[2]) + "</h" + niva + ">");
+        return;
+      }
+      if (/^([-*•])\s+/.test(trim)) {
+        stangStycke();
+        if (lista !== "ul") { stangLista(); ut.push("<ul>"); lista = "ul"; }
+        ut.push("<li>" + inline(trim.replace(/^([-*•])\s+/, "")) + "</li>");
+        return;
+      }
+      var numrerad = trim.match(/^(\d+)[.)]\s+(.*)$/);
+      if (numrerad) {
+        stangStycke();
+        if (lista !== "ol") { stangLista(); ut.push("<ol>"); lista = "ol"; }
+        ut.push("<li>" + inline(numrerad[2]) + "</li>");
+        return;
+      }
+      if (/^(---+|===+|\*\*\*+)$/.test(trim)) {
+        stangStycke(); stangLista();
+        ut.push("<hr>");
+        return;
+      }
+      stangLista();
+      stycke.push(trim);
+    });
+    stangStycke(); stangLista();
+
+    var html = ut.join("\n");
+    // 2. Lägg tillbaka kodblocken.
+    return html.replace(/\u0000KOD(\d+)\u0000/g, function (_, i) { return kodblock[i]; });
+  }
+
   function ritaBubbla(rubrik, text, klass) {
     var svarsyta = aiElement("ai-svar");
     if (rubrik) {
@@ -4402,7 +4520,13 @@
     }
     var bubbla = document.createElement("div");
     bubbla.className = klass || "bubbla";
-    bubbla.textContent = text;
+    // Bara assistentens svar tolkas som markdown. Egna frågor och
+    // felmeddelanden visas ordagrant.
+    if (!klass || klass === "bubbla") {
+      bubbla.innerHTML = markdown(text);
+    } else {
+      bubbla.textContent = text;
+    }
     svarsyta.appendChild(bubbla);
     svarsyta.scrollTop = svarsyta.scrollHeight;
     if (bubbla.scrollIntoView) bubbla.scrollIntoView({ block: "nearest" });
@@ -4442,7 +4566,7 @@
       s.visning.push({ rubrik: null, text: svar, klass: "bubbla" });
       s.meddelanden.push({ role: "assistant", content: svar });
       if (samtalsnyckel() === nyckel) {
-        bubbla.textContent = svar;
+        bubbla.innerHTML = markdown(svar);
         bubbla.className = "bubbla";
       }
     } catch (e) {
