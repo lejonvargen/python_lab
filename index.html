@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.08";
+  window.PYTHONLABBET_VERSION = "1.14";
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pythonlabbet</title>
@@ -117,7 +117,7 @@
   }
 
   #app-root .topbar {
-    display: flex; align-items: baseline; gap: 14px;
+    display: flex; align-items: center; gap: 14px;
     padding: 13px 18px; border-bottom: 1px solid var(--line);
     background: rgba(14, 28, 51, 0.85); flex: 0 0 auto;
   }
@@ -133,6 +133,20 @@
     font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
     color: var(--chalk-dim); text-transform: none; margin-left: 9px;
   }
+  #app-root .omlank {
+    /* Samma sättning som strömbrytarnas etiketter till vänster. */
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--chalk-dim);
+    background: transparent; border: 0; padding: 0;
+    margin-left: 10px; cursor: pointer; line-height: inherit;
+    align-self: center;
+    text-decoration: underline; text-underline-offset: 3px;
+    text-decoration-color: rgba(147, 169, 204, 0.35);
+  }
+  #app-root .omlank:hover {
+    color: var(--amber); text-decoration-color: var(--amber);
+  }
+  #app-root .omlank:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
   #app-root .strombrytare {
     display: inline-flex; align-items: center; gap: 8px;
     cursor: pointer; user-select: none; margin-left: 4px;
@@ -217,6 +231,11 @@
   #app-root button.kor { background: var(--amber); border-color: var(--amber); color: #2a1a00; font-weight: 650; }
   #app-root button.kor:hover { background: #ffd772; }
   #app-root button.kor:disabled { opacity: .45; cursor: wait; }
+  #app-root button.stoppa {
+    background: var(--coral); border-color: var(--coral);
+    color: #2a0a05; font-weight: 650;
+  }
+  #app-root button.stoppa:hover { background: #ff9686; }
 
   #app-root textarea {
     flex: 1 1 auto; width: 100%; resize: none; border: 0; outline: none;
@@ -323,6 +342,12 @@
   #app-root .ai-status { font-family: var(--mono); font-size: 11.5px; color: var(--chalk-dim); }
   #app-root .ai-status.ok { color: var(--mint); }
   #app-root .ai-status.fel { color: var(--coral); }
+  #app-root .om-text { font-size: 14px; line-height: 1.6; margin: 0 0 12px; }
+  #app-root .om-text a { color: var(--amber); }
+  #app-root .om-copyright {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em;
+    color: var(--chalk-dim); margin: 18px 0 0;
+  }
   #app-root .dialog-fel {
     margin: 12px 0 0; padding: 9px 11px; font-size: 12.5px; line-height: 1.5;
     color: var(--coral); border: 1px solid rgba(255,125,107,.35);
@@ -540,11 +565,17 @@
 
 <header class="topbar">
   <h1 class="wordmark">Pythonlabbet<span class="version" data-version></span></h1>
+  <label class="strombrytare" title="Stänger av loopvakten. Koden kör snabbare, men kan inte avbrytas.">
+    <input type="checkbox" id="prestanda-toggle">
+    <span class="spar-toggle"><span class="knopp"></span></span>
+    <span class="toggle-text">Prestandaläge</span>
+  </label>
   <label class="strombrytare" id="ai-toggle-etikett">
     <input type="checkbox" id="ai-toggle">
     <span class="spar-toggle"><span class="knopp"></span></span>
     <span class="toggle-text">AI-stöd</span>
   </label>
+  <button class="omlank" id="om-knapp">Om Pythonlabbet</button>
   <span class="status" id="status"><span class="dot"></span><span id="status-text">Startar Python …</span></span>
 </header>
 
@@ -562,11 +593,12 @@
       <div class="verktyg">
         <span class="filnamn" id="filnamn">nytt_program.py</span>
         <button class="knapp" id="ny-knapp">Nytt</button>
-        <button class="knapp" id="aterstall-kapitel" hidden>Återställ kapitel</button>
+        <button class="knapp" id="aterstall-kapitel">Återställ</button>
         <button class="knapp" id="oppna-knapp">Öppna fil</button>
         <button class="knapp" id="spara-knapp">Spara</button>
         <button class="knapp" id="spara-som-knapp">Spara som</button>
         <button class="knapp kor" id="kor-knapp" disabled>Kör</button>
+        <button class="knapp stoppa" id="stoppa-knapp" hidden>Stoppa</button>
       </div>
       <textarea id="kod" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
       <input type="file" id="filvaljare" accept=".py,.txt" hidden>
@@ -593,7 +625,7 @@
         <div class="lektionstext start" id="lektionstext">
           <p class="valkomst">Välkommen till Pythonlabbet</p>
           <p class="startversion" data-version></p>
-          <p class="ingress">En riktig Python-tolk som kör inuti webbläsaren. Ingen installation, inget konto — koden körs på din egen dator. 28 kapitel tar dig från din första utskrift till hur en språkmodell fungerar inuti.</p>
+          <p class="ingress">En riktig Python-tolk som kör inuti webbläsaren. Ingen installation, inget konto — koden körs på din egen dator. 29 kapitel tar dig från din första utskrift till hur en språkmodell fungerar inuti.</p>
 
           <div class="snabbstart">
             <strong>Kom igång på en minut</strong>
@@ -629,17 +661,17 @@
             </div>
             <div class="del-kort">
               <h4>Projekt</h4>
-              <span class="spann">Kapitel 18–20</span>
-              <p>Ett gissningsspel, och sedan 3D-grafik: snurrande kuber, fordon, djur och en hel liten värld byggd av kod.</p>
+              <span class="spann">Kapitel 18–21</span>
+              <p>Ett gissningsspel, och sedan 3D-grafik: snurrande kuber, fordon och djur, en hel liten värld — och en Minecraft-artad voxelvärld av nio tusen kuber.</p>
             </div>
             <div class="del-kort">
               <h4>Maskininlärning</h4>
-              <span class="spann">Kapitel 21–24</span>
+              <span class="spann">Kapitel 22–25</span>
               <p>Träna en modell som lär sig regler själv, göra text till siffror, bygga egna embeddings och hämta öppna data från nätet.</p>
             </div>
             <div class="del-kort">
               <h4>Slutprojekt</h4>
-              <span class="spann">Kapitel 25–28</span>
+              <span class="spann">Kapitel 26–29</span>
               <p>Sveriges väder i 3D med riktig SMHI-data, modeller du kan se, en egen språkmodell — och mekanismen bakom transformers.</p>
             </div>
           </div>
@@ -696,6 +728,23 @@
   </section>
 </div>
 
+<div class="overlagring" id="om-overlagring" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="om-rubrik">
+    <h2 class="dialog-rubrik" id="om-rubrik">Om Pythonlabbet</h2>
+    <p class="dialog-ingress" data-version></p>
+    <p class="om-text">Pythonlabbet är utvecklat av Gabriel Westman.</p>
+    <p class="om-text">Om du är intresserad av att använda applikationen för
+      utbildning eller undervisning — ta kontakt via
+      <a href="https://www.linkedin.com/in/gabriel-westman-08a708206/"
+         target="_blank" rel="noopener">LinkedIn</a>.</p>
+    <p class="om-copyright">Copyright Gabriel Westman 2026</p>
+    <div class="dialog-fot">
+      <span class="ai-status">Python körs lokalt i din webbläsare</span>
+      <button class="knapp kor" id="om-stang">Stäng</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlagring" id="ai-overlagring" hidden>
   <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="ai-dialog-rubrik">
     <h2 class="dialog-rubrik" id="ai-dialog-rubrik">Koppla in AI-hjälpen</h2>
@@ -750,7 +799,9 @@
   var ogTitel = document.querySelector('meta[property="og:title"]');
   if (ogTitel) ogTitel.setAttribute("content", document.title);
   Array.prototype.forEach.call(document.querySelectorAll("[data-version]"), function (el) {
-    el.textContent = "ver " + VERSION;
+    el.textContent = el.classList.contains("dialog-ingress")
+      ? "Version " + VERSION
+      : "ver " + VERSION;
   });
 
   var kodruta = document.getElementById("kod");
@@ -773,6 +824,8 @@
   var helskarmKnapp = document.getElementById("helskarm-knapp");
   var aterstallKnapp = document.getElementById("aterstall-knapp");
   var rensaKnapp = document.getElementById("rensa-knapp");
+  var stoppaKnapp = document.getElementById("stoppa-knapp");
+  var prestandaToggle = document.getElementById("prestanda-toggle");
   var flikAi = document.getElementById("flik-ai");
   var panelAi = document.getElementById("panel-ai");
   var aiToggle = document.getElementById("ai-toggle");
@@ -781,11 +834,11 @@
 
   var pyodide = null;
   var forberedKod = null;
+  var nollstallVakt = null;
   var filhandtag = null;
   var filnamn = "nytt_program.py";
   var andrad = false;
   var aktivLektion = null;
-  var oppenFil = null;
 
   /* =======================================================
      KAPITEL
@@ -1850,7 +1903,499 @@
       <div class="uppgift"><strong>Uppgift:</strong> bygg din egen stad. En rad med skyskrapor längs ena kanten, hus på andra, och trafik emellan. Låt sedan två bilar köra i cirklar med olika radie — och se om du kan få dem att mötas i mitten utan att krocka.</div>`
   },
   {
-    del: "Maskininlärning", titel: "Träna en modell", fil: "21_maskininlarning.py",
+    del: "Projekt", titel: "Allt är kuber", fil: "21_allt_ar_kuber.py",
+    kod: [
+      "import scen",
+      "",
+      "scen.starta()",
+      "scen.bakgrund(\"#0e1c33\")",
+      "scen.kamera(500, 500, 900)",
+      "",
+      "# En liten Minecraft-värld av kuber.",
+      "#",
+      "# Allt som finns i världen ligger färdigt som data längst ner:",
+      "#",
+      "#     MARK       en karta över hur hög marken är, ett tecken per ruta",
+      "#     OBJEKT     vilka hus, träd, klippor och blommor som står var",
+      "#     RITNINGAR  hur varje sak är byggd, kub för kub",
+      "#",
+      "# Programmet här uppe gör tre saker:",
+      "#",
+      "#     1. lägger ut marken",
+      "#     2. ställer objekten ovanpå marken",
+      "#     3. räknar ut varje kubs färg och ritar den",
+      "#",
+      "# Vill du ändra något? Flytta ett hus i OBJEKT, eller höj marken genom att",
+      "# byta en siffra i MARK, och kör sedan om programmet.",
+      "",
+      "BREDD = 72          # hur många rutor världen är i sidled",
+      "DJUP = 72           # ... och i djupled",
+      "VATTENNIVA = 3      # allt under den här höjden ligger under vatten",
+      "NIVAER = \"0123456789abcdefg\"     # tecknen i kartan, \"0\" är lägst",
+      "",
+      "FARG = {\"gras\": \"#4f9b34\", \"jord\": \"#7a4f2a\", \"sten\": \"#7d7d7d\",",
+      "        \"berg\": \"#5f5f5f\", \"sno\": \"#f2f4f7\", \"sand\": \"#e2d3a2\",",
+      "        \"vatten\": \"#3f86d8\", \"djupt\": \"#2a5fae\", \"stam\": \"#5a3a1e\",",
+      "        \"lov\": \"#2f7a2a\", \"morklov\": \"#256b28\", \"planka\": \"#b9834b\",",
+      "        \"tak\": \"#a63a2b\", \"fonster\": \"#9fd8e8\", \"lykta\": \"#ffc94a\",",
+      "        \"tegel\": \"#8d8d92\", \"vallmo\": \"#e04b4b\", \"smorblomma\": \"#ffc94a\",",
+      "        \"blaklocka\": \"#7d8ce0\", \"prastkrage\": \"#f2f4f7\"}",
+      "BLOMMOR = [\"vallmo\", \"smorblomma\", \"blaklocka\", \"prastkrage\"]",
+      "",
+      "",
+      "# ========================================================= 1. LÄGG UT MARKEN",
+      "def marknivan(x, z):",
+      "    \"\"\"Hur högt marken ligger i rutan (x, z). Utanför kartan gäller kanten.\"\"\"",
+      "    if x < 0:",
+      "        x = 0",
+      "    if z < 0:",
+      "        z = 0",
+      "    if x > BREDD - 1:",
+      "        x = BREDD - 1",
+      "    if z > DJUP - 1:",
+      "        z = DJUP - 1",
+      "    tecken = MARK[z][x]",
+      "    return NIVAER.index(tecken)",
+      "",
+      "",
+      "def grannarnas_nivaer(x, z):",
+      "    \"\"\"Hur högt marken ligger i de fyra rutorna runt omkring.\"\"\"",
+      "    return [marknivan(x + 1, z), marknivan(x - 1, z),",
+      "            marknivan(x, z + 1), marknivan(x, z - 1)]",
+      "",
+      "",
+      "def material_pa_ytan(x, z, niva):",
+      "    \"\"\"Vad som ligger överst i en ruta.\"\"\"",
+      "    if niva <= VATTENNIVA or min(grannarnas_nivaer(x, z)) <= VATTENNIVA:",
+      "        return \"sand\"            # nere vid vattnet är det strand",
+      "    if niva >= 13:",
+      "        return \"sno\"             # högst upp på berget ligger snö",
+      "    if niva >= 10:",
+      "        return \"sten\"",
+      "    return \"gras\"",
+      "",
+      "",
+      "def bygg_marken(kuber):",
+      "    \"\"\"Lägger ut marken. Bara det som syns: ytan, och kanterna ner mot",
+      "    grannen där marken sluttar. Kuber som ändå är gömda hoppar vi över.\"\"\"",
+      "    for z in range(DJUP):",
+      "        for x in range(BREDD):",
+      "            niva = marknivan(x, z)",
+      "            kuber[(x, niva, z)] = material_pa_ytan(x, z, niva)",
+      "            for y in range(min(grannarnas_nivaer(x, z)), niva):",
+      "                if y > niva - 3:",
+      "                    kuber[(x, y, z)] = \"jord\"",
+      "                else:",
+      "                    kuber[(x, y, z)] = \"sten\"",
+      "            if niva < VATTENNIVA:",
+      "                kuber[(x, VATTENNIVA, z)] = \"djupt\"     # längre ut i sjön",
+      "            elif niva == VATTENNIVA:",
+      "                kuber[(x, VATTENNIVA, z)] = \"vatten\"    # grunt vatten",
+      "",
+      "",
+      "# ====================================================== 2. STÄLL UT OBJEKTEN",
+      "def bygg_objekten(kuber):",
+      "    \"\"\"Ställer ut alla hus, träd, klippor och blommor på sina rutor.",
+      "    Ritningen räknas från foten: (0, 0, 0) är objektets nedersta kub.\"\"\"",
+      "    for namn, platser in OBJEKT.items():",
+      "        for x, z in platser:",
+      "            niva = marknivan(x, z)",
+      "            for material, punkter in RITNINGAR[namn].items():",
+      "                for dx, dy, dz in punkter:",
+      "                    ruta = (x + dx, niva + 1 + dy, z + dz)",
+      "                    if ruta not in kuber:",
+      "                        kuber[ruta] = material      # första kuben vinner rutan",
+      "",
+      "",
+      "# ============================================================== 3. LJUSET",
+      "def hogsta_kuben(kuber):",
+      "    \"\"\"Höjden på den översta kuben i varje ruta. Behövs för skuggorna.\"\"\"",
+      "    hogsta = {}",
+      "    for (x, y, z) in kuber:",
+      "        if (x, z) not in hogsta or y > hogsta[(x, z)]:",
+      "            hogsta[(x, z)] = y",
+      "    return hogsta",
+      "",
+      "",
+      "def star_i_skugga(hogsta, x, y, z):",
+      "    \"\"\"Solen står i nordväst. Skymmer något högre solen för den här kuben?\"\"\"",
+      "    for steg in range(1, 7):",
+      "        if hogsta.get((x - steg, z - steg), -9) >= y + steg:",
+      "            return True",
+      "    return False",
+      "",
+      "",
+      "def antal_kuber_ovanfor(kuber, x, y, z):",
+      "    \"\"\"Hur många kuber som ligger rakt ovanför. Många = mörk vrå.\"\"\"",
+      "    antal = 0",
+      "    for dx in (-1, 0, 1):",
+      "        for dz in (-1, 0, 1):",
+      "            if (x + dx, y + 1, z + dz) in kuber:",
+      "                antal = antal + 1",
+      "    return antal",
+      "",
+      "",
+      "def rakna_ut_farg(kuber, hogsta, x, y, z, material):",
+      "    \"\"\"Materialets färg, mörkare i skugga och vrår, plus lite textur.\"\"\"",
+      "    ljus = 1.0 + 0.015 * (y - 6)                  # högre upp = lite ljusare",
+      "    if star_i_skugga(hogsta, x, y, z):",
+      "        ljus = ljus - 0.2",
+      "    ljus = ljus - 0.045 * antal_kuber_ovanfor(kuber, x, y, z)",
+      "    if material in (\"lykta\", \"fonster\"):",
+      "        ljus = 1.05                               # de här lyser själva",
+      "    textur = (x * 7 + y * 13 + z * 29) % 15 - 7   # samma ruta, samma textur",
+      "    hexfarg = FARG[material]",
+      "    delar = []",
+      "    for start in (1, 3, 5):                       # röd, grön och blå del",
+      "        del_av_fargen = int(hexfarg[start:start + 2], 16)",
+      "        delar.append(max(0, min(255, int(del_av_fargen * ljus) + textur)))",
+      "    return \"#{:02x}{:02x}{:02x}\".format(delar[0], delar[1], delar[2])",
+      "",
+      "",
+      "# ================================================================ 4. RITA",
+      "def rita_varlden(storlek=10):",
+      "    \"\"\"Bygger hela världen och ritar den, en kub i taget.\"\"\"",
+      "    kuber = {}",
+      "    bygg_marken(kuber)",
+      "    bygg_objekten(kuber)",
+      "    hogsta = hogsta_kuben(kuber)",
+      "    for (x, y, z), material in kuber.items():",
+      "        farg = rakna_ut_farg(kuber, hogsta, x, y, z, material)",
+      "        scen.kub(x * storlek, y * storlek, z * storlek,",
+      "                 storlek=storlek, farg=farg)",
+      "    return len(kuber)",
+      "",
+      "",
+      "# ##########################################################################",
+      "# Härifrån och ner är det bara data: kartan, listan över vad som står var och",
+      "# ritningarna. Du behöver inte läsa allt - men du får gärna ändra i det.",
+      "# ##########################################################################",
+      "",
+      "# Höjdkartan, en rad per ruta i djupled. Ett tecken per ruta: \"0\" är lägst",
+      "# och \"g\" högst. Uppe till vänster ligger berget och i mitten sjön.",
+      "MARK = \"\"\"",
+      "9abbccddddddccbbaaaaaaaa999999999888888777777666666666666666666666666777",
+      "abbcddeeeeeddccbbaaaaaaaa99999999888887777777666666666666666666666666777",
+      "abcddeefffeeedccbaaaaaaa999999998888887777776666666666666666666666666677",
+      "bcddeffggfffeedcbbaaaaaa999999998888887777776666666666655566666666666677",
+      "bcdefggggggffeddcbaaaaaa999999998888877777766666666665555555666666666677",
+      "bcdefgggggggfeedcbaaaaa9999999988888877777766666666555555555566666666667",
+      "cdefgggggggggeedcbaaaaa9999999988888877777666666665555555555556666666667",
+      "cdefgggggggggfedcbaaaa99999999988888777777666666655555555555555666666666",
+      "cdefgggggggggeedcbaaa999999999888888777776666666555555555555555566666666",
+      "bcdefggggggggeddcba99999999998888887777766666665555555555555555556666666",
+      "bcdeffgggggggaaaaaaa9999999998888877777766666655555555555555555555666666",
+      "bcddefgggggggaaaaaaa9999999988888877777666666555555555555555555555666666",
+      "abcddegggggggaaaaaaa9999999888888777776666665555555555555555555555566666",
+      "aabcdddeeedddaaaaaaa9999998888887777776666655555555555445555555555556666",
+      "9abbcccdddcccaaaaaaa9999998888887777766666555555555444444445555555556666",
+      "89aabbcccccbbaaaaaaa9999988888877777666666555555544444444444455555555666",
+      "889aaabbbbbbaaaaaaaa9998888888777776666665555555444444444444445555555666",
+      "788999aaaaaa999999999988888887777776666655555544444444444444444444444466",
+      "777889999999999999999888888887777766666555555444444444444444444444444466",
+      "777788888888889999888888888877777666665555554444444444444444444444444456",
+      "777778888888888888888888888777776666665555544444444444444444444444444456",
+      "777778888888888888888888887777776666655555444444444444444444444444444456",
+      "777777888888888888888888877777766666555554444444443333333444444444444455",
+      "777777788888888888888888777777666665555554444444333333333334444444444455",
+      "777777778888888888888877777776666655555544444443333333333333444444444455",
+      "677777777888888888888777777766666655555444444433333333333333444444444455",
+      "677777777778888888877777777666666555554444444333333333333333344444445555",
+      "667777777777777777777777777666665555544444443333333333333333334444445555",
+      "666777777777777777777777776666665555544444433333333333333333334444445555",
+      "666677777777777777777777766666655555444444333333333333333333334444445555",
+      "666677777777777777777777666666555554444443333333333333333333333444445555",
+      "666667777777777777777776666665555554444443333333333333333333333444444555",
+      "666666777777777777777766666665555544444433333333333333333333333444444555",
+      "666666677777777777777666666655555544444433333333322222333333333444444555",
+      "666666666777777777766666666655555444444333333333222222333333333444444555",
+      "666666666677777777666666666555555444444333333332222222233333333444444555",
+      "666666666666676666666666665555554444443333333332222222233333333444444555",
+      "566666666666666666666666665555554444443333333322222222233333333444444555",
+      "566666666666666666666666655555554444444433333322222222233333333444445555",
+      "556666666666666666666666655555544444444433333322222222233333333444445555",
+      "556666666666666666666655555555544444444433322222222222333333333444445555",
+      "556666666666666666666655555555544444444433211111112222333333334444445555",
+      "555666666666666666666655555555544444444432110000001123333333333333444455",
+      "555666666666666666666655555555544444444421100000000112333322211111222233",
+      "555666666666666666666655555555544444444411000000000012221100000000000111",
+      "555566666666666666666655555555544444444410000000000000000000001112222222",
+      "555566666666666666666655555555544444443210000000000000000011223334444444",
+      "555566666666666666666655555555544444443210000000000000011233444445555556",
+      "555566666666666666666666666665554444443210000000000000133334444445555566",
+      "555566666666666666666666666665554444443210000000000001233344444455555566",
+      "555566666666666666666666666665554444443210000000000012333444444455555666",
+      "555566666666666666666666666665555444443221000000000012334444444555556666",
+      "555566666666666666666666666665555544444321100000000123344444445555556666",
+      "555666666666666666666666666665555544444432110000011223444444455555566666",
+      "555666666666666666666666666665555554444433221111122334444444555555566666",
+      "555666666666666666666666666665555555444444332222223344444444555555666666",
+      "556666666666666666666666666665555555544444443333334444444455555556666667",
+      "556666666666666666666666666666555555555444444444444444444555555566666677",
+      "566666666666666666666666666666655555555544444444444444445555555566666677",
+      "566666666666666666666666666666665555555555444444444444555555555666666777",
+      "666666666666666666666666666666666555555555555444444455555555556666667777",
+      "666666666666666666666666666666666655555555555555555555555555566666677777",
+      "666666666676666666666667766666666666555555555555555555555555666666677777",
+      "666666666777777777777777777666666666655555555555555555555556666666777777",
+      "666666667777777777777777777766666666666555555555555555555666666667777777",
+      "666666677777777777777777777777666666666665555555555555556666666677777778",
+      "666666677777777777777777777777766666666666655555555555666666666677777778",
+      "666666777777777777777777777777777666666666666655555666666666666777777788",
+      "666667777777777777777777777777777766666666666666666666666666667777777888",
+      "666667777777777777788777777777777777666666666666666666666666677777777888",
+      "666677777777777888888888877777777777766666666666666666666666777777778888",
+      "666677777777778888888888888777777777777666666666666666666666777777778888",
+      "\"\"\".split()",
+      "",
+      "# Var varje sak står, som (x, z).",
+      "OBJEKT = {",
+      "    \"stuga\": [(12, 44), (21, 49), (62, 19)],",
+      "    \"lada\": [(13, 55)],",
+      "    \"skjul\": [(24, 42), (34, 40)],",
+      "    \"torn\": [(9, 9), (16, 13)],",
+      "    \"hog_klippa\": [(5, 15), (44, 6)],",
+      "    \"klippa\": [(60, 8), (66, 62), (30, 67), (52, 18)],",
+      "    \"gran\": [(27, 14), (13, 30), (34, 26), (7, 26), (12, 21)],",
+      "    \"liten_gran\": [(23, 31), (28, 22), (20, 23), (31, 33)],",
+      "    \"ek\": [(8, 60), (21, 68), (36, 58), (62, 29), (67, 11), (68, 33)],",
+      "    \"litet_trad\": [(40, 65), (10, 67), (49, 58), (41, 22), (33, 48), (4, 53)],",
+      "    \"bjork\": [(20, 61), (67, 40), (52, 8), (61, 68), (57, 58)],",
+      "    \"buske\": [(5, 46), (42, 15), (66, 55)],",
+      "    \"vallmo\": [(50, 16), (44, 69), (29, 39), (34, 25), (35, 34), (23, 25),",
+      "               (52, 68), (37, 7)],",
+      "    \"smorblomma\": [(16, 53), (57, 69), (68, 33), (54, 8), (68, 39), (70, 57),",
+      "                   (6, 37), (21, 29)],",
+      "    \"blaklocka\": [(43, 12), (36, 44), (47, 68), (32, 27), (26, 46), (28, 67),",
+      "                  (57, 12), (67, 29)],",
+      "    \"prastkrage\": [(65, 10), (28, 49), (3, 25), (42, 11), (36, 23), (6, 38),",
+      "                   (69, 60)],",
+      "}",
+      "",
+      "# Hur varje sak är byggd: material -> lista med (sidled, höjd, djupled)",
+      "# räknat från objektets fot.",
+      "RITNINGAR = {",
+      "    \"ek\": {",
+      "        \"stam\": [(0,0,0), (0,1,0), (0,2,0), (0,3,0), (0,4,0)],",
+      "        \"lov\": [(-2,3,-1), (-2,3,0), (-2,3,1), (-1,3,-2), (-1,3,-1), (-1,3,0),",
+      "            (-1,3,1), (-1,3,2), (0,3,-2), (0,3,-1), (0,3,1), (0,3,2), (1,3,-2),",
+      "            (1,3,-1), (1,3,0), (1,3,1), (1,3,2), (2,3,-1), (2,3,0), (2,3,1),",
+      "            (-2,4,-1), (-2,4,0), (-2,4,1), (-1,4,-2), (-1,4,-1), (-1,4,0),",
+      "            (-1,4,1), (-1,4,2), (0,4,-2), (0,4,-1), (0,4,1), (0,4,2), (1,4,-2),",
+      "            (1,4,-1), (1,4,0), (1,4,1), (1,4,2), (2,4,-1), (2,4,0), (2,4,1),",
+      "            (-1,5,-1), (-1,5,0), (-1,5,1), (0,5,-1), (0,5,0), (0,5,1), (1,5,-1),",
+      "            (1,5,0), (1,5,1), (0,6,0)],",
+      "    },",
+      "    \"bjork\": {",
+      "        \"stam\": [(0,0,0), (0,1,0), (0,2,0), (0,3,0), (0,4,0), (0,5,0)],",
+      "        \"lov\": [(-2,4,-1), (-2,4,0), (-2,4,1), (-1,4,-2), (-1,4,-1), (-1,4,0),",
+      "            (-1,4,1), (-1,4,2), (0,4,-2), (0,4,-1), (0,4,1), (0,4,2), (1,4,-2),",
+      "            (1,4,-1), (1,4,0), (1,4,1), (1,4,2), (2,4,-1), (2,4,0), (2,4,1),",
+      "            (-2,5,-1), (-2,5,0), (-2,5,1), (-1,5,-2), (-1,5,-1), (-1,5,0),",
+      "            (-1,5,1), (-1,5,2), (0,5,-2), (0,5,-1), (0,5,1), (0,5,2), (1,5,-2),",
+      "            (1,5,-1), (1,5,0), (1,5,1), (1,5,2), (2,5,-1), (2,5,0), (2,5,1),",
+      "            (-1,6,-1), (-1,6,0), (-1,6,1), (0,6,-1), (0,6,0), (0,6,1), (1,6,-1),",
+      "            (1,6,0), (1,6,1), (0,7,0)],",
+      "    },",
+      "    \"gran\": {",
+      "        \"stam\": [(0,0,0), (0,1,0), (0,2,0), (0,3,0), (0,4,0), (0,5,0), (0,6,0),",
+      "            (0,7,0), (0,8,0)],",
+      "        \"morklov\": [(-2,2,0), (-1,2,-1), (-1,2,0), (-1,2,1), (0,2,-2),",
+      "            (0,2,-1), (0,2,1), (0,2,2), (1,2,-1), (1,2,0), (1,2,1), (2,2,0),",
+      "            (-1,3,0), (0,3,-1), (0,3,1), (1,3,0), (-2,4,0), (-1,4,-1), (-1,4,0),",
+      "            (-1,4,1), (0,4,-2), (0,4,-1), (0,4,1), (0,4,2), (1,4,-1), (1,4,0),",
+      "            (1,4,1), (2,4,0), (-1,5,0), (0,5,-1), (0,5,1), (1,5,0), (-2,6,0),",
+      "            (-1,6,-1), (-1,6,0), (-1,6,1), (0,6,-2), (0,6,-1), (0,6,1), (0,6,2),",
+      "            (1,6,-1), (1,6,0), (1,6,1), (2,6,0), (-1,7,0), (0,7,-1), (0,7,1),",
+      "            (1,7,0), (-2,8,0), (-1,8,-1), (-1,8,0), (-1,8,1), (0,8,-2), (0,8,-1),",
+      "            (0,8,1), (0,8,2), (1,8,-1), (1,8,0), (1,8,1), (2,8,0), (0,9,0)],",
+      "    },",
+      "    \"litet_trad\": {",
+      "        \"stam\": [(0,0,0), (0,1,0), (0,2,0), (0,3,0)],",
+      "        \"lov\": [(-1,2,-1), (-1,2,0), (-1,2,1), (0,2,-1), (0,2,1), (1,2,-1),",
+      "            (1,2,0), (1,2,1), (-1,3,-1), (-1,3,0), (-1,3,1), (0,3,-1), (0,3,1),",
+      "            (1,3,-1), (1,3,0), (1,3,1), (0,4,0), (0,5,0)],",
+      "    },",
+      "    \"liten_gran\": {",
+      "        \"stam\": [(0,0,0), (0,1,0), (0,2,0), (0,3,0), (0,4,0), (0,5,0), (0,6,0)],",
+      "        \"morklov\": [(-2,2,0), (-1,2,-1), (-1,2,0), (-1,2,1), (0,2,-2),",
+      "            (0,2,-1), (0,2,1), (0,2,2), (1,2,-1), (1,2,0), (1,2,1), (2,2,0),",
+      "            (-1,3,0), (0,3,-1), (0,3,1), (1,3,0), (-2,4,0), (-1,4,-1), (-1,4,0),",
+      "            (-1,4,1), (0,4,-2), (0,4,-1), (0,4,1), (0,4,2), (1,4,-1), (1,4,0),",
+      "            (1,4,1), (2,4,0), (-1,5,0), (0,5,-1), (0,5,1), (1,5,0), (-2,6,0),",
+      "            (-1,6,-1), (-1,6,0), (-1,6,1), (0,6,-2), (0,6,-1), (0,6,1), (0,6,2),",
+      "            (1,6,-1), (1,6,0), (1,6,1), (2,6,0), (0,7,0)],",
+      "    },",
+      "    \"buske\": {",
+      "        \"stam\": [(0,0,0), (0,1,0)],",
+      "        \"lov\": [(-1,0,-1), (-1,0,0), (-1,0,1), (0,0,-1), (0,0,1), (1,0,-1),",
+      "            (1,0,0), (1,0,1), (-1,1,-1), (-1,1,0), (-1,1,1), (0,1,-1), (0,1,1),",
+      "            (1,1,-1), (1,1,0), (1,1,1), (0,2,0), (0,3,0)],",
+      "    },",
+      "    \"stuga\": {",
+      "        \"planka\": [(0,0,0), (0,0,1), (0,0,2), (0,0,3), (0,0,4), (1,0,0),",
+      "            (1,0,1), (1,0,2), (1,0,3), (1,0,4), (2,0,0), (2,0,1), (2,0,2), (2,0,3),",
+      "            (2,0,4), (3,0,0), (3,0,1), (3,0,2), (3,0,3), (3,0,4), (4,0,0), (4,0,1),",
+      "            (4,0,2), (4,0,3), (4,0,4), (5,0,0), (5,0,1), (5,0,2), (5,0,3), (5,0,4),",
+      "            (0,1,0), (0,1,1), (0,1,2), (0,1,3), (0,1,4), (1,1,0), (1,1,4), (2,1,0),",
+      "            (2,1,4), (3,1,4), (4,1,0), (4,1,4), (5,1,0), (5,1,1), (5,1,2), (5,1,3),",
+      "            (5,1,4), (0,2,1), (0,2,2), (0,2,4), (1,2,0), (1,2,4), (2,2,0), (3,2,4),",
+      "            (4,2,0), (4,2,4), (5,2,0), (5,2,2), (5,2,3), (0,3,0), (0,3,1), (0,3,2),",
+      "            (0,3,3), (0,3,4), (1,3,0), (1,3,4), (2,3,0), (2,3,4), (3,3,0), (3,3,4),",
+      "            (4,3,0), (4,3,4), (5,3,0), (5,3,1), (5,3,2), (5,3,3), (5,3,4)],",
+      "        \"fonster\": [(0,2,0), (0,2,3), (2,2,4), (5,2,1), (5,2,4)],",
+      "        \"tak\": [(-1,4,-1), (-1,4,0), (-1,4,1), (-1,4,2), (-1,4,3), (-1,4,4),",
+      "            (-1,4,5), (0,4,-1), (0,4,0), (0,4,1), (0,4,2), (0,4,3), (0,4,4),",
+      "            (0,4,5), (1,4,-1), (1,4,0), (1,4,1), (1,4,2), (1,4,3), (1,4,4),",
+      "            (1,4,5), (2,4,-1), (2,4,0), (2,4,1), (2,4,2), (2,4,3), (2,4,4),",
+      "            (2,4,5), (3,4,-1), (3,4,0), (3,4,1), (3,4,2), (3,4,3), (3,4,4),",
+      "            (3,4,5), (4,4,-1), (4,4,0), (4,4,1), (4,4,2), (4,4,3), (4,4,4),",
+      "            (4,4,5), (5,4,-1), (5,4,0), (5,4,1), (5,4,2), (5,4,3), (5,4,4),",
+      "            (5,4,5), (6,4,-1), (6,4,0), (6,4,1), (6,4,2), (6,4,3), (6,4,4),",
+      "            (6,4,5), (1,5,1), (1,5,2), (1,5,3), (2,5,1), (2,5,2), (2,5,3), (3,5,1),",
+      "            (3,5,2), (3,5,3), (4,5,1), (4,5,2), (4,5,3)],",
+      "        \"lykta\": [(2,2,-1), (4,2,-1)],",
+      "    },",
+      "    \"torn\": {",
+      "        \"tegel\": [(-2,0,-1), (-2,0,0), (-2,0,1), (-1,0,-2), (-1,0,-1),",
+      "            (-1,0,1), (-1,0,2), (0,0,-2), (0,0,2), (1,0,-2), (1,0,-1), (1,0,1),",
+      "            (1,0,2), (2,0,-1), (2,0,0), (2,0,1), (-2,1,-1), (-2,1,0), (-2,1,1),",
+      "            (-1,1,-2), (-1,1,-1), (-1,1,1), (-1,1,2), (0,1,-2), (0,1,2), (1,1,-2),",
+      "            (1,1,-1), (1,1,1), (1,1,2), (2,1,-1), (2,1,0), (2,1,1), (-2,2,-1),",
+      "            (-2,2,0), (-2,2,1), (-1,2,-2), (-1,2,-1), (-1,2,1), (-1,2,2), (0,2,-2),",
+      "            (0,2,2), (1,2,-2), (1,2,-1), (1,2,1), (1,2,2), (2,2,-1), (2,2,0),",
+      "            (2,2,1), (-2,3,-1), (-2,3,0), (-2,3,1), (-1,3,-2), (-1,3,-1), (-1,3,1),",
+      "            (-1,3,2), (0,3,2), (1,3,-2), (1,3,-1), (1,3,1), (1,3,2), (2,3,-1),",
+      "            (2,3,0), (2,3,1), (-2,4,-1), (-2,4,0), (-2,4,1), (-1,4,-2), (-1,4,-1),",
+      "            (-1,4,1), (-1,4,2), (0,4,-2), (0,4,2), (1,4,-2), (1,4,-1), (1,4,1),",
+      "            (1,4,2), (2,4,-1), (2,4,0), (2,4,1), (-2,5,-1), (-2,5,0), (-2,5,1),",
+      "            (-1,5,-2), (-1,5,-1), (-1,5,1), (-1,5,2), (0,5,-2), (0,5,2), (1,5,-2),",
+      "            (1,5,-1), (1,5,1), (1,5,2), (2,5,-1), (2,5,0), (2,5,1), (-2,6,-1),",
+      "            (-2,6,0), (-2,6,1), (-1,6,-2), (-1,6,-1), (-1,6,1), (-1,6,2), (0,6,2),",
+      "            (1,6,-2), (1,6,-1), (1,6,1), (1,6,2), (2,6,-1), (2,6,0), (2,6,1),",
+      "            (-2,7,-1), (-2,7,0), (-2,7,1), (-1,7,-2), (-1,7,-1), (-1,7,1),",
+      "            (-1,7,2), (0,7,-2), (0,7,2), (1,7,-2), (1,7,-1), (1,7,1), (1,7,2),",
+      "            (2,7,-1), (2,7,0), (2,7,1), (-2,8,-1), (-2,8,0), (-2,8,1), (-1,8,-2),",
+      "            (-1,8,-1), (-1,8,1), (-1,8,2), (0,8,-2), (0,8,2), (1,8,-2), (1,8,-1),",
+      "            (1,8,1), (1,8,2), (2,8,-1), (2,8,0), (2,8,1), (-2,9,-1), (-2,9,0),",
+      "            (-2,9,1), (-1,9,-2), (-1,9,-1), (-1,9,0), (-1,9,1), (-1,9,2), (0,9,-2),",
+      "            (0,9,-1), (0,9,0), (0,9,1), (0,9,2), (1,9,-2), (1,9,-1), (1,9,0),",
+      "            (1,9,1), (1,9,2), (2,9,-1), (2,9,0), (2,9,1), (-2,10,0), (-1,10,-2),",
+      "            (-1,10,1), (0,10,-2), (1,10,-2), (1,10,1), (2,10,-1), (2,10,1)],",
+      "        \"fonster\": [(0,3,-2), (0,6,-2)],",
+      "        \"lykta\": [(0,10,0)],",
+      "    },",
+      "    \"lada\": {",
+      "        \"planka\": [(0,0,0), (0,0,1), (0,0,2), (0,0,3), (0,0,4), (0,0,5),",
+      "            (1,0,0), (1,0,1), (1,0,2), (1,0,3), (1,0,4), (1,0,5), (2,0,0), (2,0,1),",
+      "            (2,0,2), (2,0,3), (2,0,4), (2,0,5), (3,0,0), (3,0,1), (3,0,2), (3,0,3),",
+      "            (3,0,4), (3,0,5), (4,0,0), (4,0,1), (4,0,2), (4,0,3), (4,0,4), (4,0,5),",
+      "            (5,0,0), (5,0,1), (5,0,2), (5,0,3), (5,0,4), (5,0,5), (6,0,0), (6,0,1),",
+      "            (6,0,2), (6,0,3), (6,0,4), (6,0,5), (7,0,0), (7,0,1), (7,0,2), (7,0,3),",
+      "            (7,0,4), (7,0,5), (0,1,0), (0,1,1), (0,1,2), (0,1,3), (0,1,4), (0,1,5),",
+      "            (1,1,0), (1,1,5), (2,1,0), (2,1,5), (3,1,0), (3,1,5), (4,1,5), (5,1,0),",
+      "            (5,1,5), (6,1,0), (6,1,5), (7,1,0), (7,1,1), (7,1,2), (7,1,3), (7,1,4),",
+      "            (7,1,5), (0,2,1), (0,2,2), (0,2,4), (0,2,5), (1,2,0), (2,2,0), (2,2,5),",
+      "            (3,2,5), (5,2,0), (5,2,5), (6,2,5), (7,2,0), (7,2,1), (7,2,3), (7,2,4),",
+      "            (0,3,0), (0,3,1), (0,3,2), (0,3,3), (0,3,4), (0,3,5), (1,3,0), (1,3,5),",
+      "            (2,3,0), (2,3,5), (3,3,0), (3,3,5), (4,3,0), (4,3,5), (5,3,0), (5,3,5),",
+      "            (6,3,0), (6,3,5), (7,3,0), (7,3,1), (7,3,2), (7,3,3), (7,3,4), (7,3,5),",
+      "            (0,4,0), (0,4,1), (0,4,2), (0,4,3), (0,4,4), (0,4,5), (1,4,0), (1,4,5),",
+      "            (2,4,0), (2,4,5), (3,4,0), (3,4,5), (4,4,0), (4,4,5), (5,4,0), (5,4,5),",
+      "            (6,4,0), (6,4,5), (7,4,0), (7,4,1), (7,4,2), (7,4,3), (7,4,4), (7,4,5)],",
+      "        \"fonster\": [(0,2,0), (0,2,3), (1,2,5), (3,2,0), (4,2,5), (6,2,0),",
+      "            (7,2,2), (7,2,5)],",
+      "        \"tak\": [(-1,5,-1), (-1,5,0), (-1,5,1), (-1,5,2), (-1,5,3), (-1,5,4),",
+      "            (-1,5,5), (-1,5,6), (0,5,-1), (0,5,0), (0,5,1), (0,5,2), (0,5,3),",
+      "            (0,5,4), (0,5,5), (0,5,6), (1,5,-1), (1,5,0), (1,5,1), (1,5,2),",
+      "            (1,5,3), (1,5,4), (1,5,5), (1,5,6), (2,5,-1), (2,5,0), (2,5,1),",
+      "            (2,5,2), (2,5,3), (2,5,4), (2,5,5), (2,5,6), (3,5,-1), (3,5,0),",
+      "            (3,5,1), (3,5,2), (3,5,3), (3,5,4), (3,5,5), (3,5,6), (4,5,-1),",
+      "            (4,5,0), (4,5,1), (4,5,2), (4,5,3), (4,5,4), (4,5,5), (4,5,6),",
+      "            (5,5,-1), (5,5,0), (5,5,1), (5,5,2), (5,5,3), (5,5,4), (5,5,5),",
+      "            (5,5,6), (6,5,-1), (6,5,0), (6,5,1), (6,5,2), (6,5,3), (6,5,4),",
+      "            (6,5,5), (6,5,6), (7,5,-1), (7,5,0), (7,5,1), (7,5,2), (7,5,3),",
+      "            (7,5,4), (7,5,5), (7,5,6), (8,5,-1), (8,5,0), (8,5,1), (8,5,2),",
+      "            (8,5,3), (8,5,4), (8,5,5), (8,5,6), (1,6,1), (1,6,2), (1,6,3), (1,6,4),",
+      "            (2,6,1), (2,6,2), (2,6,3), (2,6,4), (3,6,1), (3,6,2), (3,6,3), (3,6,4),",
+      "            (4,6,1), (4,6,2), (4,6,3), (4,6,4), (5,6,1), (5,6,2), (5,6,3), (5,6,4),",
+      "            (6,6,1), (6,6,2), (6,6,3), (6,6,4)],",
+      "        \"lykta\": [(3,2,-1), (5,2,-1)],",
+      "    },",
+      "    \"skjul\": {",
+      "        \"planka\": [(0,0,0), (0,0,1), (0,0,2), (0,0,3), (1,0,0), (1,0,1),",
+      "            (1,0,2), (1,0,3), (2,0,0), (2,0,1), (2,0,2), (2,0,3), (3,0,0), (3,0,1),",
+      "            (3,0,2), (3,0,3), (0,1,0), (0,1,1), (0,1,2), (0,1,3), (1,1,0), (1,1,3),",
+      "            (2,1,3), (3,1,0), (3,1,1), (3,1,2), (3,1,3), (0,2,1), (0,2,2), (1,2,0),",
+      "            (1,2,3), (2,2,3), (3,2,1), (3,2,2)],",
+      "        \"fonster\": [(0,2,0), (0,2,3), (3,2,0), (3,2,3)],",
+      "        \"tak\": [(-1,3,-1), (-1,3,0), (-1,3,1), (-1,3,2), (-1,3,3), (-1,3,4),",
+      "            (0,3,-1), (0,3,0), (0,3,1), (0,3,2), (0,3,3), (0,3,4), (1,3,-1),",
+      "            (1,3,0), (1,3,1), (1,3,2), (1,3,3), (1,3,4), (2,3,-1), (2,3,0),",
+      "            (2,3,1), (2,3,2), (2,3,3), (2,3,4), (3,3,-1), (3,3,0), (3,3,1),",
+      "            (3,3,2), (3,3,3), (3,3,4), (4,3,-1), (4,3,0), (4,3,1), (4,3,2),",
+      "            (4,3,3), (4,3,4), (1,4,1), (1,4,2), (2,4,1), (2,4,2)],",
+      "        \"lykta\": [(1,2,-1), (3,2,-1)],",
+      "    },",
+      "    \"klippa\": {",
+      "        \"berg\": [(-2,0,-1), (-2,0,0), (-2,0,1), (-1,0,-2), (-1,0,2), (0,0,-2),",
+      "            (0,0,2), (1,0,-2), (1,0,2), (2,0,-1), (2,0,0), (2,0,1), (-1,1,-1),",
+      "            (-1,1,0), (-1,1,1), (0,1,-1), (0,1,1), (1,1,-1), (1,1,0), (1,1,1),",
+      "            (0,2,0)],",
+      "    },",
+      "    \"hog_klippa\": {",
+      "        \"berg\": [(-3,0,-1), (-3,0,0), (-3,0,1), (-1,0,-3), (-1,0,3), (0,0,-3),",
+      "            (0,0,3), (1,0,-3), (1,0,3), (3,0,-1), (3,0,0), (3,0,1), (-2,1,-1),",
+      "            (-2,1,0), (-2,1,1), (-1,1,-2), (-1,1,2), (0,1,-2), (0,1,2), (1,1,-2),",
+      "            (1,1,2), (2,1,-1), (2,1,0), (2,1,1), (-1,2,-1), (-1,2,0), (-1,2,1),",
+      "            (0,2,-1), (0,2,1), (1,2,-1), (1,2,0), (1,2,1), (0,3,0)],",
+      "        \"sno\": [(0,4,0)],",
+      "    },",
+      "}",
+      "for blomma in BLOMMOR:                      # en blomma är bara en enda kub",
+      "    RITNINGAR[blomma] = {blomma: [(0, 0, 0)]}",
+      "",
+      "",
+      "antal = rita_varlden()",
+      "print(\"Klart! Världen består av\", antal, \"kuber.\")",
+      "print()",
+      "print(\"Dra med musen för att se dig omkring, rulla för att flyga.\")",
+      "print(\"Piltangenterna flyger som en drönare: framåt dit du tittar.\")",
+      "print(\"R eller Återställ vy tar dig tillbaka. Helskärm finns uppe till höger.\")",
+      ""
+    ].join("\n"),
+    forklaring: `
+      <h3>Allt är kuber</h3>
+      <p>Minecraft ser komplicerat ut, men bakom allt ligger en enda idé: världen är ett rutnät, och varje ruta innehåller antingen ingenting eller en kub av ett visst material. Träd, hus, berg och vatten är inte olika sorters saker — de är samma sorts kub i olika färger, staplade på olika sätt.</p>
+      <p>Sådana kuber kallas <strong>voxlar</strong>, av "volume" och "pixel". En pixel är en färgad punkt i en platt bild; en voxel är en färgad punkt i ett rum. Den här världen består av drygt nio tusen av dem.</p>
+      <h3>Världen är en dictionary</h3>
+      <p>Hela världen ryms i en enda variabel: <code>kuber</code>, en dictionary från kapitel 8 där nyckeln är positionen <code>(x, y, z)</code> och värdet är materialet.</p>
+      <p>Det gör svåra frågor triviala. Finns det något här? <code>(x, y, z) in kuber</code>. Vad ligger ovanför? Slå upp <code>(x, y + 1, z)</code>. Ingen sökning, inga listor att gå igenom — dictionaryn svarar direkt oavsett hur stor världen är.</p>
+      <p>Lägg också märke till raden <code>if ruta not in kuber</code> när objekten placeras ut: den första kuben vinner rutan. Det är en regel på en rad som gör att ett träd aldrig kan växa rakt igenom ett hustak.</p>
+      <h3>Data och kod hålls isär</h3>
+      <p>Programmet är uppdelat i två halvor, och skiljelinjen är den viktigaste strukturen i hela kapitlet.</p>
+      <ul>
+        <li><strong>MARK</strong> är en höjdkarta ritad som text. Ett tecken per ruta, där <code>0</code> är lägst och <code>g</code> högst. Du kan läsa landskapet direkt i källkoden: berget uppe till vänster, sjön i mitten.</li>
+        <li><strong>OBJEKT</strong> säger bara vad som står var — <code>"stuga": [(12, 44), ...]</code>. Ingen höjd behövs; den hämtas från marken.</li>
+        <li><strong>RITNINGAR</strong> beskriver hur varje sak är byggd, som listor av <code>(sidled, höjd, djupled)</code> räknat från objektets fot.</li>
+      </ul>
+      <p>Koden ovanför känner inte till en enda stuga eller ett enda träd. Den läser bara data och lägger ut kuber. Därför kan du flytta ett hus, höja ett berg eller uppfinna ett helt nytt objekt utan att röra en rad av programmet — och det är precis vad som menas med att skilja data från logik.</p>
+      <h3>Bara det som syns byggs</h3>
+      <p><code>bygg_marken</code> lägger inte ut en solid klump jord. Den lägger ytan, och sedan bara ner till den lägsta grannen — för väggen mot en granne som ligger högre skulle ändå aldrig synas.</p>
+      <p>Det är samma tanke som gör Minecraft möjligt överhuvudtaget. En kub som är helt omsluten av andra kuber kan inte ses, och då finns det ingen anledning att rita den. Här sparar det ungefär två tredjedelar av arbetet.</p>
+      <h3>Ljuset räknas ut, inte mätas</h3>
+      <p>Scenen har ingen riktig ljussättning per kub — i stället räknar <code>rakna_ut_farg</code> fram varje kubs färg innan den ritas, med tre enkla regler:</p>
+      <ul>
+        <li><strong>Skugga:</strong> solen står i nordväst, så <code>star_i_skugga</code> tittar snett uppåt åt det hållet. Finns något högre där, blir kuben mörkare.</li>
+        <li><strong>Vrår:</strong> ju fler kuber som ligger ovanför, desto mindre ljus når ner. Det är därför det blir mörkt under trädkronor och innanför hustak.</li>
+        <li><strong>Textur:</strong> <code>(x * 7 + y * 13 + z * 29) % 15 - 7</code> ger varje ruta en liten, alltid likadan variation. Utan den ser gräsmattan ut som en plastmatta.</li>
+      </ul>
+      <p>Den sista raden är värd att stanna vid. Det ser ut som slump, men det är det inte: samma ruta ger alltid samma tal. Det kallas <em>deterministisk brus</em> och används överallt i grafik — man vill ha oregelbundenhet som inte flimrar när man tittar bort och tillbaka.</p>
+      <div class="fallgrop"><strong>Att veta:</strong> nio tusen kuber tar en stund att bygga och en del kraft att rita. Blir det trögt, minska <code>BREDD</code> och <code>DJUP</code> — kartan läses ändå bara så långt som siffrorna räcker.</div>
+      <div class="uppgift"><strong>Uppgift:</strong> börja smått — flytta en stuga genom att ändra ett talpar i <code>OBJEKT</code>, och gräv sedan en damm genom att byta några siffror i <code>MARK</code> mot <code>2</code>. Rita därefter ett eget objekt: lägg till en post i <code>RITNINGAR</code> med några koordinater, sätt ut den i <code>OBJEKT</code>, och kör. Vill du utmana dig — ändra <code>star_i_skugga</code> så att solen står i sydost i stället.</div>`
+  },
+  {
+    del: "Maskininlärning", titel: "Träna en modell", fil: "22_maskininlarning.py",
     kod: [
       "# Första gången tar det en stund — paketen laddas ner.",
       "import numpy as np",
@@ -1967,7 +2512,7 @@
       <div class="uppgift"><strong>Uppgift:</strong> ändra <code>hund_vikt</code> till <code>slump.normal(8, 7, ANTAL_HUNDAR)</code> så att hundarna väger nästan lika mycket som katterna. Titta först på histogrammet: färgerna överlappar nu nästan helt. Kör sedan träningen — hur mycket faller träffsäkerheten, och vilken egenskap tar över som viktigast? Testa också att ta bort <code>hund_ljud</code> och <code>katt_ljud</code> helt.</div>`
   },
   {
-    del: "Maskininlärning", titel: "Språkbehandling", fil: "22_sprak.py",
+    del: "Maskininlärning", titel: "Språkbehandling", fil: "23_sprak.py",
     kod: [
       "import nltk",
       "from nltk.tokenize import RegexpTokenizer",
@@ -2025,10 +2570,10 @@
       <h3>Frekvens och bigram</h3>
       <p><code>FreqDist</code> är NLTK:s räknare — i praktiken samma dictionary-räknare som du byggde själv i kapitel 8, fast färdig.</p>
       <p><code>bigrams</code> ger alla par av intilliggande ord. Ordpar bär information som enskilda ord tappar: "inte bra" betyder något helt annat än "bra". Det är första steget mot att en dator ska fatta sammanhang — och samma grundidé, fast enormt uppskalad, är det som ligger under moderna språkmodeller.</p>
-      <div class="uppgift"><strong>Uppgift:</strong> klistra in en längre text — en nyhetsartikel eller några sidor ur en bok — och kör samma pipeline. Vilka sex stammar toppar listan? Bygg sedan ihop kapitel 21 och 22: räkna hur ofta positiva och negativa ord förekommer i filmrecensioner och låt XGBoost gissa betyget.</div>`
+      <div class="uppgift"><strong>Uppgift:</strong> klistra in en längre text — en nyhetsartikel eller några sidor ur en bok — och kör samma pipeline. Vilka sex stammar toppar listan? Bygg sedan ihop kapitel 22 och 23: räkna hur ofta positiva och negativa ord förekommer i filmrecensioner och låt XGBoost gissa betyget.</div>`
   },
   {
-    del: "Maskininlärning", titel: "Ord som siffror", fil: "23_ord_som_siffror.py",
+    del: "Maskininlärning", titel: "Ord som siffror", fil: "24_ord_som_siffror.py",
     kod: [
       "import numpy as np",
       "import matplotlib.pyplot as plt",
@@ -2142,7 +2687,7 @@
       <div class="uppgift"><strong>Uppgift:</strong> skriv tjugo egna meningar om två tydligt skilda ämnen — säg fotboll och matlagning — och kör om. Hamnar orden i två grupper på kartan? Testa sedan att ändra <code>FONSTER</code> från 2 till 1 och till 5, och se hur mycket fönsterstorleken påverkar resultatet.</div>`
   },
   {
-    del: "Maskininlärning", titel: "Hämta data från nätet", fil: "24_oppna_data.py",
+    del: "Maskininlärning", titel: "Hämta data från nätet", fil: "25_oppna_data.py",
     kod: [
       "import data",
       "import numpy as np",
@@ -2226,7 +2771,7 @@
     ].join("\n"),
     forklaring: `
       <h3>Riktig data i stället för påhittad</h3>
-      <p>I kapitel 21 hittade vi på hundarna. Här hämtas mätvärden från SMHI:s öppna API, insamlade från flera hundra riktiga väderstationer den senaste timmen. Kör programmet igen om en timme och du får nya siffror.</p>
+      <p>I kapitel 22 hittade vi på hundarna. Här hämtas mätvärden från SMHI:s öppna API, insamlade från flera hundra riktiga väderstationer den senaste timmen. Kör programmet igen om en timme och du får nya siffror.</p>
       <p>Modulen <code>data</code> finns bara i Pythonlabbet. Den har tre funktioner: <code>hamta_json(url)</code>, <code>hamta_text(url)</code> och <code>hamta_csv(url)</code>. På en riktig dator använder man biblioteket <code>requests</code> i stället, men principen är densamma.</p>
       <h3>JSON</h3>
       <p>API:er svarar nästan alltid med <strong>JSON</strong> — ett textformat som ser ut precis som Pythons dictionaries och listor, och som blir just det när det packas upp. SMHI:s svar är en dictionary med nyckeln <code>"station"</code>, som innehåller en lista med en dictionary per mätstation, som i sin tur har en lista med mätvärden. Att gräva sig igenom sådana lager är en stor del av arbetet med riktig data.</p>
@@ -2249,7 +2794,7 @@
       <div class="uppgift"><strong>Uppgift:</strong> byt parameter i adressen till 7 (nederbörd) eller 4 (vind) och kör om — vilken storhet varierar mest över landet? Slå sedan ihop två hämtningar: läs både temperatur och vind, para ihop stationerna på namn, och undersök om det är kallare där det blåser mer.</div>`
   },
   {
-    del: "Slutprojekt", titel: "Väderkarta i 3D", fil: "25_vaderkarta.py",
+    del: "Slutprojekt", titel: "Väderkarta i 3D", fil: "26_vaderkarta.py",
     kod: [
       "import data",
       "import scen",
@@ -2376,7 +2921,7 @@
       <div class="uppgift"><strong>Uppgift:</strong> byt parameter 1 mot 4 (vindhastighet) eller 6 (luftfuktighet) och se hur kartan ändrar karaktär. Bygg sedan om så att <em>höjden</em> visar temperatur och <em>färgen</em> vind — två storheter i samma bild.</div>`
   },
   {
-    del: "Slutprojekt", titel: "Modellen i rummet", fil: "26_modell_i_rummet.py",
+    del: "Slutprojekt", titel: "Modellen i rummet", fil: "27_modell_i_rummet.py",
     kod: [
       "import data",
       "import scen",
@@ -2579,9 +3124,9 @@
       <p>Titta på formen. De gula bildar ett perfekt plan som lutar jämnt från söder till norr — det är precis vad linjär regression <em>kan</em> göra, och inget annat. De gröna hoppar upp och ner: kusten är mildare än inlandet, fjällen kallare än allt annat. Skillnaden mellan de två mönstren <strong>är</strong> modellens fel, synligt som avstånd.</p>
       <h3>Två modeller, olika sorters fel</h3>
       <p><code>LinearRegression</code> anpassar ett plan: temperaturen = a·latitud + b·longitud + c. Tre tal, det är hela modellen. Den blir aldrig särskilt exakt, men den går att förstå — <code>coef_[0]</code> säger rakt ut hur många grader kallare det blir per breddgrad norrut.</p>
-      <p><code>GradientBoostingRegressor</code> bygger 120 träd som rättar varandra, precis som XGBoost i kapitel 21. Den får mycket lägre fel, men du kan inte längre peka på ett tal och säga vad den lärt sig.</p>
+      <p><code>GradientBoostingRegressor</code> bygger 120 träd som rättar varandra, precis som XGBoost i kapitel 22. Den får mycket lägre fel, men du kan inte längre peka på ett tal och säga vad den lärt sig.</p>
       <p>Det där är en verklig avvägning i fältet, inte en övning: <strong>enkel och förklarbar, eller träffsäker och ogenomskinlig.</strong> I sjukvård och juridik väljer man ofta det första även när det andra är bättre på papperet.</p>
-      <div class="fallgrop"><strong>Observera:</strong> båda modellerna mäts här på samma data de tränats på, vilket kapitel 21 varnade för. Trädmodellen ser därför bättre ut än den är. Ett ärligt mått kräver <code>train_test_split</code> — prova att lägga till det.</div>
+      <div class="fallgrop"><strong>Observera:</strong> båda modellerna mäts här på samma data de tränats på, vilket kapitel 22 varnade för. Trädmodellen ser därför bättre ut än den är. Ett ärligt mått kräver <code>train_test_split</code> — prova att lägga till det.</div>
       <h3>Diagram som textur</h3>
       <p><code>scen.diagrampanel(...)</code> tar den matplotlib-figur du just ritat, gör om den till en bild, och klistrar den på en yta i 3D-rummet.</p>
       <p>Tekniskt går den vägen: matplotlib renderar figuren till PNG i minnet, bilden kodas som text med base64, texten skickas över till JavaScript, three.js laddar den som en <em>textur</em> och lägger den på ett plan. Textur betyder just det — en bild som kläs på en yta, samma teknik som ger en spelkaraktär ansikte.</p>
@@ -2589,7 +3134,7 @@
       <div class="uppgift"><strong>Uppgift:</strong> lägg till longitud i diagrammet — ser du att kusten avviker? Byt sedan den gula ytan till trädmodellens gissningar i stället för den linjära. Följer den de gröna staplarna bättre? Och lägg till en tredje egenskap, till exempel stationens höjd över havet om du hittar den i SMHI:s data.</div>`
   },
   {
-    del: "Slutprojekt", titel: "En liten språkmodell", fil: "27_spraakmodell.py",
+    del: "Slutprojekt", titel: "En liten språkmodell", fil: "28_spraakmodell.py",
     kod: [
       "import data",
       "import random",
@@ -2779,7 +3324,7 @@
     ].join("\n"),
     forklaring: `
       <h3>Riktigt språk den här gången</h3>
-      <p>I kapitel 21 hittade vi på datan. Här tränas modellen på text som meteorologer på SMHI faktiskt har skrivit — varningar om storm, snöfall och höga flöden, hämtade från deras öppna varnings-API.</p>
+      <p>I kapitel 22 hittade vi på datan. Här tränas modellen på text som meteorologer på SMHI faktiskt har skrivit — varningar om storm, snöfall och höga flöden, hämtade från deras öppna varnings-API.</p>
       <p>Finns inga skarpa varningar just nu hämtas SMHI:s exempelvarningar i stället. Det är samma sorts text, publicerad för att utvecklare ska kunna testa. Går inget av det finns en liten reservtext inbyggd, så kapitlet fungerar även offline.</p>
       <h3>Att gräva i okänd JSON</h3>
       <p>Vi vet inte exakt hur SMHI har byggt sitt svar, och det kan ändras. Därför letar <code>samla_text</code> igenom hela strukturen rekursivt: är noden en dictionary, gå in i varje värde; är den en lista, gå in i varje post; är den en sträng som är lång nog att vara en mening, spara den.</p>
@@ -2799,14 +3344,14 @@
       <div class="uppgift"><strong>Uppgift:</strong> byt tillbaka till bigram genom att använda bara ett ord som nyckel, och jämför både språkkvaliteten och hur stor andel som blir nytt. Bygg sedan ut korpusen — hämta fler exempelvarningar eller klistra in en egen text — och se om modellen blir bättre av mer data.</div>`
   },
   {
-    del: "Slutprojekt", titel: "Transformers", fil: "28_attention.py",
+    del: "Slutprojekt", titel: "Transformers", fil: "29_attention.py",
     kod: [
       "import data",
       "import numpy as np",
       "import matplotlib.pyplot as plt",
       "import re",
       "",
-      "# Samma text som i kapitel 27: SMHI:s vädervarningar.",
+      "# Samma text som i kapitel 28: SMHI:s vädervarningar.",
       "SKARPA = \"https://opendata-download-warnings.smhi.se/ibww/api/version/1/warning.json\"",
       "EXEMPEL = \"https://opendata-download-warnings.smhi.se/ibww/test/test_{}.json\"",
       "",
@@ -2863,7 +3408,7 @@
       "print(f\"{len(meningar)} meningar, {len(ordlista)} olika ord.\")",
       "print()",
       "",
-      "# ===== 2. Embeddings ur texten — samma metod som i kapitel 23 =====",
+      "# ===== 2. Embeddings ur texten — samma metod som i kapitel 24 =====",
       "N = len(ordlista)",
       "samforekomst = np.zeros((N, N))",
       "for orden in meningar:",
@@ -2937,14 +3482,14 @@
       ""
     ].join("\n"),
     forklaring: `
-      <h3>Vad kapitel 27 inte gjorde</h3>
+      <h3>Vad kapitel 28 inte gjorde</h3>
       <p>Trigram-modellen var en uppslagstabell: räkna hur ofta varje ord följt på varje ordpar, slå upp, välj. Den minns exakt två ord bakåt och vet ingenting om att ord kan likna varandra.</p>
       <p><em>Attention</em> — uppmärksamhet — löser båda problemen på en gång, och är mekanismen som moderna språkmodeller bygger på. Samma text, helt annan idé.</p>
       <h3>Grundtanken</h3>
       <p>Varje ord ställer en fråga: <strong>vilka av de tidigare orden är relevanta för mig?</strong> Sedan hämtar det information därifrån, mest från de mest relevanta.</p>
       <p>Det är hela principen. Ingen fast minneslängd, ingen bestämd ordning — ordet avgör själv vad det behöver titta på, och kan lika gärna nå tio ord bakåt som ett.</p>
       <h3>Hur relevansen räknas ut</h3>
-      <p>Varje ord är redan 16 tal, uträknade ur SMHI-texten med samma samförekomstmetod som i kapitel 23. Ord som förekommer i samma sällskap får liknande vektorer.</p>
+      <p>Varje ord är redan 16 tal, uträknade ur SMHI-texten med samma samförekomstmetod som i kapitel 24. Ord som förekommer i samma sällskap får liknande vektorer.</p>
       <p><code>X @ X.T</code> jämför alla ord med alla andra på en gång och ger en tabell av likheter. Multiplikationen med 4 gör skillnaderna tydligare innan nästa steg. <code>softmax</code> gör sedan om varje rad till andelar som summerar till 1 — så "hur lika är de" blir "hur stor del av min uppmärksamhet får var och en".</p>
       <p>Två rader kod. Det är samma uträkning som sitter i en riktig transformer.</p>
       <h3>Masken</h3>
@@ -2954,7 +3499,7 @@
       <p>Här jämförs orden direkt med varandra. I en tränad transformer går varje ord först genom tre inlärda matriser och blir tre olika saker: en fråga, en nyckel och ett innehåll. Då kan modellen leta efter något mer specifikt än ren likhet — till exempel "vilket verb hör till mig" i stället för "vilket ord liknar mig".</p>
       <p>De matriserna kan inte tränas här. Det kräver bakåtpropagering, som behöver PyTorch eller liknande, och betydligt mer text än SMHI:s varningar. Det du ser är därför uppmärksamhet <strong>före träning</strong> — och träningens hela uppgift är att göra frågorna vassare än "vad liknar mig".</p>
       <p>Ingenting i uträkningen är påhittat. Vektorerna kommer ur texten, likheten är riktig, och softmax och masken är exakt som i en riktig modell.</p>
-      <div class="uppgift"><strong>Uppgift:</strong> ändra <code>* 4</code> till <code>* 1</code> och sedan <code>* 20</code>. Låg skala ger nästan jämn uppmärksamhet, hög gör att varje ord tittar på ett enda annat — samma sorts reglage som temperaturen i kapitel 27. Byt sedan <code>E[:, :16]</code> mot 4 tal per ord och se hur mycket grövre mönstret blir.</div>`
+      <div class="uppgift"><strong>Uppgift:</strong> ändra <code>* 4</code> till <code>* 1</code> och sedan <code>* 20</code>. Låg skala ger nästan jämn uppmärksamhet, hög gör att varje ord tittar på ett enda annat — samma sorts reglage som temperaturen i kapitel 28. Byt sedan <code>E[:, :16]</code> mot 4 tal per ord och se hur mycket grövre mönstret blir.</div>`
   }
   ];
 
@@ -3014,6 +3559,9 @@
     });
   }
   window._labbFraga = fragaIKonsolen;
+
+  /* Sätts av Stoppa-knappen och läses av loopvakten i Python. */
+  window._labbStopp = false;
 
   /* Låter Python-kod be användaren peka ut en fil från datorn. */
   window._labbValjFil = function (filter) {
@@ -4120,18 +4668,20 @@
     laddaNer();
   }
 
+  /* Läser in en fil i den buffert man står i. Koden ligger sedan kvar
+     där tills man trycker Återställ, precis som all annan redigering. */
   function laddaText(text, namn, handtag) {
-    sparaBuffert();
-    aktivLektion = null;
-    oppenFil = "fil:" + namn;
-    buffertar[oppenFil] = { kod: text, filnamn: namn, filhandtag: handtag || null,
-                            andrad: false, markor: 0, rullning: 0 };
-    laddaBuffert(oppenFil, text, namn);
-    markeraVald(-1);
-    aterstallKapitelKnapp.hidden = true;
+    var b = aktivtBuffert();
+    b.kod = text;
+    b.filnamn = namn;
+    b.filhandtag = handtag || null;
+    b.andrad = false;
+    b.markor = 0;
+    b.rullning = 0;
+    laddaBuffert(buffertnyckel(), text, namn);
     visaFlik("utskrift");
     rensaKonsol();
-    skriv("Öppnade " + namn + ".\n", "system");
+    skriv("Öppnade " + namn + " i " + kapitelnamn() + ".\n", "system");
     byteAvSamtal();
   }
 
@@ -4197,8 +4747,17 @@
   var buffertar = {};
 
   function buffertnyckel() {
-    if (aktivLektion !== null) return "kap:" + aktivLektion;
-    return oppenFil || "start";
+    return aktivLektion !== null ? "kap:" + aktivLektion : "start";
+  }
+
+  function aktivtBuffert() {
+    var nyckel = buffertnyckel();
+    if (!buffertar[nyckel]) {
+      buffertar[nyckel] = { kod: kodruta.value, filnamn: filnamn,
+                            filhandtag: filhandtag, andrad: andrad,
+                            markor: 0, rullning: 0 };
+    }
+    return buffertar[nyckel];
   }
 
   function sparaBuffert() {
@@ -4235,14 +4794,12 @@
   function visaStartsida() {
     sparaBuffert();
     aktivLektion = null;
-    oppenFil = null;
     laddaBuffert("start", STARTKOD, "nytt_program.py");
     markeraVald(-2);
     lektionstext.innerHTML = STARTSIDA;
     lektionstext.className = "lektionstext start";
     panelLektion.scrollTop = 0;
     visaFlik("lektion");
-    aterstallKapitelKnapp.hidden = true;
     byteAvSamtal();
   }
   startKnapp.addEventListener("click", visaStartsida);
@@ -4251,29 +4808,28 @@
     var lek = LEKTIONER[i];
     sparaBuffert();
     aktivLektion = i;
-    oppenFil = null;
     laddaBuffert("kap:" + i, lek.kod, lek.fil);
     markeraVald(i);
     lektionstext.innerHTML = "<h3>Kapitel " + (i + 1) + " — " + lek.titel + "</h3>" + lek.forklaring;
     lektionstext.className = "lektionstext";
     panelLektion.scrollTop = 0;
     visaFlik("lektion");
-    aterstallKapitelKnapp.hidden = false;
     byteAvSamtal();
   }
 
-  /* Lägger tillbaka kapitlets originalkod. */
+  /* Lägger tillbaka originalkoden — kapitlets, eller startprogrammet. */
   function aterstallKapitel() {
-    if (aktivLektion === null) return;
-    var lek = LEKTIONER[aktivLektion];
-    if (kodruta.value !== lek.kod &&
-        !confirm("Lägga tillbaka originalkoden för kapitel " +
-                 (aktivLektion + 1) + "? Dina ändringar försvinner.")) return;
-    delete buffertar["kap:" + aktivLektion];
-    laddaBuffert("kap:" + aktivLektion, lek.kod, lek.fil);
+    var original = aktivLektion !== null ? LEKTIONER[aktivLektion].kod : STARTKOD;
+    var namn = aktivLektion !== null ? LEKTIONER[aktivLektion].fil : "nytt_program.py";
+    if (kodruta.value !== original &&
+        !confirm("Lägga tillbaka originalkoden för " + kapitelnamn() +
+                 "? Det du skrivit eller läst in försvinner.")) return;
+    delete buffertar[buffertnyckel()];
+    laddaBuffert(buffertnyckel(), original, namn);
     kodruta.scrollTop = 0;
     kodruta.setSelectionRange(0, 0);
     rensaKonsol();
+    byteAvSamtal();
     kodruta.focus();
   }
   aterstallKapitelKnapp.addEventListener("click", aterstallKapitel);
@@ -5168,10 +5724,17 @@ _plt.show = _labb_visa
     markeraSteg(2);
     var start = performance.now();
     try {
+      var vakt = !prestandaToggle.checked;
       var attKora = kodruta.value;
       if (forberedKod) {
-        try { attKora = forberedKod(attKora); } catch (e) { attKora = kodruta.value; }
+        try { attKora = forberedKod(attKora, vakt); }
+        catch (e) { attKora = kodruta.value; }
       }
+      if (vakt && nollstallVakt) {
+        try { nollstallVakt(45.0); } catch (e) { /* ingen vakt */ }
+      }
+      window._labbStopp = false;
+      stoppaKnapp.hidden = !vakt;
       await pyodide.runPythonAsync(attKora);
       markeraSteg(3);
       if (!konsol.textContent.trim()) {
@@ -5183,23 +5746,56 @@ _plt.show = _labb_visa
       visaFel(String((err && err.message) || err));
     } finally {
       korKnapp.disabled = false;
+      stoppaKnapp.hidden = true;
+      window._labbStopp = false;
     }
   }
 
+  var omOverlagring = document.getElementById("om-overlagring");
+  document.getElementById("om-knapp").addEventListener("click", function () {
+    omOverlagring.hidden = false;
+    document.getElementById("om-stang").focus();
+  });
+  document.getElementById("om-stang").addEventListener("click", function () {
+    omOverlagring.hidden = true;
+  });
+  omOverlagring.addEventListener("click", function (e) {
+    if (e.target === omOverlagring) omOverlagring.hidden = true;
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !omOverlagring.hidden) omOverlagring.hidden = true;
+  });
+
   document.getElementById("kor-knapp").addEventListener("click", kor);
+  stoppaKnapp.addEventListener("click", function () {
+    window._labbStopp = true;
+    stoppaKnapp.disabled = true;
+    setTimeout(function () { stoppaKnapp.disabled = false; }, 1200);
+  });
+  prestandaToggle.addEventListener("change", function () {
+    skriv(prestandaToggle.checked
+      ? "Prestandaläge på. Koden kör i full fart, men kan inte stoppas — "
+        + "en oändlig loop låser sidan och kräver omladdning.\n"
+      : "Prestandaläge av. Loopvakten är på igen: Stoppa-knappen fungerar "
+        + "och programmet avbryts automatiskt efter 45 sekunder.\n", "system");
+    visaFlik("utskrift");
+  });
   document.getElementById("rensa-knapp").addEventListener("click", function () { rensaKonsol(); visaFlik("utskrift"); });
   document.getElementById("oppna-knapp").addEventListener("click", oppnaFil);
   document.getElementById("spara-knapp").addEventListener("click", function () { sparaFil(false); });
   document.getElementById("spara-som-knapp").addEventListener("click", function () { sparaFil(true); });
   document.getElementById("ny-knapp").addEventListener("click", function () {
-    sparaBuffert();
-    aktivLektion = null;
-    oppenFil = "fil:nytt_program_" + Date.now() + ".py";
-    buffertar[oppenFil] = { kod: STARTKOD, filnamn: "nytt_program.py",
-                            filhandtag: null, andrad: false, markor: 0, rullning: 0 };
-    laddaBuffert(oppenFil, STARTKOD, "nytt_program.py");
-    markeraVald(-1);
-    aterstallKapitelKnapp.hidden = true;
+    if (kodruta.value.trim() &&
+        !confirm("Tömma kodrutan? Det du skrivit i " + kapitelnamn() +
+                 " försvinner.")) return;
+    var b = aktivtBuffert();
+    b.kod = STARTKOD;
+    b.filnamn = "nytt_program.py";
+    b.filhandtag = null;
+    b.andrad = false;
+    b.markor = 0;
+    b.rullning = 0;
+    laddaBuffert(buffertnyckel(), STARTKOD, "nytt_program.py");
     rensaKonsol();
     byteAvSamtal();
     kodruta.focus();
@@ -5368,22 +5964,123 @@ async def _labb_input(text=''):
 builtins.input = _labb_input
 
 
-def _labb_forbered(kallkod):
-    """Gör om funktioner som använder input() till asynkrona, så att
-    programmet kan pausa utan att frysa sidan."""
+import asyncio as _asyncio
+import time as _time
+
+_labb = {'varv': 0, 'start': 0.0, 'sist': 0.0, 'grans': 45.0}
+
+
+def _labb_nollstall(grans=45.0):
+    """Kallas före varje körning."""
+    nu = _time.time()
+    _labb.update({'varv': 0, 'start': nu, 'sist': nu, 'grans': grans})
+
+
+async def _labb_kontroll():
+    """Vakt som körs först i varje varv av varje loop.
+
+    Nästan alla anrop returnerar direkt. Ungefär tjugo gånger i sekunden
+    lämnas kontrollen tillbaka till webbläsaren, så att Stoppa-knappen
+    hinner klickas och sidan hinner rita om.
+    """
+    _labb['varv'] += 1
+    if _labb['varv'] & 255:
+        return
+    nu = _time.time()
+    if nu - _labb['sist'] < 0.05:
+        return
+    _labb['sist'] = nu
+    if js.window._labbStopp:
+        raise KeyboardInterrupt('Programmet stoppades.')
+    gangna = nu - _labb['start']
+    if _labb['grans'] and gangna > _labb['grans']:
+        raise TimeoutError(
+            'Programmet har kört i {:.0f} sekunder och stoppades automatiskt. '
+            'Är det en oändlig loop? Slå på Prestandaläge om koden ska '
+            'få ta längre tid.'.format(gangna))
+    await _asyncio.sleep(0)
+
+
+def _labb_generator(fnod):
+    """Sant om funktionen innehåller yield — då är den en generator.
+
+    Nästlade funktioner räknas inte: deras yield tillhör dem, inte oss.
+    """
+    ko = list(fnod.body)
+    while ko:
+        nod = ko.pop()
+        if isinstance(nod, (ast.Yield, ast.YieldFrom)):
+            return True
+        if isinstance(nod, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+            continue
+        ko.extend(ast.iter_child_nodes(nod))
+    return False
+
+
+def _labb_forbered(kallkod, vakt=True):
+    """Skriver om koden innan den körs.
+
+    Två saker händer: funktioner som väntar på något (input, nätverk)
+    görs asynkrona, och varje loop får en vakt som gör att programmet
+    kan avbrytas. Vakten hoppas över i prestandaläge.
+    """
     try:
         trad = ast.parse(kallkod)
     except SyntaxError:
         return kallkod
 
+    if vakt:
+        class Loopvakt(ast.NodeTransformer):
+            """Lägger in ett anrop först i varje loopkropp.
+
+            Generatorer hoppas över: ett await i en funktion med yield gör
+            den till en asynkron generator, och en sådan går inte att
+            loopa över med vanlig for.
+            """
+
+            def __init__(self):
+                self.i_generator = 0
+
+            def _funktion(self, nod):
+                gen = _labb_generator(nod)
+                if gen:
+                    self.i_generator += 1
+                self.generic_visit(nod)
+                if gen:
+                    self.i_generator -= 1
+                return nod
+
+            visit_FunctionDef = _funktion
+            visit_AsyncFunctionDef = _funktion
+
+            def _vakta(self, nod):
+                self.generic_visit(nod)
+                if self.i_generator:
+                    return nod
+                anrop = ast.Expr(value=ast.Call(
+                    func=ast.Name(id='_labb_kontroll', ctx=ast.Load()),
+                    args=[], keywords=[]))
+                nod.body = [anrop] + nod.body
+                return nod
+
+            visit_While = _vakta
+            visit_For = _vakta
+            visit_AsyncFor = _vakta
+
+        trad = ast.fix_missing_locations(Loopvakt().visit(trad))
+
     funktioner = {}
 
     def samla(nod, i_klass=False):
+        # Metoder i klasser tas med: annars kan de aldrig bli asynkrona,
+        # och en loop eller ett input() inuti en metod skulle ge syntaxfel.
         for barn in ast.iter_child_nodes(nod):
             if isinstance(barn, ast.ClassDef):
                 samla(barn, True)
             elif isinstance(barn, ast.FunctionDef):
-                if not i_klass:
+                # Generatorer lämnas som de är — de kan inte bli asynkrona
+                # utan att sluta fungera med vanlig for.
+                if not _labb_generator(barn):
                     funktioner[barn.name] = barn
                 samla(barn, False)
             else:
@@ -5403,6 +6100,8 @@ def _labb_forbered(kallkod):
 
     vantar = {'input', 'hamta_json', 'hamta_text', 'hamta_csv',
               'oppna_fil', 'oppna_csv', 'oppna_json'}
+    if vakt:
+        vantar.add('_labb_kontroll')
     andrat = True
     while andrat:
         andrat = False
@@ -5906,6 +6605,7 @@ _sys.modules['data'] = _data_modul
 `);
 
     forberedKod = pyodide.globals.get("_labb_forbered");
+    nollstallVakt = pyodide.globals.get("_labb_nollstall");
 
     statusEl.className = "status klar";
     statusText.textContent = "Python är redo";
