@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.14";
+  window.PYTHONLABBET_VERSION = "1.15";
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pythonlabbet</title>
@@ -236,6 +236,10 @@
     color: #2a0a05; font-weight: 650;
   }
   #app-root button.stoppa:hover { background: #ff9686; }
+  #app-root button.stoppa:disabled {
+    background: transparent; border-color: var(--line);
+    color: var(--chalk-dim); cursor: default;
+  }
 
   #app-root textarea {
     flex: 1 1 auto; width: 100%; resize: none; border: 0; outline: none;
@@ -565,10 +569,10 @@
 
 <header class="topbar">
   <h1 class="wordmark">Pythonlabbet<span class="version" data-version></span></h1>
-  <label class="strombrytare" title="Stänger av loopvakten. Koden kör snabbare, men kan inte avbrytas.">
-    <input type="checkbox" id="prestanda-toggle">
+  <label class="strombrytare" title="Loopvakt som gör att programmet kan stoppas och inte kan låsa sidan.">
+    <input type="checkbox" id="felsakert-toggle" checked>
     <span class="spar-toggle"><span class="knopp"></span></span>
-    <span class="toggle-text">Prestandaläge</span>
+    <span class="toggle-text">Felsäkert läge</span>
   </label>
   <label class="strombrytare" id="ai-toggle-etikett">
     <input type="checkbox" id="ai-toggle">
@@ -825,7 +829,7 @@
   var aterstallKnapp = document.getElementById("aterstall-knapp");
   var rensaKnapp = document.getElementById("rensa-knapp");
   var stoppaKnapp = document.getElementById("stoppa-knapp");
-  var prestandaToggle = document.getElementById("prestanda-toggle");
+  var felsakertToggle = document.getElementById("felsakert-toggle");
   var flikAi = document.getElementById("flik-ai");
   var panelAi = document.getElementById("panel-ai");
   var aiToggle = document.getElementById("ai-toggle");
@@ -5724,7 +5728,7 @@ _plt.show = _labb_visa
     markeraSteg(2);
     var start = performance.now();
     try {
-      var vakt = !prestandaToggle.checked;
+      var vakt = felsakertToggle.checked;
       var attKora = kodruta.value;
       if (forberedKod) {
         try { attKora = forberedKod(attKora, vakt); }
@@ -5734,7 +5738,15 @@ _plt.show = _labb_visa
         try { nollstallVakt(45.0); } catch (e) { /* ingen vakt */ }
       }
       window._labbStopp = false;
+      // Vakten sitter i looparna. Har koden inga loopar finns inget
+      // ställe att avbryta på, och det ska knappen visa.
+      var vakter = vakt ? (attKora.match(/_labb_kontroll/g) || []).length : 0;
       stoppaKnapp.hidden = !vakt;
+      stoppaKnapp.textContent = "Stoppa";
+      stoppaKnapp.disabled = vakter === 0;
+      stoppaKnapp.title = vakter
+        ? "Avbryter programmet vid nästa varv i loopen"
+        : "Koden har inga loopar att avbryta i — ladda om sidan om den fastnar";
       await pyodide.runPythonAsync(attKora);
       markeraSteg(3);
       if (!konsol.textContent.trim()) {
@@ -5747,6 +5759,8 @@ _plt.show = _labb_visa
     } finally {
       korKnapp.disabled = false;
       stoppaKnapp.hidden = true;
+      stoppaKnapp.disabled = false;
+      stoppaKnapp.textContent = "Stoppa";
       window._labbStopp = false;
     }
   }
@@ -5770,14 +5784,14 @@ _plt.show = _labb_visa
   stoppaKnapp.addEventListener("click", function () {
     window._labbStopp = true;
     stoppaKnapp.disabled = true;
-    setTimeout(function () { stoppaKnapp.disabled = false; }, 1200);
+    stoppaKnapp.textContent = "Stoppar …";
   });
-  prestandaToggle.addEventListener("change", function () {
-    skriv(prestandaToggle.checked
-      ? "Prestandaläge på. Koden kör i full fart, men kan inte stoppas — "
-        + "en oändlig loop låser sidan och kräver omladdning.\n"
-      : "Prestandaläge av. Loopvakten är på igen: Stoppa-knappen fungerar "
-        + "och programmet avbryts automatiskt efter 45 sekunder.\n", "system");
+  felsakertToggle.addEventListener("change", function () {
+    skriv(felsakertToggle.checked
+      ? "Felsäkert läge på. Stoppa-knappen fungerar och programmet avbryts "
+        + "automatiskt efter 45 sekunder.\n"
+      : "Felsäkert läge av. Koden kör i full fart, men kan inte stoppas — "
+        + "en oändlig loop låser sidan och kräver omladdning.\n", "system");
     visaFlik("utskrift");
   });
   document.getElementById("rensa-knapp").addEventListener("click", function () { rensaKonsol(); visaFlik("utskrift"); });
@@ -5984,21 +5998,25 @@ async def _labb_kontroll():
     hinner klickas och sidan hinner rita om.
     """
     _labb['varv'] += 1
-    if _labb['varv'] & 255:
+    if _labb['varv'] & 63:
         return
     nu = _time.time()
-    if nu - _labb['sist'] < 0.05:
+    if nu - _labb['sist'] < 0.03:
         return
     _labb['sist'] = nu
+
+    # Lämna kontrollen till webbläsaren FÖRST. Ett klick som kommer under
+    # pausen hinner då sätta flaggan innan vi läser den här nedanför.
+    await _asyncio.sleep(0)
+
     if js.window._labbStopp:
         raise KeyboardInterrupt('Programmet stoppades.')
-    gangna = nu - _labb['start']
+    gangna = _time.time() - _labb['start']
     if _labb['grans'] and gangna > _labb['grans']:
         raise TimeoutError(
             'Programmet har kört i {:.0f} sekunder och stoppades automatiskt. '
-            'Är det en oändlig loop? Slå på Prestandaläge om koden ska '
+            'Är det en oändlig loop? Stäng av Felsäkert läge om koden ska '
             'få ta längre tid.'.format(gangna))
-    await _asyncio.sleep(0)
 
 
 def _labb_generator(fnod):
