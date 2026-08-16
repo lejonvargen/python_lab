@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.17";
+  window.PYTHONLABBET_VERSION = "1.18";
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pythonlabbet</title>
@@ -3546,7 +3546,7 @@
       konsol.scrollTop = konsol.scrollHeight;
       falt.focus();
 
-      var slutfor = registreraVantan(function () { klar(null); });
+      var slutfor = registreraVantan(function () { klar(undefined); });
 
       function klar(varde) {
         slutfor();
@@ -3554,15 +3554,15 @@
         rad.removeChild(falt);
         var eko = document.createElement("span");
         eko.className = "svar";
-        eko.textContent = (varde === null ? "^C" : varde) + "\n";
+        eko.textContent = (typeof varde === "string" ? varde : "^C") + "\n";
         rad.appendChild(eko);
         konsol.scrollTop = konsol.scrollHeight;
         svara(varde);
       }
 
       falt.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") { e.preventDefault(); klar(falt.value); }
-        else if (e.key === "Escape") { e.preventDefault(); klar(null); }
+        if (e.key === "Enter") { e.preventDefault(); klar(String(falt.value)); }
+        else if (e.key === "Escape") { e.preventDefault(); klar(undefined); }
       });
     });
   }
@@ -3613,7 +3613,7 @@
       document.body.appendChild(valjare);
 
       var avslutad = false;
-      var slutfor = registreraVantan(function () { stad(null); });
+      var slutfor = registreraVantan(function () { stad(undefined); });
       function stad(resultat) {
         if (avslutad) return;
         avslutad = true;
@@ -3624,12 +3624,12 @@
 
       valjare.addEventListener("change", function () {
         var fil = valjare.files && valjare.files[0];
-        if (!fil) return stad(null);
+        if (!fil) return stad(undefined);
         var lasare = new FileReader();
         lasare.onload = function () {
           stad({ namn: fil.name, innehall: String(lasare.result) });
         };
-        lasare.onerror = function () { stad(null); };
+        lasare.onerror = function () { stad(undefined); };
         lasare.readAsText(fil);
       });
 
@@ -3637,7 +3637,7 @@
       window.addEventListener("focus", function avbrutet() {
         window.removeEventListener("focus", avbrutet);
         setTimeout(function () {
-          if (!valjare.files || !valjare.files.length) stad(null);
+          if (!valjare.files || !valjare.files.length) stad(undefined);
         }, 900);
       });
 
@@ -6026,13 +6026,23 @@ import ast
 import builtins
 import js
 
+def _tomt(varde):
+    """Sant om värdet inte är ett riktigt svar.
+
+    JavaScript har två sorters tomhet, null och undefined, och Pyodide
+    översätter dem olika. Vi litar därför inte på jämförelser mot None —
+    ett riktigt svar är alltid en sträng, allt annat betyder avbrott.
+    """
+    return not isinstance(varde, str)
+
+
 async def _labb_input(text=''):
     svar = await _labb_vanta(js.window._labbFraga(str(text)))
-    if svar is None:
+    if _tomt(svar):
         if js.window._labbStopp:
             raise KeyboardInterrupt('Programmet stoppades medan det väntade på svar.')
         raise KeyboardInterrupt('Inmatningen avbröts.')
-    return str(svar)
+    return svar
 
 builtins.input = _labb_input
 
@@ -6653,7 +6663,7 @@ async def _oppna_fil(spara_som=None, filter='.csv,.json,.txt,.py,.md'):
     Returnerar filnamnet, som sedan kan öppnas med vanlig open().
     """
     vald = await _labb_vanta(js.window._labbValjFil(filter))
-    if vald is None:
+    if vald is None or not hasattr(vald, 'innehall'):
         if js.window._labbStopp:
             raise KeyboardInterrupt('Programmet stoppades medan det väntade på en fil.')
         raise FileNotFoundError('Ingen fil valdes.')
