@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.16";
+  window.PYTHONLABBET_VERSION = "1.17";
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pythonlabbet</title>
@@ -3546,7 +3546,11 @@
       konsol.scrollTop = konsol.scrollHeight;
       falt.focus();
 
+      var slutfor = registreraVantan(function () { klar(null); });
+
       function klar(varde) {
+        slutfor();
+        if (!rad.contains(falt)) return;      // redan besvarad
         rad.removeChild(falt);
         var eko = document.createElement("span");
         eko.className = "svar";
@@ -3567,6 +3571,38 @@
   /* Sätts av Stoppa-knappen och läses av loopvakten i Python. */
   window._labbStopp = false;
 
+  /* ---- register över saker programmet väntar på ----
+     Under input(), en filväljare eller en nätverkshämtning står Python
+     stilla och webbläsaren är ledig. Då finns ingen loop att vakta i,
+     men väntan går ändå att avbryta — den som väntar lämnar in en
+     funktion här, och Stoppa-knappen anropar alla på en gång. */
+  var vantande = [];
+
+  function registreraVantan(avbryt) {
+    vantande.push(avbryt);
+    uppdateraStoppKnapp();
+    return function klart() {
+      var i = vantande.indexOf(avbryt);
+      if (i >= 0) vantande.splice(i, 1);
+      uppdateraStoppKnapp();
+    };
+  }
+
+  function avbrytAllVantan() {
+    var kopia = vantande.slice();
+    vantande.length = 0;
+    kopia.forEach(function (f) { try { f(); } catch (e) { /* redan klar */ } });
+    uppdateraStoppKnapp();
+  }
+
+  /* Ger Python en avbrytbar hämtning: signalen skickas till fetch, och
+     Stoppa-knappen kan avbryta den mitt i. */
+  window._labbStyrning = function () {
+    var styr = new AbortController();
+    var klart = registreraVantan(function () { styr.abort(); });
+    return { signal: styr.signal, klar: klart };
+  };
+
   /* Låter Python-kod be användaren peka ut en fil från datorn. */
   window._labbValjFil = function (filter) {
     return new Promise(function (klar) {
@@ -3577,9 +3613,11 @@
       document.body.appendChild(valjare);
 
       var avslutad = false;
+      var slutfor = registreraVantan(function () { stad(null); });
       function stad(resultat) {
         if (avslutad) return;
         avslutad = true;
+        slutfor();
         if (valjare.parentNode) document.body.removeChild(valjare);
         klar(resultat);
       }
@@ -3645,6 +3683,25 @@
     sattKnappsynlighet(vilken === "scen");
     if (vilken === "scen") {
       try { anpassaStorlek(); } catch (e) { /* scenen kanske inte är byggd än */ }
+    }
+  }
+
+  /* Knappen visas när det finns något att avbryta: antingen loopar med
+     vakt, eller en väntan på input, fil eller nätverk. Väntan går att
+     avbryta även när felsäkert läge är av. */
+  var korning = { igang: false, vakter: 0 };
+
+  function uppdateraStoppKnapp() {
+    var vantar = vantande.length > 0;
+    var kanStoppas = (korning.igang && korning.vakter > 0) || vantar;
+    stoppaKnapp.hidden = !(korning.igang || vantar);
+    stoppaKnapp.disabled = !kanStoppas || window._labbStopp;
+    if (!window._labbStopp) {
+      stoppaKnapp.textContent = "Stoppa";
+      stoppaKnapp.title = kanStoppas
+        ? (vantar ? "Avbryter väntan på svar"
+                  : "Avbryter programmet vid nästa varv i looparna")
+        : "Koden har inga loopar och väntar inte på något — ladda om sidan om den fastnar";
     }
   }
 
@@ -5738,15 +5795,11 @@ _plt.show = _labb_visa
         try { nollstallVakt(45.0); } catch (e) { /* ingen vakt */ }
       }
       window._labbStopp = false;
-      // Vakten sitter i looparna. Har koden inga loopar finns inget
-      // ställe att avbryta på, och det ska knappen visa.
-      var vakter = vakt ? (attKora.match(/_labb_kontroll/g) || []).length : 0;
-      stoppaKnapp.hidden = !vakt;
-      stoppaKnapp.textContent = "Stoppa";
-      stoppaKnapp.disabled = vakter === 0;
-      stoppaKnapp.title = vakter
-        ? "Avbryter programmet vid nästa varv i loopen"
-        : "Koden har inga loopar att avbryta i — ladda om sidan om den fastnar";
+      // Vakten sitter i looparna. Väntan på input eller nätverk går att
+      // avbryta ändå, så knappen visas under hela körningen.
+      korning.igang = true;
+      korning.vakter = vakt ? (attKora.match(/_labb_kontroll/g) || []).length : 0;
+      uppdateraStoppKnapp();
       await pyodide.runPythonAsync(attKora);
       markeraSteg(3);
       if (!konsol.textContent.trim()) {
@@ -5758,10 +5811,13 @@ _plt.show = _labb_visa
       visaFel(String((err && err.message) || err));
     } finally {
       korKnapp.disabled = false;
+      korning.igang = false;
+      korning.vakter = 0;
+      window._labbStopp = false;
+      avbrytAllVantan();
       stoppaKnapp.hidden = true;
       stoppaKnapp.disabled = false;
       stoppaKnapp.textContent = "Stoppa";
-      window._labbStopp = false;
     }
   }
 
@@ -5785,6 +5841,7 @@ _plt.show = _labb_visa
     window._labbStopp = true;
     stoppaKnapp.disabled = true;
     stoppaKnapp.textContent = "Stoppar …";
+    avbrytAllVantan();          // väcker input, filväljare och hämtningar
   });
   felsakertToggle.addEventListener("change", function () {
     skriv(felsakertToggle.checked
@@ -5970,9 +6027,11 @@ import builtins
 import js
 
 async def _labb_input(text=''):
-    svar = await js.window._labbFraga(str(text))
+    svar = await _labb_vanta(js.window._labbFraga(str(text)))
     if svar is None:
-        raise KeyboardInterrupt('Programmet avbröts.')
+        if js.window._labbStopp:
+            raise KeyboardInterrupt('Programmet stoppades medan det väntade på svar.')
+        raise KeyboardInterrupt('Inmatningen avbröts.')
     return str(svar)
 
 builtins.input = _labb_input
@@ -5988,6 +6047,21 @@ def _labb_nollstall(grans=45.0):
     """Kallas före varje körning."""
     nu = _time.time()
     _labb.update({'varv': 0, 'start': nu, 'sist': nu, 'grans': grans})
+
+
+async def _labb_vanta(loften):
+    """Väntar på något som människan eller nätet styr över.
+
+    Tiden som går här räknas inte mot tidsgränsen — annars skulle
+    programmet avbrytas medan någon funderar på vad de ska skriva.
+    """
+    borjan = _time.time()
+    try:
+        return await loften
+    finally:
+        paus = _time.time() - borjan
+        _labb['start'] += paus
+        _labb['sist'] = _time.time()
 
 
 async def _labb_kontroll():
@@ -6478,14 +6552,20 @@ _data_modul = _types.ModuleType('data')
 
 async def _hamta_text(url):
     from pyodide.http import pyfetch
+    # Styrningen låter Stoppa-knappen avbryta en hämtning som drar ut.
+    styrning = js.window._labbStyrning()
     try:
-        svar = await pyfetch(url)
+        svar = await _labb_vanta(pyfetch(url, signal=styrning.signal))
     except Exception as fel:
+        if js.window._labbStopp:
+            raise KeyboardInterrupt('Hämtningen avbröts.') from None
         raise RuntimeError(
             'Kunde inte nå ' + url + '. Antingen är servern nere, eller så '
             'tillåter den inte att webbläsare hämtar data från andra sidor (CORS). '
             'Ursprungligt fel: ' + str(fel)
         ) from None
+    finally:
+        styrning.klar()
     if svar.status != 200:
         raise RuntimeError('Servern svarade med statuskod ' + str(svar.status))
     return await svar.string()
@@ -6572,8 +6652,10 @@ async def _oppna_fil(spara_som=None, filter='.csv,.json,.txt,.py,.md'):
 
     Returnerar filnamnet, som sedan kan öppnas med vanlig open().
     """
-    vald = await js.window._labbValjFil(filter)
+    vald = await _labb_vanta(js.window._labbValjFil(filter))
     if vald is None:
+        if js.window._labbStopp:
+            raise KeyboardInterrupt('Programmet stoppades medan det väntade på en fil.')
         raise FileNotFoundError('Ingen fil valdes.')
     namn = spara_som or vald.namn
     with open(namn, 'w', encoding='utf-8') as _fil:
