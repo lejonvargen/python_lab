@@ -1,0 +1,3984 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<script>
+  /* ===== Versionen definieras HÄR och bara här. =====
+     Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
+  window.PYTHONLABBET_VERSION = "1.28";
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pythonlab</title>
+<meta name="description" content="Pythonlabbet är en interaktiv kurs i Python som körs direkt i webbläsaren. 28 kapitel från din första utskrift till 3D-grafik, maskininlärning och transformers.">
+<meta name="author" content="Pythonlabbet">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0e1c33">
+<meta name="application-name" content="Pythonlabbet">
+<meta name="apple-mobile-web-app-title" content="Pythonlabbet">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pythonlabbet">
+<meta property="og:description" content="Lär dig Python direkt i webbläsaren — 28 kapitel från print() till transformers.">
+<meta property="og:locale" content="sv_SE">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230e1c33'/%3E%3Cpath d='M14 20h10M14 32h10M14 44h10' stroke='%231b3255' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M30 18l10 14-10 14' fill='none' stroke='%23ffc94a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M44 46h8' stroke='%236ee7b7' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230e1c33'/%3E%3Cpath d='M14 20h10M14 32h10M14 44h10' stroke='%231b3255' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M30 18l10 14-10 14' fill='none' stroke='%23ffc94a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M44 46h8' stroke='%236ee7b7' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<div id="app-root">
+<div class="laddskarm" id="laddskarm">
+  <div class="laddruta">
+    <p class="laddmark"><span data-i18n="titel"></span> <span class="version" data-version></span></p>
+    <p class="laddrubrik" id="ladd-rubrik" data-i18n="ladd.rubrik"></p>
+    <div class="laddspar"><div class="laddfyll" id="ladd-fyll"></div></div>
+    <p class="laddtext" id="ladd-text" data-i18n="ladd.text"></p>
+    <p class="laddnot" data-i18n="ladd.not"></p>
+  </div>
+</div>
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #0e1c33; color: #e8f0ff;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { overflow: hidden; }
+
+  #app-root {
+    --blueprint: #0e1c33;
+    --panel: #142643;
+    --panel-2: #1b3255;
+    --line: rgba(140, 180, 255, 0.16);
+    --chalk: #e8f0ff;
+    --chalk-dim: #93a9cc;
+    --amber: #ffc94a;
+    --mint: #6ee7b7;
+    --coral: #ff7d6b;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+    background: var(--blueprint);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color: var(--chalk);
+    font-family: var(--sans);
+    height: 100dvh;
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 0;
+    position: relative;
+  }
+  #app-root * { box-sizing: border-box; }
+
+  /* ---- laddningsskärm ---- */
+  #app-root .laddskarm {
+    position: absolute; inset: 0; z-index: 60;
+    background: rgba(14, 28, 51, 0.97);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; transition: opacity .35s ease;
+  }
+  #app-root .laddskarm.klar { opacity: 0; pointer-events: none; }
+  #app-root .laddskarm[hidden] { display: none; }
+  #app-root .laddruta { width: 100%; max-width: 430px; text-align: left; }
+  #app-root .laddmark {
+    font-family: var(--mono); font-size: 13px; letter-spacing: 0.24em;
+    text-transform: uppercase; color: var(--amber); margin: 0 0 18px;
+  }
+  #app-root .laddrubrik { font-size: 17px; color: var(--chalk); margin: 0 0 12px; }
+  #app-root .laddspar {
+    height: 6px; border-radius: 999px; background: var(--panel-2);
+    border: 1px solid var(--line); overflow: hidden;
+  }
+  #app-root .laddfyll {
+    height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--amber), var(--mint));
+    transition: width .35s ease;
+  }
+  #app-root .laddfyll.obestamd {
+    width: 35%;
+    animation: glid 1.4s ease-in-out infinite;
+  }
+  @keyframes glid {
+    0% { margin-left: -35%; } 100% { margin-left: 100%; }
+  }
+  #app-root .laddtext {
+    font-family: var(--mono); font-size: 11.5px; color: var(--chalk-dim);
+    margin: 10px 0 0; min-height: 16px;
+  }
+  #app-root .laddnot {
+    font-size: 12.5px; color: var(--chalk-dim); line-height: 1.55; margin: 20px 0 0;
+  }
+  #app-root .laddskarm.trasig .laddfyll { background: var(--coral); animation: none; width: 100%; }
+  @media (prefers-reduced-motion: reduce) {
+    #app-root .laddfyll, #app-root .laddskarm { transition: none; }
+    #app-root .laddfyll.obestamd { animation: none; width: 100%; opacity: .4; }
+  }
+
+  #app-root .topbar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 13px 18px; border-bottom: 1px solid var(--line);
+    background: rgba(14, 28, 51, 0.85); flex: 0 0 auto;
+  }
+  #app-root .wordmark { margin: 0; font-weight: 400;
+    font-family: var(--mono); font-size: 15px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--amber);
+  }
+  #app-root .startversion {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--chalk-dim); margin: 0 0 16px;
+  }
+  #app-root .version {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+    color: var(--chalk-dim); text-transform: none; margin-left: 9px;
+  }
+  #app-root .omlank {
+    /* Samma sättning som strömbrytarnas etiketter till vänster. */
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--chalk-dim);
+    background: transparent; border: 0; padding: 0;
+    margin-left: 10px; cursor: pointer; line-height: inherit;
+    align-self: center;
+    text-decoration: underline; text-underline-offset: 3px;
+    text-decoration-color: rgba(147, 169, 204, 0.35);
+  }
+  #app-root .omlank:hover {
+    color: var(--amber); text-decoration-color: var(--amber);
+  }
+  #app-root .omlank:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  #app-root .strombrytare {
+    display: inline-flex; align-items: center; gap: 8px;
+    cursor: pointer; user-select: none; margin-left: 4px;
+  }
+  #app-root .strombrytare input { position: absolute; opacity: 0; width: 0; height: 0; }
+  #app-root .spar-toggle {
+    width: 34px; height: 18px; border-radius: 999px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    display: inline-block; position: relative; transition: background .15s ease, border-color .15s ease;
+  }
+  #app-root .spar-toggle .knopp {
+    position: absolute; top: 2px; left: 2px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--chalk-dim); transition: transform .15s ease, background .15s ease;
+  }
+  #app-root .strombrytare input:checked + .spar-toggle {
+    background: rgba(255, 201, 74, .25); border-color: var(--amber);
+  }
+  #app-root .strombrytare input:checked + .spar-toggle .knopp {
+    transform: translateX(16px); background: var(--amber);
+  }
+  #app-root .strombrytare input:focus-visible + .spar-toggle { outline: 2px solid var(--amber); outline-offset: 2px; }
+  #app-root .toggle-text {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--chalk-dim);
+  }
+  #app-root .strombrytare input:checked ~ .toggle-text { color: var(--amber); }
+  #app-root .status {
+    margin-left: auto; font-family: var(--mono); font-size: 11.5px;
+    letter-spacing: 0.08em; color: var(--chalk-dim);
+    display: flex; align-items: center; gap: 8px;
+  }
+  #app-root .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); animation: pulse 1.2s ease-in-out infinite; }
+  #app-root .status.klar .dot { background: var(--mint); animation: none; }
+  #app-root .status.trasig .dot { background: var(--coral); animation: none; }
+  @keyframes pulse { 0%,100% { opacity: .3 } 50% { opacity: 1 } }
+
+  #app-root .layout { flex: 1 1 auto; display: grid; grid-template-columns: 248px 1fr; min-height: 0; }
+
+  #app-root .rail {
+    border-right: 1px solid var(--line); padding: 14px 12px 24px;
+    overflow-y: auto; background: rgba(20, 38, 67, 0.55);
+  }
+  #app-root .rubrik {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--chalk-dim); margin: 0 0 9px 4px;
+  }
+  #app-root .delrubrik {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--amber); opacity: .75;
+    margin: 16px 0 6px 4px; padding-top: 10px; border-top: 1px solid var(--line);
+  }
+  #app-root .delrubrik.forst { margin-top: 4px; border-top: 0; padding-top: 0; }
+  #app-root .lektion {
+    width: 100%; text-align: left; background: transparent;
+    border: 1px solid transparent; border-radius: 8px; color: var(--chalk);
+    padding: 7px 10px; margin-bottom: 2px; cursor: pointer;
+    font-family: var(--sans); font-size: 13.5px;
+    display: flex; gap: 9px; align-items: baseline;
+    transition: background .12s ease, border-color .12s ease;
+  }
+  #app-root .lektion:hover { background: var(--panel-2); }
+  #app-root .lektion.vald { border-color: var(--amber); background: var(--panel-2); }
+  #app-root .lektion .nr { font-family: var(--mono); font-size: 11px; color: var(--amber); flex: 0 0 auto; }
+  #app-root .tomt { font-size: 12.5px; color: var(--chalk-dim); padding: 2px 6px; line-height: 1.5; }
+
+  #app-root .arbetsyta { display: grid; grid-template-rows: minmax(0, 1fr) auto minmax(0, 0.95fr); min-height: 0; }
+  #app-root .redigerare { display: flex; flex-direction: column; min-height: 0; }
+  #app-root .verktyg {
+    display: flex; align-items: center; gap: 7px; padding: 9px 14px;
+    border-bottom: 1px solid var(--line); flex-wrap: wrap;
+  }
+  #app-root .filnamn { font-family: var(--mono); font-size: 12px; color: var(--chalk-dim); margin-right: auto; }
+  #app-root .filnamn .andrad { color: var(--amber); }
+  #app-root button.knapp {
+    font-family: var(--sans); font-size: 13px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--chalk);
+    padding: 6px 12px; cursor: pointer; transition: transform .08s ease, background .12s ease;
+  }
+  #app-root button.knapp:hover { background: #234070; }
+  #app-root button.knapp:active { transform: translateY(1px); }
+  #app-root button.kor { background: var(--amber); border-color: var(--amber); color: #2a1a00; font-weight: 650; }
+  #app-root button.kor:hover { background: #ffd772; }
+  #app-root button.kor:disabled { opacity: .45; cursor: wait; }
+  #app-root button.stoppa {
+    background: var(--coral); border-color: var(--coral);
+    color: #2a0a05; font-weight: 650;
+  }
+  #app-root button.stoppa:hover { background: #ff9686; }
+  #app-root button.stoppa:disabled {
+    background: transparent; border-color: var(--line);
+    color: var(--chalk-dim); cursor: default;
+  }
+
+  #app-root textarea {
+    flex: 1 1 auto; width: 100%; resize: none; border: 0; outline: none;
+    background: transparent; color: var(--chalk); font-family: var(--mono);
+    font-size: 14.5px; line-height: 1.65; padding: 14px 16px; tab-size: 4;
+  }
+  #app-root textarea::selection { background: rgba(255, 201, 74, 0.3); }
+  #app-root .redigerare.slapp { outline: 2px dashed var(--amber); outline-offset: -6px; }
+
+  #app-root .spar {
+    display: flex; align-items: center; gap: 9px; padding: 8px 16px;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    background: rgba(27, 50, 85, 0.5); overflow-x: auto;
+  }
+  #app-root .steg {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--chalk-dim);
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px;
+    white-space: nowrap; transition: all .25s ease;
+  }
+  #app-root .steg.aktiv { color: #2a1a00; background: var(--amber); border-color: var(--amber); }
+  #app-root .steg.klar { color: var(--mint); border-color: rgba(110, 231, 183, .5); }
+  #app-root .pil { color: var(--line); font-size: 12px; }
+
+  #app-root .nedre { display: flex; flex-direction: column; min-height: 0; }
+  #app-root .flikar { display: flex; gap: 4px; padding: 8px 14px 0; flex: 0 0 auto; }
+  #app-root button.flik {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
+    background: transparent; border: 1px solid transparent; border-bottom: 2px solid transparent;
+    color: var(--chalk-dim); padding: 6px 10px; cursor: pointer;
+  }
+  #app-root button.flik.vald { color: var(--amber); border-bottom-color: var(--amber); }
+  #app-root .flikinnehall { flex: 1 1 auto; overflow-y: auto; padding: 8px 16px 18px; min-height: 0; }
+  #app-root .flikinnehall[hidden] { display: none; }
+
+  #app-root .konsol { font-family: var(--mono); font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+  #app-root .konsol .ut { color: var(--chalk); }
+  #app-root .konsol .fel { color: var(--coral); }
+  #app-root .konsol .system { color: var(--chalk-dim); }
+  #app-root .konsol .fraga { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  #app-root .konsol .svarsfalt {
+    flex: 1 1 160px; min-width: 120px; background: transparent;
+    border: 0; border-bottom: 1px solid var(--amber); outline: none;
+    color: var(--amber); font-family: var(--mono); font-size: 13.5px;
+    padding: 0 2px 1px;
+  }
+  #app-root .konsol .svar { color: var(--amber); }
+  #app-root .konsol .diagram {
+    display: block; max-width: 100%; height: auto;
+    margin: 10px 0; border: 1px solid var(--line); border-radius: 8px;
+  }
+  #app-root .scenruta {
+    width: 100%; height: 100%; min-height: 220px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; overflow: hidden; position: relative;
+  }
+  #app-root .scenruta canvas {
+    display: block; border-radius: 8px;
+    max-width: 100%; max-height: 100%;
+  }
+  #app-root #panel-scen:fullscreen {
+    background: var(--blueprint); padding: 0; display: block;
+  }
+  #app-root #panel-scen:fullscreen .scenruta {
+    height: 100vh; min-height: 100vh; border-radius: 0;
+  }
+  #app-root #panel-scen:fullscreen .scenruta canvas { border-radius: 0; }
+
+  /* ---- dialogruta för anslutning ---- */
+  #app-root .overlagring {
+    position: absolute; inset: 0; z-index: 70;
+    background: rgba(8, 16, 30, 0.72);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #app-root .overlagring[hidden] { display: none; }
+  #app-root .dialog {
+    width: 100%; max-width: 470px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px 22px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .45);
+    max-height: 90%; overflow-y: auto;
+  }
+  #app-root .dialog-rubrik {
+    margin: 0 0 6px; font-size: 17px; font-weight: 600; color: var(--chalk);
+  }
+  #app-root .dialog-ingress {
+    margin: 0 0 16px; font-size: 13px; color: var(--chalk-dim); line-height: 1.5;
+  }
+  #app-root .dialog-fot {
+    display: flex; align-items: center; gap: 9px; margin-top: 16px;
+    padding-top: 14px; border-top: 1px solid var(--line);
+  }
+  #app-root .dialog-fot .ai-status { margin-right: auto; }
+  #app-root .ai-rad { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  #app-root .ai-rad label {
+    flex: 0 0 92px; font-size: 12.5px; color: var(--chalk-dim);
+  }
+  #app-root .ai-rad input, #app-root .ai-rad select {
+    flex: 1 1 auto; min-width: 0; background: var(--blueprint);
+    border: 1px solid var(--line); border-radius: 7px; color: var(--chalk);
+    font-family: var(--mono); font-size: 12.5px; padding: 7px 9px; outline: none;
+  }
+  #app-root .ai-rad input:focus, #app-root .ai-rad select:focus { border-color: var(--amber); }
+  #app-root .ai-status { font-family: var(--mono); font-size: 11.5px; color: var(--chalk-dim); }
+  #app-root .ai-status.ok { color: var(--mint); }
+  #app-root .ai-status.fel { color: var(--coral); }
+  #app-root .om-text { font-size: 14px; line-height: 1.6; margin: 0 0 12px; }
+  #app-root .om-text a { color: var(--amber); }
+  #app-root .om-copyright {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em;
+    color: var(--chalk-dim); margin: 18px 0 0;
+  }
+  #app-root .dialog-fel {
+    margin: 12px 0 0; padding: 9px 11px; font-size: 12.5px; line-height: 1.5;
+    color: var(--coral); border: 1px solid rgba(255,125,107,.35);
+    border-radius: 8px; background: rgba(255,125,107,.08);
+  }
+  #app-root .dialog-fel[hidden] { display: none; }
+  #app-root .ai-not { font-size: 11.5px; color: var(--chalk-dim); margin: 14px 0 0; line-height: 1.5; }
+
+  #app-root .ai-svar { max-width: 760px; font-size: 14px; line-height: 1.6; }
+
+  #app-root .ai-chatt { display: block; min-height: 0; }
+  #app-root .ai-snabb {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    position: sticky; top: 0; z-index: 4;
+    margin: 0 0 12px; padding: 2px 0 10px;
+    background: var(--blueprint);
+    box-shadow: 0 6px 10px -8px rgba(0, 0, 0, .8);
+  }
+  #app-root button.ai-chip {
+    font-family: var(--sans); font-size: 12px;
+    background: var(--panel-2); color: var(--chalk);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 12px; cursor: pointer;
+  }
+  #app-root button.ai-chip:hover { border-color: var(--amber); }
+  #app-root button.ai-chip.mild { color: var(--chalk-dim); margin-left: auto; }
+  #app-root #ai-rensa-samtal { color: var(--chalk-dim); }
+  #app-root button.ai-chip:disabled { opacity: .4; cursor: default; }
+
+  #app-root .ai-skriv { margin-top: 14px; max-width: 760px; }
+  #app-root .ai-kontext {
+    display: block; font-family: var(--mono); font-size: 10.5px;
+    color: var(--chalk-dim); margin-bottom: 5px; letter-spacing: 0.06em;
+  }
+  #app-root .ai-skrivrad { display: flex; gap: 8px; align-items: flex-end; }
+  #app-root #ai-fraga {
+    flex: 1 1 auto; resize: vertical; min-height: 44px;
+    background: var(--blueprint); border: 1px solid var(--line);
+    border-radius: 8px; color: var(--chalk);
+    font-family: var(--sans); font-size: 13.5px; line-height: 1.5;
+    padding: 8px 10px; outline: none;
+  }
+  #app-root #ai-fraga:focus { border-color: var(--amber); }
+  #app-root #ai-skicka { flex: 0 0 auto; }
+
+  #app-root .ai-svar .fran-mig {
+    border-left: 2px solid var(--mint); padding: 2px 0 2px 14px;
+    margin: 14px 0 4px; white-space: pre-wrap; color: var(--chalk-dim);
+  }
+
+  /* ---- markdown i assistentens svar ---- */
+  #app-root .ai-svar .bubbla > *:first-child { margin-top: 0; }
+  #app-root .ai-svar .bubbla > *:last-child { margin-bottom: 0; }
+  #app-root .ai-svar .bubbla p { margin: 0 0 9px; }
+  #app-root .ai-svar .bubbla h3,
+  #app-root .ai-svar .bubbla h4 {
+    font-size: 13.5px; color: var(--amber); font-weight: 600;
+    margin: 14px 0 6px; letter-spacing: 0.01em; text-transform: none;
+    font-family: var(--sans);
+  }
+  #app-root .ai-svar .bubbla ul,
+  #app-root .ai-svar .bubbla ol { margin: 0 0 9px; padding-left: 20px; }
+  #app-root .ai-svar .bubbla li { margin-bottom: 4px; }
+  #app-root .ai-svar .bubbla strong { color: var(--chalk); font-weight: 650; }
+  #app-root .ai-svar .bubbla em { font-style: italic; color: var(--chalk); }
+  #app-root .ai-svar .bubbla hr {
+    border: 0; border-top: 1px solid var(--line); margin: 12px 0;
+  }
+  #app-root .ai-svar .bubbla code {
+    font-family: var(--mono); font-size: 12.5px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 4px; padding: 1px 5px; color: var(--chalk);
+  }
+  #app-root .ai-svar .kodblock {
+    background: var(--blueprint); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px 12px; margin: 0 0 10px;
+    overflow-x: auto;
+  }
+  #app-root .ai-svar .kodblock code {
+    background: none; border: 0; padding: 0;
+    font-size: 12.8px; line-height: 1.55;
+    color: var(--chalk); white-space: pre; display: block;
+  }
+
+  /* ---- matematik ---- */
+  #app-root .matte {
+    font-family: "Latin Modern Math", "Cambria Math", "STIX Two Math", Georgia, serif;
+    font-size: 1.06em; white-space: nowrap; color: var(--chalk);
+  }
+  #app-root .matte.block {
+    display: block; text-align: center; margin: 12px 0;
+    font-size: 1.14em; overflow-x: auto; white-space: normal;
+  }
+  #app-root .matte sup, #app-root .matte sub {
+    font-size: 0.72em; line-height: 0;
+  }
+  #app-root .matte sup { vertical-align: 0.55em; }
+  #app-root .matte sub { vertical-align: -0.28em; }
+  #app-root .matte .brak {
+    display: inline-flex; flex-direction: column; vertical-align: -0.55em;
+    text-align: center; margin: 0 0.18em; line-height: 1.15;
+  }
+  #app-root .matte .brak .taljare { padding: 0 0.3em 1px; }
+  #app-root .matte .brak .namnare {
+    padding: 1px 0.3em 0; border-top: 1px solid currentColor;
+  }
+  #app-root .matte .rot {
+    border-top: 1px solid currentColor; padding: 1px 0.15em 0; margin-left: -0.1em;
+  }
+  #app-root .ai-svar .fraga-eko {
+    font-family: var(--mono); font-size: 11.5px; color: var(--chalk-dim);
+    letter-spacing: 0.08em; text-transform: uppercase; margin: 16px 0 6px;
+  }
+  #app-root .ai-svar .bubbla {
+    border-left: 2px solid var(--amber); padding: 2px 0 2px 14px;
+    word-break: break-word;
+    white-space: normal;          /* markdown ger egna block */
+  }
+  #app-root .ai-svar .bubbla.arbetar,
+  #app-root .ai-svar .bubbla.fel { white-space: pre-wrap; }
+  #app-root .ai-svar .bubbla.arbetar { border-color: var(--chalk-dim); color: var(--chalk-dim); }
+  #app-root .ai-svar .bubbla.fel { border-color: var(--coral); color: var(--coral); }
+  #app-root .ai-svar code {
+    font-family: var(--mono); font-size: 13px; background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px;
+  }
+  #app-root button.ai-knapp {
+    background: transparent; border: 1px solid var(--line); border-radius: 7px;
+    color: var(--mint); font-size: 12px; padding: 4px 10px; cursor: pointer;
+    margin: 8px 0 2px;
+  }
+  #app-root button.ai-knapp:hover { background: var(--panel-2); }
+  #app-root .konsol .tips {
+    color: var(--mint); border-left: 2px solid rgba(110, 231, 183, .45);
+    padding-left: 10px; margin: 6px 0 2px; font-family: var(--sans); font-size: 13px; white-space: normal;
+  }
+
+  #app-root .lektionstext { max-width: 760px; font-size: 14px; line-height: 1.62; }
+  #app-root .lektionstext h3 {
+    font-family: var(--mono); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--amber); margin: 20px 0 8px; font-weight: 600;
+  }
+  #app-root .lektionstext h3:first-child { margin-top: 4px; }
+  #app-root .lektionstext p { margin: 0 0 11px; }
+  #app-root .lektionstext ul { margin: 0 0 11px; padding-left: 20px; }
+  #app-root .lektionstext li { margin-bottom: 5px; }
+  #app-root .lektionstext code {
+    font-family: var(--mono); font-size: 13px; background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px;
+  }
+  #app-root .lektionstext .uppgift {
+    border-left: 2px solid var(--amber); background: rgba(255, 201, 74, .07);
+    padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0 4px;
+  }
+  #app-root .lektionstext .uppgift strong { color: var(--amber); }
+  #app-root .lektionstext .fallgrop {
+    border-left: 2px solid var(--coral); background: rgba(255, 125, 107, .07);
+    padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0;
+  }
+  #app-root .lektionstext .fallgrop strong { color: var(--coral); }
+
+  /* ---- startsidan ---- */
+  #app-root .lektionstext.start { max-width: 820px; }
+  #app-root .start .valkomst {
+    font-size: 22px; line-height: 1.35; color: var(--chalk);
+    margin: 2px 0 10px; font-weight: 600;
+  }
+  #app-root .start .ingress { font-size: 15px; color: var(--chalk-dim); margin-bottom: 22px; }
+  #app-root .start .delar {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+    gap: 10px; margin: 0 0 22px;
+  }
+  #app-root .start .del-kort {
+    border: 1px solid var(--line); border-left: 2px solid var(--amber);
+    border-radius: 0 8px 8px 0; padding: 11px 14px;
+    background: rgba(27, 50, 85, 0.35);
+  }
+  #app-root .start .del-kort h4 {
+    margin: 0 0 3px; font-size: 14px; color: var(--amber); font-weight: 600;
+  }
+  #app-root .start .del-kort .spann {
+    font-family: var(--mono); font-size: 10.5px; color: var(--chalk-dim);
+    letter-spacing: 0.1em; display: block; margin-bottom: 5px;
+  }
+  #app-root .start .del-kort p { margin: 0; font-size: 13px; line-height: 1.5; }
+  #app-root .start .snabbstart {
+    border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 20px; background: rgba(20, 38, 67, 0.5);
+  }
+  #app-root .start .snabbstart ol { margin: 8px 0 0; padding-left: 20px; }
+  #app-root .start .snabbstart li { margin-bottom: 5px; }
+  #app-root .start .tva {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px;
+  }
+  #app-root .start kbd {
+    font-family: var(--mono); font-size: 11.5px; background: var(--panel-2);
+    border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 5px; color: var(--chalk);
+  }
+  #app-root .startknapp { border-color: var(--line); }
+  #app-root .startknapp.vald { border-color: var(--amber); background: var(--panel-2); }
+
+  @media (max-width: 780px) {
+    #app-root { height: auto; overflow: visible; }
+    #app-root .layout { grid-template-columns: 1fr; }
+    #app-root .rail { border-right: 0; border-bottom: 1px solid var(--line); max-height: 220px; }
+    #app-root textarea { min-height: 280px; }
+    #app-root .flikinnehall { min-height: 220px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #app-root .dot { animation: none; }
+    #app-root .steg { transition: none; }
+  }
+</style>
+
+<header class="topbar">
+  <h1 class="wordmark"><span data-i18n="titel"></span><span class="version" data-version></span></h1>
+  <label class="strombrytare" title="Loopvakt som gör att programmet kan stoppas och inte kan låsa sidan.">
+    <input type="checkbox" id="felsakert-toggle">
+    <span class="spar-toggle"><span class="knopp"></span></span>
+    <span class="toggle-text" data-i18n="ui.felsakert"></span>
+  </label>
+  <label class="strombrytare" id="ai-toggle-etikett">
+    <input type="checkbox" id="ai-toggle">
+    <span class="spar-toggle"><span class="knopp"></span></span>
+    <span class="toggle-text" data-i18n="ui.ai_stod"></span>
+  </label>
+  <button class="omlank" id="om-knapp" data-i18n="ui.om"></button>
+  <span class="status" id="status"><span class="dot"></span><span id="status-text" data-i18n="status.startar"></span></span>
+</header>
+
+<div class="layout">
+  <aside class="rail">
+    <button class="lektion startknapp vald" id="start-knapp">
+      <span class="nr">•</span><span data-i18n="ui.start"></span>
+    </button>
+    <p class="rubrik" style="margin-top:14px" data-i18n="ui.kapitel_rubrik"></p>
+    <div id="lektionslista"></div>
+  </aside>
+
+  <section class="arbetsyta">
+    <div class="redigerare" id="redigerare">
+      <div class="verktyg">
+        <span class="filnamn" id="filnamn">nytt_program.py</span>
+        <button class="knapp" id="ny-knapp" data-i18n="ui.ny"></button>
+        <button class="knapp" id="aterstall-kapitel" data-i18n="ui.aterstall"></button>
+        <button class="knapp" id="oppna-knapp" data-i18n="ui.oppna"></button>
+        <button class="knapp" id="spara-knapp" data-i18n="ui.spara"></button>
+        <button class="knapp" id="spara-som-knapp" data-i18n="ui.spara_som"></button>
+        <button class="knapp kor" id="kor-knapp" disabled data-i18n="ui.kor"></button>
+        <button class="knapp stoppa" id="stoppa-knapp" hidden data-i18n="ui.stoppa"></button>
+      </div>
+      <textarea id="kod" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+      <input type="file" id="filvaljare" accept=".py,.txt" hidden>
+    </div>
+
+    <div class="spar" id="spar" aria-hidden="true">
+      <span class="steg" data-steg="0">Din kod</span><span class="pil">→</span>
+      <span class="steg" data-steg="1">Python läser rad för rad</span><span class="pil">→</span>
+      <span class="steg" data-steg="2">Datorn räknar</span><span class="pil">→</span>
+      <span class="steg" data-steg="3">Utskrift</span>
+    </div>
+
+    <div class="nedre">
+      <div class="flikar">
+        <button class="flik vald" id="flik-lektion" data-i18n="ui.flik_kapitel"></button>
+        <button class="flik" id="flik-utskrift" data-i18n="ui.flik_utskrift"></button>
+        <button class="flik" id="flik-scen" data-i18n="ui.flik_scen"></button>
+        <button class="flik" id="flik-ai" data-i18n="ui.flik_ai"></button>
+        <button class="knapp" id="aterstall-knapp" hidden data-i18n="ord.aterstall_vy" style="margin-left:auto; font-size:12px; padding:4px 10px;"></button>
+        <button class="knapp" id="helskarm-knapp" hidden data-i18n="ord.helskarm" style="font-size:12px; padding:4px 10px;"></button>
+        <button class="knapp" id="rensa-knapp" data-i18n="ord.rensa" style="margin-left:auto; font-size:12px; padding:4px 10px;"></button>
+      </div>
+      <div class="flikinnehall" id="panel-lektion">
+        <div class="lektionstext start" id="lektionstext"></div>
+      </div>
+      <div class="flikinnehall" id="panel-utskrift" hidden>
+        <div class="konsol" id="konsol"><span class="system">Python laddas ner till webbläsaren. Det tar några sekunder första gången.</span>
+</div>
+      </div>
+      <div class="flikinnehall" id="panel-scen" hidden>
+        <div id="scenruta" class="scenruta"><p class="tomt">Ingen scen igång. Kör <code>scen.starta()</code> i ett program så dyker den upp här.</p></div>
+      </div>
+      <div class="flikinnehall" id="panel-ai" hidden>
+        <div class="ai-chatt" id="ai-chatt" hidden>
+          <div class="ai-snabb" id="ai-snabb">
+            <button class="ai-chip" data-uppdrag="kapitel">Sammanfatta kapitlet</button>
+            <button class="ai-chip" data-uppdrag="kod">Förklara koden</button>
+            <button class="ai-chip" data-uppdrag="markering">Förklara markeringen</button>
+            <button class="ai-chip" data-uppdrag="andra">Ändra koden</button>
+            <button class="ai-chip" data-uppdrag="nasta">Nästa steg</button>
+            <button class="ai-chip mild" id="ai-installningar-knapp" title="Anslutning">Anslutning</button>
+            <button class="ai-chip" id="ai-rensa-samtal">Rensa samtalet</button>
+          </div>
+          <div class="ai-svar" id="ai-svar"></div>
+          <div class="ai-skriv">
+            <span class="ai-kontext" id="ai-kontext"></span>
+            <div class="ai-skrivrad">
+              <textarea id="ai-fraga" rows="2" placeholder="Ställ en fråga om koden eller kapitlet …"></textarea>
+              <button class="knapp kor" id="ai-skicka">Skicka</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="overlagring" id="om-overlagring" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="om-rubrik" id="om-dialog"></div>
+</div>
+
+<div class="overlagring" id="ai-overlagring" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="ai-dialog-rubrik" id="ai-dialog"></div>
+</div>
+
+<script>
+window.PYTHONLAB_START = function (SPRAK) {
+  "use strict";
+
+  /* ---- fyll gränssnittet med det valda språkets texter ----
+     Måste ske innan motorn hämtar sina elementreferenser. */
+  (function () {
+    function slaUpp(vag) {
+      return vag.split(".").reduce(function (o, del) {
+        return (o && o[del] !== undefined) ? o[del] : null;
+      }, SPRAK);
+    }
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) {
+      var text = slaUpp(el.getAttribute("data-i18n"));
+      if (text !== null) el.textContent = text;
+    });
+    function fyllHtml(id, html) {
+      var el = document.getElementById(id);
+      if (el && html) el.innerHTML = html;
+    }
+    fyllHtml("om-dialog", SPRAK.om);
+    fyllHtml("ai-dialog", SPRAK.ai_dialog);
+    fyllHtml("lektionstext", SPRAK.start);
+    if (SPRAK.titel) {
+      document.title = SPRAK.titel + " (ver " + (window.PYTHONLABBET_VERSION || "?") + ")";
+      var og = document.querySelector('meta[property="og:title"]');
+      if (og) og.setAttribute("content", document.title);
+      var be = document.querySelector('meta[name="description"]');
+      if (be && SPRAK.beskrivning) be.setAttribute("content", SPRAK.beskrivning);
+    }
+  })();
+
+  /* ---- versionen skrivs in överallt den efterfrågas ---- */
+  var VERSION = window.PYTHONLABBET_VERSION || "?";
+  document.title = (SPRAK.titel || "Pythonlab") + " (ver " + VERSION + ")";
+  var ogTitel = document.querySelector('meta[property="og:title"]');
+  if (ogTitel) ogTitel.setAttribute("content", document.title);
+  Array.prototype.forEach.call(document.querySelectorAll("[data-version]"), function (el) {
+    el.textContent = el.classList.contains("dialog-ingress")
+      ? "Version " + VERSION
+      : "ver " + VERSION;
+  });
+
+  var kodruta = document.getElementById("kod");
+  var konsol = document.getElementById("konsol");
+  var korKnapp = document.getElementById("kor-knapp");
+  var statusEl = document.getElementById("status");
+  var statusText = document.getElementById("status-text");
+  var filnamnEl = document.getElementById("filnamn");
+  var sparEl = document.getElementById("spar");
+  var lektionstext = document.getElementById("lektionstext");
+  var startKnapp = document.getElementById("start-knapp");
+  var aterstallKapitelKnapp = document.getElementById("aterstall-kapitel");
+  var panelLektion = document.getElementById("panel-lektion");
+  var panelUtskrift = document.getElementById("panel-utskrift");
+  var flikLektion = document.getElementById("flik-lektion");
+  var flikUtskrift = document.getElementById("flik-utskrift");
+  var flikScen = document.getElementById("flik-scen");
+  var panelScen = document.getElementById("panel-scen");
+  var scenruta = document.getElementById("scenruta");
+  var helskarmKnapp = document.getElementById("helskarm-knapp");
+  var aterstallKnapp = document.getElementById("aterstall-knapp");
+  var rensaKnapp = document.getElementById("rensa-knapp");
+  var stoppaKnapp = document.getElementById("stoppa-knapp");
+  var felsakertToggle = document.getElementById("felsakert-toggle");
+  var flikAi = document.getElementById("flik-ai");
+  var panelAi = document.getElementById("panel-ai");
+  var aiToggle = document.getElementById("ai-toggle");
+  var filvaljare = document.getElementById("filvaljare");
+  var redigerare = document.getElementById("redigerare");
+
+  var pyodide = null;
+  var forberedKod = null;
+  var nollstallVakt = null;
+  var filhandtag = null;
+  var filnamn = "nytt_program.py";
+  var andrad = false;
+  var aktivLektion = null;
+
+  /* =======================================================
+     KAPITEL
+     ======================================================= */
+  var LEKTIONER = SPRAK.kapitel;
+
+  var STARTKOD = SPRAK.startkod.join("\n");
+
+  /* =======================================================
+     Utskrift och flikar
+     ======================================================= */
+  function skriv(text, klass) {
+    var rad = document.createElement("span");
+    rad.className = klass || "ut";
+    rad.textContent = text;
+    konsol.appendChild(rad);
+    konsol.scrollTop = konsol.scrollHeight;
+  }
+  function rensaKonsol() { konsol.textContent = ""; }
+
+  /* Frågar användaren direkt i konsolen i stället för i en popup. */
+  function fragaIKonsolen(text) {
+    return new Promise(function (svara) {
+      visaFlik("utskrift");
+      var rad = document.createElement("div");
+      rad.className = "fraga";
+      var etikett = document.createElement("span");
+      etikett.className = "ut";
+      etikett.textContent = text;
+      var falt = document.createElement("input");
+      falt.className = "svarsfalt";
+      falt.type = "text";
+      falt.setAttribute("autocomplete", "off");
+      rad.appendChild(etikett);
+      rad.appendChild(falt);
+      konsol.appendChild(rad);
+      konsol.scrollTop = konsol.scrollHeight;
+      falt.focus();
+
+      var slutfor = registreraVantan(function () { klar(undefined); });
+
+      function klar(varde) {
+        slutfor();
+        if (!rad.contains(falt)) return;      // redan besvarad
+        rad.removeChild(falt);
+        var eko = document.createElement("span");
+        eko.className = "svar";
+        eko.textContent = (typeof varde === "string" ? varde : "^C") + "\n";
+        rad.appendChild(eko);
+        konsol.scrollTop = konsol.scrollHeight;
+        svara(varde);
+      }
+
+      falt.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); klar(String(falt.value)); }
+        else if (e.key === "Escape") { e.preventDefault(); klar(undefined); }
+      });
+    });
+  }
+  window._labbFraga = fragaIKonsolen;
+
+  /* Sätts av Stoppa-knappen och läses av loopvakten i Python. */
+  window._labbStopp = false;
+
+  /* ---- register över saker programmet väntar på ----
+     Under input(), en filväljare eller en nätverkshämtning står Python
+     stilla och webbläsaren är ledig. Då finns ingen loop att vakta i,
+     men väntan går ändå att avbryta — den som väntar lämnar in en
+     funktion här, och Stoppa-knappen anropar alla på en gång. */
+  var vantande = [];
+
+  function registreraVantan(avbryt) {
+    vantande.push(avbryt);
+    uppdateraStoppKnapp();
+    return function klart() {
+      var i = vantande.indexOf(avbryt);
+      if (i >= 0) vantande.splice(i, 1);
+      uppdateraStoppKnapp();
+    };
+  }
+
+  function avbrytAllVantan() {
+    var kopia = vantande.slice();
+    vantande.length = 0;
+    kopia.forEach(function (f) { try { f(); } catch (e) { /* redan klar */ } });
+    uppdateraStoppKnapp();
+  }
+
+  /* Ger Python en avbrytbar hämtning: signalen skickas till fetch, och
+     Stoppa-knappen kan avbryta den mitt i. */
+  window._labbStyrning = function () {
+    var styr = new AbortController();
+    var klart = registreraVantan(function () { styr.abort(); });
+    return { signal: styr.signal, klar: klart };
+  };
+
+  /* Låter Python-kod be användaren peka ut en fil från datorn. */
+  window._labbValjFil = function (filter) {
+    return new Promise(function (klar) {
+      var valjare = document.createElement("input");
+      valjare.type = "file";
+      if (filter) valjare.accept = filter;
+      valjare.style.display = "none";
+      document.body.appendChild(valjare);
+
+      var avslutad = false;
+      var slutfor = registreraVantan(function () { stad(undefined); });
+      function stad(resultat) {
+        if (avslutad) return;
+        avslutad = true;
+        slutfor();
+        if (valjare.parentNode) document.body.removeChild(valjare);
+        klar(resultat);
+      }
+
+      valjare.addEventListener("change", function () {
+        var fil = valjare.files && valjare.files[0];
+        if (!fil) return stad(undefined);
+        var lasare = new FileReader();
+        lasare.onload = function () {
+          stad({ namn: fil.name, innehall: String(lasare.result) });
+        };
+        lasare.onerror = function () { stad(undefined); };
+        lasare.readAsText(fil);
+      });
+
+      // Om användaren avbryter dialogen kommer ingen change-händelse.
+      window.addEventListener("focus", function avbrutet() {
+        window.removeEventListener("focus", avbrutet);
+        setTimeout(function () {
+          if (!valjare.files || !valjare.files.length) stad(undefined);
+        }, 900);
+      });
+
+      valjare.click();
+    });
+  };
+
+  /* Låter Python-kod ladda ner en fil till datorn. */
+  window._labbLaddaNer = function (namn, innehall) {
+    var blob = new Blob([innehall], { type: "text/plain;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var lank = document.createElement("a");
+    lank.href = url;
+    lank.download = namn;
+    document.body.appendChild(lank);
+    lank.click();
+    document.body.removeChild(lank);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  };
+
+  /* Tar emot diagram från matplotlib och visar dem i utskriften. */
+  window._labbBild = function (dataurl) {
+    visaFlik("utskrift");
+    var bild = document.createElement("img");
+    bild.className = "diagram";
+    bild.src = dataurl;
+    konsol.appendChild(bild);
+    konsol.scrollTop = konsol.scrollHeight;
+  };
+
+  function visaFlik(vilken) {
+    var paneler = {
+      lektion: [panelLektion, flikLektion],
+      utskrift: [panelUtskrift, flikUtskrift],
+      scen: [panelScen, flikScen],
+      ai: [panelAi, flikAi]
+    };
+    Object.keys(paneler).forEach(function (namn) {
+      paneler[namn][0].hidden = namn !== vilken;
+      paneler[namn][1].classList.toggle("vald", namn === vilken);
+    });
+    // Knapparnas synlighet sätts FÖRE allt som kan misslyckas.
+    sattKnappsynlighet(vilken === "scen");
+    if (vilken === "scen") {
+      try { anpassaStorlek(); } catch (e) { /* scenen kanske inte är byggd än */ }
+    }
+  }
+
+  /* Knappen visas när det finns något att avbryta: antingen loopar med
+     vakt, eller en väntan på input, fil eller nätverk. Väntan går att
+     avbryta även när felsäkert läge är av. */
+  var korning = { igang: false, vakter: 0 };
+
+  function uppdateraStoppKnapp() {
+    var vantar = vantande.length > 0;
+    var kanStoppas = (korning.igang && korning.vakter > 0) || vantar;
+    stoppaKnapp.hidden = !(korning.igang || vantar);
+    stoppaKnapp.disabled = !kanStoppas || window._labbStopp;
+    if (!window._labbStopp) {
+      stoppaKnapp.textContent = SPRAK.ui.stoppa;
+      stoppaKnapp.title = kanStoppas
+        ? (vantar ? SPRAK.ord.stopp_vantan : SPRAK.ord.stopp_loop)
+        : SPRAK.ord.stopp_inget;
+    }
+  }
+
+  function sattKnappsynlighet(scenAktiv) {
+    helskarmKnapp.hidden = !scenAktiv;
+    helskarmKnapp.style.display = scenAktiv ? "" : "none";
+    aterstallKnapp.hidden = !scenAktiv;
+    aterstallKnapp.style.display = scenAktiv ? "" : "none";
+    rensaKnapp.hidden = !!scenAktiv;
+    rensaKnapp.style.display = scenAktiv ? "none" : "";
+  }
+  document.getElementById("helskarm-knapp").addEventListener("click", function () { helskarm(); });
+  aterstallKnapp.addEventListener("click", function () { aterstallVy(); });
+  flikAi.addEventListener("click", function () { visaFlik("ai"); });
+  flikLektion.addEventListener("click", function () { visaFlik("lektion"); });
+  flikUtskrift.addEventListener("click", function () { visaFlik("utskrift"); });
+  flikScen.addEventListener("click", function () { visaFlik("scen"); });
+
+  /* =======================================================
+     3D-scen via three.js
+     ======================================================= */
+  var THREE_KALLOR = [
+    "https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js",
+    "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"
+  ];
+  var tre = { laddad: false, scen: null, kamera: null, renderare: null, objekt: [], bildruta: null, callback: null, tid: 0 };
+
+  async function laddaThree() {
+    if (window.THREE) { tre.laddad = true; return true; }
+    for (var i = 0; i < THREE_KALLOR.length; i++) {
+      try {
+        await medTidsgrans(laddaSkript(THREE_KALLOR[i]), 20000, "three.js");
+        if (window.THREE) { tre.laddad = true; return true; }
+      } catch (e) { /* prova nästa */ }
+    }
+    return false;
+  }
+
+  function anpassaStorlek() {
+    if (!tre.renderare) return;
+    var b = scenruta.clientWidth || 600;
+    var h = scenruta.clientHeight || 300;
+    tre.renderare.setSize(b, h);
+    tre.kamera.aspect = b / h;
+    tre.kamera.updateProjectionMatrix();
+  }
+  window.addEventListener("resize", anpassaStorlek);
+  document.addEventListener("fullscreenchange", function () {
+    var i_helskarm = !!document.fullscreenElement;
+    panelScen.hidden = false;
+    flikScen.classList.add("vald");
+    sattKnappsynlighet(true);
+    helskarmKnapp.textContent = i_helskarm ? SPRAK.ord.avsluta_helskarm : SPRAK.ord.helskarm;
+    if (!i_helskarm) {
+      panelLektion.hidden = true;
+      panelUtskrift.hidden = true;
+      panelAi.hidden = true;
+      flikLektion.classList.remove("vald");
+      flikUtskrift.classList.remove("vald");
+      flikAi.classList.remove("vald");
+    }
+    setTimeout(function () { try { anpassaStorlek(); } catch (e) {} }, 60);
+    setTimeout(function () { try { anpassaStorlek(); } catch (e) {} }, 350);
+  });
+
+  /* ---- kamerastyrning med musen ---- */
+  /* ---- kameran ----
+     Kameran har en position i världen och en blickriktning. Att dra med
+     musen vrider blicken kring kamerans egen position, så man kan vända
+     sig om på stället. Piltangenterna flyttar positionen. */
+  var bana = {
+    pos: { x: 0, y: 5, z: 12 },   // var kameran står
+    theta: 0,                     // vridning i sidled, radianer
+    phi: Math.PI / 2,             // lutning: pi/2 är rakt fram, mindre är nedåt
+    skala: 12,                    // scenens storlek, styr steglängd
+    aktiv: false, x: 0, y: 0
+  };
+  var STARTBANA = { pos: { x: 0, y: 5, z: 12 }, theta: 0, phi: Math.PI / 2, skala: 12 };
+
+  /* Enhetsvektor i den riktning kameran tittar. */
+  function blickriktning() {
+    var p = bana.phi, t = bana.theta;
+    return {
+      x: Math.sin(p) * Math.sin(t),
+      y: Math.cos(p),
+      z: Math.sin(p) * Math.cos(t)
+    };
+  }
+
+  function placeraKamera() {
+    if (!tre.kamera) return;
+    bana.phi = Math.max(0.06, Math.min(Math.PI - 0.06, bana.phi));
+    var r = blickriktning();
+    tre.kamera.position.set(bana.pos.x, bana.pos.y, bana.pos.z);
+    tre.kamera.lookAt(bana.pos.x + r.x, bana.pos.y + r.y, bana.pos.z + r.z);
+  }
+
+  /* Ställer kameran på en punkt och riktar blicken mot en annan. */
+  function sikta(fran, mot) {
+    var dx = mot.x - fran.x, dy = mot.y - fran.y, dz = mot.z - fran.z;
+    var d = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+    bana.pos = { x: fran.x, y: fran.y, z: fran.z };
+    bana.phi = Math.acos(Math.max(-1, Math.min(1, dy / d)));
+    bana.theta = Math.atan2(dx, dz);
+    bana.skala = d;
+    placeraKamera();
+  }
+
+  function sparaStartlage() {
+    STARTBANA = {
+      pos: { x: bana.pos.x, y: bana.pos.y, z: bana.pos.z },
+      theta: bana.theta, phi: bana.phi, skala: bana.skala
+    };
+  }
+
+  /* ---- förflyttning ---- */
+  var tangenter = {};
+  var fart = { framat: 0, isidled: 0, upp: 0 };
+
+  var PILAR = {
+    ArrowUp:    ["framat", 1],
+    ArrowDown:  ["framat", -1],
+    ArrowLeft:  ["isidled", -1],
+    ArrowRight: ["isidled", 1],
+    PageUp:     ["upp", 1],
+    PageDown:   ["upp", -1]
+  };
+
+  function onskadFart(axel) {
+    var summa = 0;
+    Object.keys(tangenter).forEach(function (tangent) {
+      var p = PILAR[tangent];
+      if (p && p[0] === axel) summa += p[1];
+    });
+    return Math.max(-1, Math.min(1, summa));
+  }
+
+  /* Flyttar kameran som en drönare: framåt dit blicken pekar, sidled
+     vågrätt, och Page Up/Down rakt upp och ner. */
+  function flytta(framat, isidled, upp, langd) {
+    var r = blickriktning();
+    // Höger = blickriktningen korsad med världens uppåt, hållen vågrät.
+    var hx = -Math.cos(bana.theta), hz = Math.sin(bana.theta);
+    bana.pos.x += (r.x * framat + hx * isidled) * langd;
+    bana.pos.y += (r.y * framat + upp) * langd;
+    bana.pos.z += (r.z * framat + hz * isidled) * langd;
+    placeraKamera();
+  }
+
+  function uppdateraForflyttning(dt) {
+    var MJUKHET = 7;                    // högre = snabbare respons
+    var andel = Math.min(1, MJUKHET * dt);
+    var rorelse = false;
+    ["framat", "isidled", "upp"].forEach(function (axel) {
+      fart[axel] += (onskadFart(axel) - fart[axel]) * andel;
+      if (Math.abs(fart[axel]) < 0.001) fart[axel] = 0;
+      else rorelse = true;
+    });
+    if (!rorelse) return;
+    var steg = Math.max(0.35, bana.skala * 0.07) * 9 * dt;
+    flytta(fart.framat, fart.isidled, fart.upp, steg);
+  }
+
+  function aterstallVy() {
+    bana.pos = { x: STARTBANA.pos.x, y: STARTBANA.pos.y, z: STARTBANA.pos.z };
+    bana.theta = STARTBANA.theta;
+    bana.phi = STARTBANA.phi;
+    bana.skala = STARTBANA.skala;
+    fart = { framat: 0, isidled: 0, upp: 0 };
+    placeraKamera();
+  }
+
+  function scenHarFokus() {
+    if (!tre.kamera) return false;
+    if (panelScen.hidden && !document.fullscreenElement) return false;
+    var etikett = document.activeElement && document.activeElement.tagName;
+    return etikett !== "INPUT" && etikett !== "TEXTAREA" && etikett !== "SELECT";
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (!scenHarFokus()) return;
+    if (PILAR[e.key]) {
+      e.preventDefault();
+      tangenter[e.key] = true;
+      return;
+    }
+    if (e.key === "r" || e.key === "R") { e.preventDefault(); aterstallVy(); }
+  });
+
+  document.addEventListener("keyup", function (e) { delete tangenter[e.key]; });
+  window.addEventListener("blur", function () { tangenter = {}; });
+
+  /* ---- musstyrning ---- */
+  function kopplaMus(duk) {
+    duk.style.cursor = "grab";
+    duk.addEventListener("pointerdown", function (e) {
+      bana.aktiv = true; bana.x = e.clientX; bana.y = e.clientY;
+      duk.style.cursor = "grabbing";
+      duk.setPointerCapture(e.pointerId);
+    });
+    duk.addEventListener("pointermove", function (e) {
+      if (!bana.aktiv) return;
+      // Vrider blicken kring kamerans egen position.
+      bana.theta -= (e.clientX - bana.x) * 0.005;
+      bana.phi += (e.clientY - bana.y) * 0.005;
+      bana.x = e.clientX; bana.y = e.clientY;
+      placeraKamera();
+    });
+    ["pointerup", "pointercancel"].forEach(function (h) {
+      duk.addEventListener(h, function () { bana.aktiv = false; duk.style.cursor = "grab"; });
+    });
+    // Hjulet flyttar kameran fram och tillbaka längs blickriktningen.
+    duk.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var steg = Math.max(0.3, bana.skala * 0.06) * (e.deltaY > 0 ? -1 : 1);
+      flytta(steg > 0 ? 1 : -1, 0, 0, Math.abs(steg));
+    }, { passive: false });
+  }
+
+  function helskarm() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else if (panelScen.requestFullscreen) {
+      visaFlik("scen");
+      panelScen.requestFullscreen();
+    }
+  }
+
+  function stoppaScen() {
+    if (tre.bildruta) { cancelAnimationFrame(tre.bildruta); tre.bildruta = null; }
+    tre.callback = null;
+  }
+
+  function ritaBildruta() {
+    tre.bildruta = requestAnimationFrame(ritaBildruta);
+    var nu = performance.now();
+    var dt = Math.min(0.05, (nu - (tre.forra || nu)) / 1000);
+    tre.forra = nu;
+    tre.tid += dt;
+    uppdateraForflyttning(dt);
+    for (var i = 0; i < tre.objekt.length; i++) {
+      var o = tre.objekt[i];
+      o.mesh.rotation.x += o.snurrx;
+      o.mesh.rotation.y += o.snurry;
+      o.mesh.rotation.z += o.snurrz;
+      if (o.uppdatera) {
+        try { o.uppdatera(dt); }
+        catch (e) { o.uppdatera = null; }
+      }
+    }
+    if (tre.callback) {
+      try { tre.callback(tre.tid); }
+      catch (e) { tre.callback = null; visaFel("Fel i varje_bildruta: " + ((e && e.message) || e)); }
+    }
+    tre.renderare.render(tre.scen, tre.kamera);
+  }
+
+  function startaScen() {
+    var T = window.THREE;
+    stoppaScen();
+    var platshallare = scenruta.querySelector("p");
+    if (platshallare) scenruta.removeChild(platshallare);
+    tre.scen = new T.Scene();
+    tre.kamera = new T.PerspectiveCamera(60, 16 / 9, 0.05, 20000);
+    tre.kamera.position.set(0, 2.5, 7);
+    tre.kamera.lookAt(0, 0, 0);
+    if (!tre.renderare) {
+      tre.renderare = new T.WebGLRenderer({ antialias: true, alpha: true });
+      scenruta.appendChild(tre.renderare.domElement);
+      kopplaMus(tre.renderare.domElement);
+    }
+    var riktat = new T.DirectionalLight(0xffffff, 1.1);
+    riktat.position.set(4, 6, 5);
+    tre.scen.add(riktat);
+    tre.scen.add(new T.AmbientLight(0x8fb4ff, 0.6));
+    tre.objekt = [];
+    tre.tid = 0;
+    tre.forra = 0;
+    fart = { framat: 0, isidled: 0, upp: 0 };
+    tre.blick = { x: 0, y: 0, z: 0 };            // senast angivna blickpunkt
+    sikta({ x: 0, y: 5.5, z: 11 }, tre.blick);
+    sparaStartlage();
+    anpassaStorlek();
+    ritaBildruta();
+  }
+
+  function skapaForm(geometri, x, y, z, farg) {
+    var T = window.THREE;
+    var material = new T.MeshStandardMaterial({ color: new T.Color(farg || "#ffc94a"), roughness: 0.45, metalness: 0.1 });
+    var mesh = new T.Mesh(geometri, material);
+    mesh.position.set(x || 0, y || 0, z || 0);
+    tre.scen.add(mesh);
+    var handtag = {
+      mesh: mesh, snurrx: 0, snurry: 0, snurrz: 0,
+      move: function (a, b, c) { mesh.position.set(a, b, c); },
+      rotate: function (a, b, c) { mesh.rotation.set(a, b, c); },
+      spin: function (a, b, c) { handtag.snurrx = a || 0; handtag.snurry = b || 0; handtag.snurrz = c || 0; },
+      scale: function (s) { mesh.scale.set(s, s, s); },
+      color: function (f) { material.color.set(f); },
+      height: function () { return mesh.position.y; }
+    };
+    tre.objekt.push(handtag);
+    return handtag;
+  }
+
+  /* ---- byggstenar för sammansatta modeller ---- */
+  function mtl(farg, ruff) {
+    var T = window.THREE;
+    return new T.MeshStandardMaterial({ color: new T.Color(farg), roughness: ruff === undefined ? 0.6 : ruff, metalness: 0.08 });
+  }
+  function del(foralder, geometri, farg, x, y, z, primar) {
+    var m = new window.THREE.Mesh(geometri, mtl(farg));
+    m.position.set(x || 0, y || 0, z || 0);
+    if (primar) m.userData.primar = true;
+    foralder.add(m);
+    return m;
+  }
+  function G() { return new window.THREE.Group(); }
+  function box(b, h, d) { return new window.THREE.BoxGeometry(b, h, d); }
+  function klotG(r) { return new window.THREE.SphereGeometry(r, 20, 12); }
+  function cylG(r, h, sidor) { return new window.THREE.CylinderGeometry(r, r, h, sidor || 16); }
+  function konG(r, h, sidor) { return new window.THREE.ConeGeometry(r, h, sidor || 16); }
+
+  function hjul(foralder, x, y, z, radie) {
+    var pivot = G();
+    pivot.position.set(x, y, z);
+    pivot.rotation.x = Math.PI / 2;
+    var m = new window.THREE.Mesh(cylG(radie, radie * 0.55, 16), mtl("#22303f", 0.9));
+    pivot.add(m);
+    foralder.add(pivot);
+    return m;
+  }
+
+  function framat(h, dt) {
+    if (!h.fart) return;
+    var g = h.mesh;
+    g.position.x += Math.cos(g.rotation.y) * h.fart * dt;
+    g.position.z += -Math.sin(g.rotation.y) * h.fart * dt;
+  }
+
+  function gruppHandtag(grupp, x, y, z, storlek, extra) {
+    grupp.position.set(x || 0, y || 0, z || 0);
+    if (storlek && storlek !== 1) grupp.scale.set(storlek, storlek, storlek);
+    tre.scen.add(grupp);
+    var h = {
+      mesh: grupp, snurrx: 0, snurry: 0, snurrz: 0, fart: 0, tid: 0,
+      move: function (a, b, c) { grupp.position.set(a, b, c); },
+      rotate: function (a, b, c) { grupp.rotation.set(a || 0, b || 0, c || 0); },
+      spin: function (a, b, c) { h.snurrx = a || 0; h.snurry = b || 0; h.snurrz = c || 0; },
+      scale: function (s) { grupp.scale.set(s, s, s); },
+      color: function (f) {
+        grupp.traverse(function (o) { if (o.isMesh && o.userData.primar) o.material.color.set(f); });
+      }
+    };
+    if (extra) Object.keys(extra).forEach(function (k) { h[k] = extra[k]; });
+    tre.objekt.push(h);
+    return h;
+  }
+
+  /* ---- fordon ---- */
+  function byggBil(x, y, z, farg, storlek) {
+    var g = G();
+    del(g, box(2.4, 0.5, 1.2), farg, 0, 0.45, 0, true);
+    del(g, box(1.2, 0.5, 1.05), farg, -0.15, 0.93, 0, true);
+    del(g, box(1.1, 0.32, 1.08), "#8fb4ff", -0.15, 0.95, 0);
+    del(g, box(0.14, 0.16, 0.9), "#ffe9a8", 1.2, 0.5, 0);
+    var hjulen = [
+      hjul(g, 0.8, 0.28, 0.62, 0.28), hjul(g, 0.8, 0.28, -0.62, 0.28),
+      hjul(g, -0.8, 0.28, 0.62, 0.28), hjul(g, -0.8, 0.28, -0.62, 0.28)
+    ];
+    return gruppHandtag(g, x, y, z, storlek, {
+      hjulen: hjulen,
+      drive: function (fart) { this.fart = fart || 0; },
+      uppdatera: function (dt) {
+        for (var i = 0; i < hjulen.length; i++) hjulen[i].rotation.y += this.fart * dt * 3.6;
+        framat(this, dt);
+      }
+    });
+  }
+
+  function byggLastbil(x, y, z, farg, storlek) {
+    var g = G();
+    del(g, box(1.5, 1.0, 1.5), farg, 1.5, 0.95, 0, true);
+    del(g, box(1.3, 0.4, 1.4), "#8fb4ff", 1.55, 1.3, 0);
+    del(g, box(3.2, 1.4, 1.6), "#dfe8fa", -0.7, 1.15, 0);
+    del(g, box(4.8, 0.25, 1.7), "#22303f", 0.3, 0.42, 0);
+    var hjulen = [
+      hjul(g, 1.6, 0.34, 0.85, 0.34), hjul(g, 1.6, 0.34, -0.85, 0.34),
+      hjul(g, -0.6, 0.34, 0.85, 0.34), hjul(g, -0.6, 0.34, -0.85, 0.34),
+      hjul(g, -1.6, 0.34, 0.85, 0.34), hjul(g, -1.6, 0.34, -0.85, 0.34)
+    ];
+    return gruppHandtag(g, x, y, z, storlek, {
+      drive: function (fart) { this.fart = fart || 0; },
+      uppdatera: function (dt) {
+        for (var i = 0; i < hjulen.length; i++) hjulen[i].rotation.y += this.fart * dt * 3.0;
+        framat(this, dt);
+      }
+    });
+  }
+
+  function byggFlygplan(x, y, z, farg, storlek) {
+    var g = G();
+    var kropp = del(g, cylG(0.32, 2.6, 16), farg, 0, 0, 0, true);
+    kropp.rotation.z = Math.PI / 2;
+    var nos = del(g, konG(0.32, 0.7, 16), farg, 1.6, 0, 0, true);
+    nos.rotation.z = -Math.PI / 2;
+    del(g, box(0.8, 0.08, 3.4), farg, -0.1, 0.05, 0, true);
+    del(g, box(0.5, 0.07, 1.3), farg, -1.25, 0.1, 0, true);
+    del(g, box(0.5, 0.7, 0.07), farg, -1.3, 0.4, 0, true);
+    del(g, box(0.7, 0.28, 0.5), "#8fb4ff", 0.75, 0.22, 0);
+    var propeller = G();
+    propeller.position.set(2.0, 0, 0);
+    del(propeller, box(0.06, 1.5, 0.12), "#22303f", 0, 0, 0);
+    del(propeller, box(0.06, 0.12, 1.5), "#22303f", 0, 0, 0);
+    g.add(propeller);
+    return gruppHandtag(g, x, y, z, storlek, {
+      fly: function (fart) { this.fart = fart || 0; },
+      uppdatera: function (dt) {
+        propeller.rotation.x += (2 + this.fart) * dt * 12;
+        framat(this, dt);
+      }
+    });
+  }
+
+  function byggRaket(x, y, z, farg, storlek) {
+    var g = G();
+    del(g, cylG(0.5, 3.0, 20), farg, 0, 1.5, 0, true);
+    del(g, konG(0.5, 1.1, 20), farg, 0, 3.55, 0, true);
+    del(g, cylG(0.52, 0.25, 20), "#8fb4ff", 0, 2.5, 0);
+    for (var i = 0; i < 4; i++) {
+      var v = i * Math.PI / 2;
+      var fena = del(g, box(0.1, 0.9, 0.7), "#ff7d6b", Math.cos(v) * 0.45, 0.45, Math.sin(v) * 0.45);
+      fena.rotation.y = -v;
+    }
+    var laga = del(g, konG(0.42, 1.2, 16), "#ffc94a", 0, -0.6, 0);
+    laga.rotation.x = Math.PI;
+    return gruppHandtag(g, x, y, z, storlek, {
+      ignite: function (fart) { this.fart = fart || 0; },
+      uppdatera: function (dt) {
+        this.tid += dt;
+        var puls = 0.75 + Math.sin(this.tid * 22) * 0.25;
+        laga.scale.set(puls, 0.6 + puls * 0.8, puls);
+        laga.visible = this.fart !== 0;
+        if (this.fart) this.mesh.position.y += this.fart * dt;
+      }
+    });
+  }
+
+  /* ---- djur ---- */
+  function byggHund(x, y, z, farg, storlek) {
+    var g = G();
+    del(g, box(1.3, 0.6, 0.6), farg, 0, 0.85, 0, true);
+    del(g, box(0.55, 0.5, 0.5), farg, 0.85, 1.05, 0, true);
+    del(g, box(0.3, 0.22, 0.3), "#22303f", 1.2, 0.95, 0);
+    del(g, konG(0.16, 0.3, 4), farg, 0.75, 1.4, 0.18, true);
+    del(g, konG(0.16, 0.3, 4), farg, 0.75, 1.4, -0.18, true);
+    var svans = del(g, cylG(0.07, 0.6, 8), farg, -0.7, 1.05, 0, true);
+    svans.rotation.z = -0.7;
+    var ben = [];
+    var platser = [[0.45, 0.25], [0.45, -0.25], [-0.45, 0.25], [-0.45, -0.25]];
+    for (var i = 0; i < 4; i++) {
+      var p = G();
+      p.position.set(platser[i][0], 0.55, platser[i][1]);
+      del(p, cylG(0.1, 0.55, 8), farg, 0, -0.28, 0, true);
+      g.add(p);
+      ben.push(p);
+    }
+    return gruppHandtag(g, x, y, z, storlek, {
+      walk: function (fart) { this.fart = fart || 0; },
+      uppdatera: function (dt) {
+        this.tid += dt;
+        var takt = this.fart ? this.tid * 7 : 0;
+        for (var i = 0; i < ben.length; i++) ben[i].rotation.z = Math.sin(takt + i * Math.PI / 2) * 0.5;
+        svans.rotation.x = Math.sin(this.tid * 6) * 0.6;
+        framat(this, dt);
+      }
+    });
+  }
+
+  function byggFagel(x, y, z, farg, storlek) {
+    var g = G();
+    var kropp = del(g, klotG(0.4), farg, 0, 0, 0, true);
+    kropp.scale.set(1.5, 0.9, 0.9);
+    del(g, klotG(0.24), farg, 0.6, 0.18, 0, true);
+    del(g, konG(0.1, 0.35, 8), "#ffc94a", 0.88, 0.15, 0).rotation.z = -Math.PI / 2;
+    var stjart = del(g, konG(0.22, 0.6, 6), farg, -0.7, 0.05, 0, true);
+    stjart.rotation.z = Math.PI / 2;
+    var vingar = [];
+    for (var s = 0; s < 2; s++) {
+      var p = G();
+      p.position.set(0, 0.15, s === 0 ? 0.25 : -0.25);
+      var v = del(p, box(0.7, 0.06, 1.1), farg, 0, 0, s === 0 ? 0.55 : -0.55, true);
+      g.add(p);
+      vingar.push(p);
+    }
+    return gruppHandtag(g, x, y, z, storlek, {
+      flap: function (fart) { this.fart = fart || 0; },
+      uppdatera: function (dt) {
+        this.tid += dt;
+        var slag = Math.sin(this.tid * (4 + this.fart * 2)) * 0.6;
+        vingar[0].rotation.x = -slag;
+        vingar[1].rotation.x = slag;
+        framat(this, dt);
+      }
+    });
+  }
+
+  function byggFisk(x, y, z, farg, storlek) {
+    var g = G();
+    var kropp = del(g, klotG(0.45), farg, 0, 0, 0, true);
+    kropp.scale.set(1.6, 1.0, 0.6);
+    del(g, konG(0.06, 0.2, 8), "#0e1c33", 0.6, 0.12, 0.18);
+    var ryggfena = del(g, konG(0.25, 0.45, 4), farg, -0.05, 0.45, 0, true);
+    var stjart = G();
+    stjart.position.set(-0.7, 0, 0);
+    var blad = del(stjart, konG(0.35, 0.6, 4), farg, -0.25, 0, 0, true);
+    blad.rotation.z = Math.PI / 2;
+    blad.scale.set(1, 1, 0.35);
+    g.add(stjart);
+    return gruppHandtag(g, x, y, z, storlek, {
+      swim: function (fart) { this.fart = fart || 0; },
+      uppdatera: function (dt) {
+        this.tid += dt;
+        stjart.rotation.y = Math.sin(this.tid * (5 + this.fart * 2)) * 0.7;
+        framat(this, dt);
+      }
+    });
+  }
+
+  /* ---- byggnader och natur ---- */
+  function byggHus(x, y, z, farg, storlek) {
+    var g = G();
+    del(g, box(3, 2, 2.6), farg, 0, 1, 0, true);
+    var tak = del(g, konG(2.3, 1.3, 4), "#ff7d6b", 0, 2.65, 0);
+    tak.rotation.y = Math.PI / 4;
+    del(g, box(0.5, 0.7, 0.5), "#8a6a4a", 1.0, 2.9, -0.7);
+    del(g, box(0.06, 0.9, 0.6), "#8a6a4a", 1.52, 0.45, 0.6);
+    del(g, box(0.06, 0.6, 0.6), "#ffe9a8", 1.52, 1.3, -0.6);
+    del(g, box(0.6, 0.6, 0.06), "#ffe9a8", -0.6, 1.3, 1.32);
+    del(g, box(0.6, 0.6, 0.06), "#ffe9a8", 0.6, 1.3, 1.32);
+    return gruppHandtag(g, x, y, z, storlek, {});
+  }
+
+  function byggSkyskrapa(x, y, z, farg, storlek) {
+    var g = G();
+    var hojd = 10;
+    del(g, box(2.4, hojd, 2.4), farg, 0, hojd / 2, 0, true);
+    del(g, box(2.0, 0.6, 2.0), farg, 0, hojd + 0.3, 0, true);
+    del(g, cylG(0.07, 2.2, 8), "#8fb4ff", 0, hojd + 1.6, 0);
+    for (var v = 1; v < hojd - 0.5; v += 1.3) {
+      del(g, box(2.44, 0.5, 2.0), "#8fb4ff", 0, v, 0);
+      del(g, box(2.0, 0.5, 2.44), "#8fb4ff", 0, v, 0);
+    }
+    return gruppHandtag(g, x, y, z, storlek, {});
+  }
+
+  function byggTorn(x, y, z, farg, storlek) {
+    var g = G();
+    del(g, cylG(1.1, 5, 16), farg, 0, 2.5, 0, true);
+    del(g, cylG(1.3, 0.5, 16), farg, 0, 5.1, 0, true);
+    del(g, konG(1.4, 1.6, 16), "#ff7d6b", 0, 6.15, 0);
+    for (var i = 0; i < 4; i++) {
+      var vinkel = i * Math.PI / 2 + 0.4;
+      del(g, box(0.5, 0.7, 0.06), "#ffe9a8", Math.cos(vinkel) * 1.06, 3.4, Math.sin(vinkel) * 1.06)
+        .rotation.y = -vinkel;
+    }
+    return gruppHandtag(g, x, y, z, storlek, {});
+  }
+
+  function byggTrad(x, y, z, farg, storlek) {
+    var g = G();
+    del(g, cylG(0.22, 1.8, 10), "#8a6a4a", 0, 0.9, 0);
+    del(g, konG(1.1, 1.8, 12), farg, 0, 2.3, 0, true);
+    del(g, konG(0.85, 1.5, 12), farg, 0, 3.1, 0, true);
+    del(g, konG(0.55, 1.2, 12), farg, 0, 3.8, 0, true);
+    return gruppHandtag(g, x, y, z, storlek, {});
+  }
+
+  function byggMark(storlek, farg) {
+    var g = G();
+    del(g, box(storlek || 30, 0.3, storlek || 30), farg || "#1b3255", 0, -0.15, 0, true);
+    return gruppHandtag(g, 0, 0, 0, 1, {});
+  }
+
+  /* ---- objekt för datavisualisering ---- */
+  function byggStapel(x, z, hojd, farg, bredd) {
+    var T = window.THREE;
+    var b = bredd || 0.4;
+    var geo = new T.BoxGeometry(b, 1, b);
+    geo.translate(0, 0.5, 0);               // växer uppåt från marken
+    var material = new T.MeshStandardMaterial({ color: new T.Color(farg || "#ffc94a"), roughness: 0.5 });
+    var mesh = new T.Mesh(geo, material);
+    mesh.position.set(x || 0, 0, z || 0);
+    mesh.scale.y = Math.max(0.001, hojd || 1);
+    tre.scen.add(mesh);
+    var h = {
+      mesh: mesh, snurrx: 0, snurry: 0, snurrz: 0,
+      move: function (a, b2, c) { mesh.position.set(a, b2, c); },
+      rotate: function (a, b2, c) { mesh.rotation.set(a || 0, b2 || 0, c || 0); },
+      spin: function (a, b2, c) { h.snurrx = a || 0; h.snurry = b2 || 0; h.snurrz = c || 0; },
+      scale: function (s) { mesh.scale.set(s, mesh.scale.y, s); },
+      color: function (f) { material.color.set(f); },
+      set_height: function (v) { mesh.scale.y = Math.max(0.001, v); }
+    };
+    tre.objekt.push(h);
+    return h;
+  }
+
+  function byggPanel(x, y, z, bredd, hojd, dataurl, farg) {
+    var T = window.THREE;
+    var b = bredd || 4, hj = hojd || 2.5;
+    var grupp = G();
+
+    if (dataurl) {
+      // Vit ram som gör skylten läsbar mot vilken bakgrund som helst.
+      var ram = new T.Mesh(new T.PlaneGeometry(b * 1.045, hj * 1.07),
+        new T.MeshBasicMaterial({ color: new T.Color("#ffffff"), side: T.DoubleSide }));
+      ram.position.z = -0.02;
+      grupp.add(ram);
+      var skugga = new T.Mesh(new T.PlaneGeometry(b * 1.12, hj * 1.16),
+        new T.MeshBasicMaterial({
+          color: new T.Color("#0a1526"), side: T.DoubleSide,
+          transparent: true, opacity: 0.55
+        }));
+      skugga.position.z = -0.05;
+      grupp.add(skugga);
+    }
+
+    var material = new T.MeshBasicMaterial({
+      color: new T.Color(dataurl ? "#ffffff" : (farg || "#dfe8fa")),
+      side: T.DoubleSide, transparent: true
+    });
+    var mesh = new T.Mesh(new T.PlaneGeometry(b, hj), material);
+    grupp.add(mesh);
+    grupp.position.set(x || 0, y || 2, z || 0);
+    tre.scen.add(grupp);
+
+    function sattBild(url) {
+      new T.TextureLoader().load(url, function (textur) {
+        if ("colorSpace" in textur && T.SRGBColorSpace) textur.colorSpace = T.SRGBColorSpace;
+        else if (T.sRGBEncoding) textur.encoding = T.sRGBEncoding;
+        material.map = textur;
+        material.color.set("#ffffff");
+        material.needsUpdate = true;
+      });
+    }
+    if (dataurl) sattBild(dataurl);
+
+    var h = {
+      mesh: grupp, snurrx: 0, snurry: 0, snurrz: 0,
+      move: function (a, b2, c) { grupp.position.set(a, b2, c); },
+      rotate: function (a, b2, c) { grupp.rotation.set(a || 0, b2 || 0, c || 0); },
+      spin: function (a, b2, c) { h.snurrx = a || 0; h.snurry = b2 || 0; h.snurrz = c || 0; },
+      scale: function (s) { grupp.scale.set(s, s, s); },
+      color: function (f) { material.color.set(f); },
+      set_image: sattBild,
+      face_camera: function () { h.foljer = true; },
+      uppdatera: function () { if (h.foljer) grupp.lookAt(tre.kamera.position); }
+    };
+    tre.objekt.push(h);
+    return h;
+  }
+
+  function byggMarkor(x, y, z, farg, storlek) {
+    var g = G();
+    var s = storlek || 1;
+    var nal = del(g, konG(0.18 * s, 0.6 * s, 12), farg || "#ff7d6b", 0, 0.3 * s, 0, true);
+    nal.rotation.x = Math.PI;
+    del(g, klotG(0.16 * s), farg || "#ff7d6b", 0, 0.72 * s, 0, true);
+    return gruppHandtag(g, x, y, z, 1, {});
+  }
+
+  function byggLinje(x1, y1, z1, x2, y2, z2, farg, tjocklek) {
+    var T = window.THREE;
+    var a = new T.Vector3(x1, y1, z1), b = new T.Vector3(x2, y2, z2);
+    var langd = a.distanceTo(b);
+    var t = tjocklek || 0.05;
+    var mesh = new T.Mesh(cylG(t, langd, 8),
+      mtl(farg || "#8fb4ff", 0.4));
+    mesh.position.copy(a).add(b).multiplyScalar(0.5);
+    mesh.quaternion.setFromUnitVectors(
+      new T.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+    tre.scen.add(mesh);
+    var h = {
+      mesh: mesh, snurrx: 0, snurry: 0, snurrz: 0,
+      move: function (p, q, r) { mesh.position.set(p, q, r); },
+      rotate: function (p, q, r) { mesh.rotation.set(p || 0, q || 0, r || 0); },
+      spin: function () {}, scale: function (s) { mesh.scale.set(s, s, s); },
+      color: function (f) { mesh.material.color.set(f); }
+    };
+    tre.objekt.push(h);
+    return h;
+  }
+
+  function byggMoln(x, y, z, storlek, farg) {
+    var g = G();
+    var s = storlek || 1;
+    var f = farg || "#dfe8fa";
+    var bollar = [[0, 0, 0, 0.7], [0.6, 0.12, 0.1, 0.5], [-0.6, 0.08, -0.1, 0.52],
+                  [0.25, 0.3, -0.2, 0.42], [-0.25, 0.28, 0.2, 0.4]];
+    for (var i = 0; i < bollar.length; i++) {
+      var b = bollar[i];
+      del(g, klotG(b[3] * s), f, b[0] * s, b[1] * s, b[2] * s, true);
+    }
+    return gruppHandtag(g, x, y, z, 1, {
+      drift: function (fart) { this.fart = fart || 0; },
+      uppdatera: function (dt) {
+        this.tid += dt;
+        if (this.fart) this.mesh.position.x += this.fart * dt;
+      }
+    });
+  }
+
+  function byggSol(x, y, z, radie, farg) {
+    var g = G();
+    var r = radie || 1;
+    del(g, klotG(r), farg || "#ffc94a", 0, 0, 0, true);
+    for (var i = 0; i < 12; i++) {
+      var v = i * Math.PI / 6;
+      var stråle = del(g, box(r * 0.7, 0.08 * r, 0.08 * r), farg || "#ffc94a",
+        Math.cos(v) * r * 1.6, Math.sin(v) * r * 1.6, 0, true);
+      stråle.rotation.z = v;
+    }
+    var ljus = new window.THREE.PointLight(0xffd88a, 0.8, 100);
+    g.add(ljus);
+    return gruppHandtag(g, x, y, z, 1, {
+      uppdatera: function (dt) { this.tid += dt; this.mesh.rotation.z += dt * 0.3; }
+    });
+  }
+
+  /* En skärm med ram och fot — diagram mappas på framsidan. */
+  function byggSkarm(x, y, z, bredd, hojd, dataurl, stativ) {
+    var T = window.THREE;
+    var b = bredd || 8, hj = hojd || 4.5;
+    var kant = Math.max(0.35, Math.min(b, hj) * 0.085);
+    var djup = Math.max(0.6, Math.min(b, hj) * 0.20);
+    var grupp = G();
+
+    // Chassit — ljus metall så den syns mot mörk bakgrund
+    var holje = new T.Mesh(box(b + kant * 2.4, hj + kant * 2.4, djup),
+      new T.MeshStandardMaterial({ color: new T.Color("#b9c7de"), roughness: 0.38, metalness: 0.3 }));
+    grupp.add(holje);
+
+    // Ljusare list längs underkanten
+    var list = new T.Mesh(box(b + kant * 2.4, kant * 0.5, djup * 1.03),
+      new T.MeshStandardMaterial({ color: new T.Color("#eef3fb"), roughness: 0.25, metalness: 0.45 }));
+    list.position.y = -(hj / 2 + kant * 1.2) + kant * 0.25;
+    grupp.add(list);
+
+    // Mörk innerram som ramar in bilden
+    var innerram = new T.Mesh(new T.PlaneGeometry(b + kant * 1.1, hj + kant * 1.1),
+      new T.MeshBasicMaterial({ color: new T.Color("#243247"), side: T.DoubleSide }));
+    innerram.position.z = djup / 2 + 0.01;
+    grupp.add(innerram);
+
+    // Själva bildytan
+    var skarmMtl = new T.MeshBasicMaterial({
+      color: new T.Color("#ffffff"), side: T.DoubleSide, toneMapped: false
+    });
+    var skarm = new T.Mesh(new T.PlaneGeometry(b, hj), skarmMtl);
+    skarm.position.z = djup / 2 + 0.03;
+    grupp.add(skarm);
+
+    // Strömlampa
+    var lampa = new T.Mesh(klotG(kant * 0.3),
+      new T.MeshBasicMaterial({ color: new T.Color("#2f9e6a") }));
+    lampa.position.set(b / 2 - kant, -(hj / 2) - kant * 1.3, djup / 2);
+    grupp.add(lampa);
+
+    if (stativ !== false) {
+      var hals = new T.Mesh(box(b * 0.13, hj * 0.3, djup * 0.55),
+        new T.MeshStandardMaterial({ color: new T.Color("#9fb0cb"), roughness: 0.4, metalness: 0.35 }));
+      hals.position.y = -(hj / 2 + kant * 1.2) - hj * 0.15;
+      grupp.add(hals);
+      var fot = new T.Mesh(box(b * 0.46, hj * 0.045, djup * 2.6),
+        new T.MeshStandardMaterial({ color: new T.Color("#cad5e8"), roughness: 0.35, metalness: 0.4 }));
+      fot.position.y = -(hj / 2 + kant * 1.2) - hj * 0.3;
+      grupp.add(fot);
+    }
+
+    grupp.position.set(x || 0, y || 5, z || 0);
+    tre.scen.add(grupp);
+
+    function sattBild(url) {
+      new T.TextureLoader().load(url, function (textur) {
+        if ("colorSpace" in textur && T.SRGBColorSpace) textur.colorSpace = T.SRGBColorSpace;
+        else if (T.sRGBEncoding) textur.encoding = T.sRGBEncoding;
+        if (T.LinearFilter) { textur.minFilter = T.LinearFilter; textur.magFilter = T.LinearFilter; }
+        if ("anisotropy" in textur && tre.renderare.capabilities) {
+          textur.anisotropy = tre.renderare.capabilities.getMaxAnisotropy();
+        }
+        skarmMtl.map = textur;
+        skarmMtl.needsUpdate = true;
+      });
+    }
+    if (dataurl) sattBild(dataurl);
+
+    var h = {
+      mesh: grupp, snurrx: 0, snurry: 0, snurrz: 0,
+      move: function (a, b2, c) { grupp.position.set(a, b2, c); },
+      rotate: function (a, b2, c) { grupp.rotation.set(a || 0, b2 || 0, c || 0); },
+      spin: function (a, b2, c) { h.snurrx = a || 0; h.snurry = b2 || 0; h.snurrz = c || 0; },
+      scale: function (s) { grupp.scale.set(s, s, s); },
+      color: function (f) { holje.material.color.set(f); },
+      set_image: sattBild,
+      face_camera: function () { h.foljer = true; },
+      uppdatera: function () {
+        if (h.foljer) {
+          grupp.lookAt(tre.kamera.position.x, grupp.position.y, tre.kamera.position.z);
+        }
+      }
+    };
+    tre.objekt.push(h);
+    return h;
+  }
+
+  /* Ritar en sammanhängande linje genom en lista av [x, z]-punkter. */
+  function byggKontur(punkter, farg, tjocklek, y, sluten) {
+    var T = window.THREE;
+    var grupp = G();
+    var mat = new T.MeshBasicMaterial({ color: new T.Color(farg || "#8fb4ff") });
+    var t = tjocklek || 0.08;
+    var hojd = y || 0.06;
+    var lista = punkter.map ? punkter : Array.prototype.slice.call(punkter);
+    var antal = lista.length;
+    var slut = sluten === false ? antal - 1 : antal;
+    for (var i = 0; i < slut; i++) {
+      var a = lista[i], b = lista[(i + 1) % antal];
+      var ax = a[0], az = a[1], bx = b[0], bz = b[1];
+      var dx = bx - ax, dz = bz - az;
+      var langd = Math.sqrt(dx * dx + dz * dz);
+      if (langd < 1e-6) continue;
+      var segment = new T.Mesh(box(langd, t * 0.6, t), mat);
+      segment.position.set((ax + bx) / 2, hojd, (az + bz) / 2);
+      segment.rotation.y = -Math.atan2(dz, dx);
+      grupp.add(segment);
+      var knut = new T.Mesh(cylG(t * 0.5, t * 0.6, 8), mat);
+      knut.position.set(bx, hojd, bz);
+      grupp.add(knut);
+    }
+    tre.scen.add(grupp);
+    var h = {
+      mesh: grupp, snurrx: 0, snurry: 0, snurrz: 0,
+      move: function (p, q, r) { grupp.position.set(p, q, r); },
+      rotate: function (p, q, r) { grupp.rotation.set(p || 0, q || 0, r || 0); },
+      spin: function () {}, scale: function (s) { grupp.scale.set(s, s, s); },
+      color: function (f) { mat.color.set(f); }
+    };
+    tre.objekt.push(h);
+    return h;
+  }
+
+  window._labbScen = {
+    loaded: function () { return tre.laddad; },
+    start: function () { visaFlik("scen"); startaScen(); },
+    cube: function (x, y, z, storlek, farg) {
+      var s = storlek || 1;
+      return skapaForm(new window.THREE.BoxGeometry(s, s, s), x, y, z, farg);
+    },
+    box: function (x, y, z, b, h, d, farg) {
+      return skapaForm(new window.THREE.BoxGeometry(b || 1, h || 1, d || 1), x, y, z, farg);
+    },
+    sphere: function (x, y, z, radie, farg) {
+      return skapaForm(new window.THREE.SphereGeometry(radie || 0.5, 32, 16), x, y, z, farg);
+    },
+    cylinder: function (x, y, z, radie, hojd, farg) {
+      return skapaForm(new window.THREE.CylinderGeometry(radie || 0.5, radie || 0.5, hojd || 1, 24), x, y, z, farg);
+    },
+    cone: function (x, y, z, radie, hojd, farg) {
+      return skapaForm(new window.THREE.ConeGeometry(radie || 0.5, hojd || 1, 24), x, y, z, farg);
+    },
+    camera: function (x, y, z) {
+      // Ställer kameran här och riktar blicken mot senaste blickpunkten.
+      sikta({ x: x, y: y, z: z }, tre.blick || { x: 0, y: 0, z: 0 });
+      sparaStartlage();
+    },
+    look_at: function (x, y, z) {
+      // Vrider blicken mot punkten utan att flytta kameran.
+      tre.blick = { x: x, y: y, z: z };
+      sikta(bana.pos, tre.blick);
+      sparaStartlage();
+    },
+    move_camera: function (framat, isidled, upp) {
+      flytta(framat || 0, isidled || 0, upp || 0, bana.skala * 0.1);
+      sparaStartlage();
+    },
+    reset: aterstallVy,
+    fullscreen: helskarm,
+    background: function (farg) { tre.scen.background = new window.THREE.Color(farg); },
+    ground: function (storlek, farg) { return byggMark(storlek, farg); },
+    bar: byggStapel,
+    panel: byggPanel,
+    screen: byggSkarm,
+    outline: byggKontur,
+    marker: byggMarkor,
+    line: byggLinje,
+    cloud: byggMoln,
+    sun: byggSol,
+    car: byggBil,
+    truck: byggLastbil,
+    plane: byggFlygplan,
+    rocket: byggRaket,
+    dog: byggHund,
+    bird: byggFagel,
+    fish: byggFisk,
+    house: byggHus,
+    skyscraper: byggSkyskrapa,
+    tower: byggTorn,
+    tree: byggTrad,
+    every_frame: function (fn) { tre.callback = fn; },
+    stop: stoppaScen
+  };
+
+  function markeraSteg(index) {
+    var steg = sparEl.querySelectorAll(".steg");
+    for (var i = 0; i < steg.length; i++) {
+      steg[i].classList.remove("aktiv", "klar");
+      if (i < index) steg[i].classList.add("klar");
+      if (i === index) steg[i].classList.add("aktiv");
+    }
+  }
+
+  var FELTIPS = [
+    { m: /KeyboardInterrupt/, n: "KeyboardInterrupt" },
+    { m: /SyntaxError/, n: "SyntaxError" },
+    { m: /IndentationError|unexpected indent|expected an indented block/, n: "IndentationError" },
+    { m: /NameError/, n: "NameError" },
+    { m: /TypeError/, n: "TypeError" },
+    { m: /ValueError/, n: "ValueError" },
+    { m: /ZeroDivisionError/, n: "ZeroDivisionError" },
+    { m: /IndexError/, n: "IndexError" },
+    { m: /KeyError/, n: "KeyError" },
+    { m: /AttributeError/, n: "AttributeError" },
+    { m: /RecursionError/, n: "RecursionError" },
+    { m: /ModuleNotFoundError|ImportError/, n: "ModuleNotFoundError" }
+  ];
+
+
+  function visaFel(text) {
+    visaFlik("utskrift");
+    skriv(text.trim() + "\n", "fel");
+    for (var i = 0; i < FELTIPS.length; i++) {
+      if (FELTIPS[i].m.test(text)) {
+        var tips = document.createElement("div");
+        tips.className = "tips";
+        tips.textContent = SPRAK.ord.tips + SPRAK.feltips[FELTIPS[i].n];
+        konsol.appendChild(tips);
+        break;
+      }
+    }
+    if (ai.pa) {
+      var knapp = document.createElement("button");
+      knapp.className = "ai-knapp";
+      knapp.textContent = SPRAK.chatt.felknapp;
+      knapp.addEventListener("click", function () { forklaraFel(text); });
+      konsol.appendChild(knapp);
+    }
+    konsol.scrollTop = konsol.scrollHeight;
+  }
+
+  /* =======================================================
+     Filhantering
+     ======================================================= */
+  var FILTYP = [{ description: "Python-fil", accept: { "text/x-python": [".py"] } }];
+
+  function visaFilnamn() {
+    filnamnEl.textContent = filnamn;
+    if (andrad) {
+      var prick = document.createElement("span");
+      prick.className = "andrad";
+      prick.textContent = " •";
+      filnamnEl.appendChild(prick);
+    }
+  }
+  function markeraAndrad() {
+    if (!andrad) { andrad = true; visaFilnamn(); }
+    if (buffertar[buffertnyckel()]) buffertar[buffertnyckel()].kod = kodruta.value;
+  }
+  function markeraSparad() { andrad = false; visaFilnamn(); sparaBuffert(); }
+
+  function harFilsystem() {
+    return typeof window.showSaveFilePicker === "function";
+  }
+
+  function laddaNer() {
+    var blob = new Blob([kodruta.value], { type: "text/x-python;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var lank = document.createElement("a");
+    lank.href = url;
+    lank.download = filnamn;
+    document.body.appendChild(lank);
+    lank.click();
+    document.body.removeChild(lank);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+    markeraSparad();
+    visaFlik("utskrift");
+    skriv(SPRAK.msg.sparad_hamtade.replace("{namn}", filnamn) + "\n", "system");
+  }
+
+  async function sparaFil(sparaSom) {
+    if (harFilsystem()) {
+      try {
+        var handtag = filhandtag;
+        if (!handtag || sparaSom) {
+          handtag = await window.showSaveFilePicker({ suggestedName: filnamn, types: FILTYP });
+        }
+        var strom = await handtag.createWritable();
+        await strom.write(kodruta.value);
+        await strom.close();
+        filhandtag = handtag;
+        filnamn = handtag.name;
+        markeraSparad();
+        visaFlik("utskrift");
+        skriv(SPRAK.msg.sparad_till.replace("{namn}", filnamn) + "\n", "system");
+        return;
+      } catch (e) {
+        if (e && e.name === "AbortError") return;
+      }
+    }
+    if (sparaSom || !filnamn) {
+      var nytt = prompt(SPRAK.fraga.filnamn, filnamn);
+      if (!nytt) return;
+      filnamn = nytt.trim();
+      if (filnamn.slice(-3) !== ".py") filnamn += ".py";
+    }
+    laddaNer();
+  }
+
+  /* Läser in en fil i den buffert man står i. Koden ligger sedan kvar
+     där tills man trycker Återställ, precis som all annan redigering. */
+  function laddaText(text, namn, handtag) {
+    var b = aktivtBuffert();
+    b.kod = text;
+    b.filnamn = namn;
+    b.filhandtag = handtag || null;
+    b.andrad = false;
+    b.markor = 0;
+    b.rullning = 0;
+    laddaBuffert(buffertnyckel(), text, namn);
+    visaFlik("utskrift");
+    rensaKonsol();
+    skriv(SPRAK.msg.oppnade.replace("{namn}", namn).replace("{plats}", kapitelnamn()) + "\n", "system");
+    byteAvSamtal();
+  }
+
+  async function oppnaFil() {
+    if (typeof window.showOpenFilePicker === "function") {
+      try {
+        var val = await window.showOpenFilePicker({ types: FILTYP });
+        var handtag = val[0];
+        var fil = await handtag.getFile();
+        laddaText(await fil.text(), handtag.name, handtag);
+        return;
+      } catch (e) {
+        if (e && e.name === "AbortError") return;
+      }
+    }
+    filvaljare.click();
+  }
+
+  filvaljare.addEventListener("change", function () {
+    var fil = filvaljare.files && filvaljare.files[0];
+    if (!fil) return;
+    var lasare = new FileReader();
+    lasare.onload = function () { laddaText(String(lasare.result), fil.name, null); };
+    lasare.readAsText(fil);
+    filvaljare.value = "";
+  });
+
+  ["dragenter", "dragover"].forEach(function (h) {
+    redigerare.addEventListener(h, function (e) { e.preventDefault(); redigerare.classList.add("slapp"); });
+  });
+  ["dragleave", "drop"].forEach(function (h) {
+    redigerare.addEventListener(h, function (e) { e.preventDefault(); redigerare.classList.remove("slapp"); });
+  });
+  redigerare.addEventListener("drop", function (e) {
+    var fil = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!fil) return;
+    var lasare = new FileReader();
+    lasare.onload = function () { laddaText(String(lasare.result), fil.name, null); };
+    lasare.readAsText(fil);
+  });
+
+  window.addEventListener("beforeunload", function (e) {
+    sparaBuffert();
+    var osparat = andrad;
+    Object.keys(buffertar).forEach(function (n) {
+      if (buffertar[n].andrad && buffertar[n].kod.trim()) osparat = true;
+    });
+    if (osparat) { e.preventDefault(); e.returnValue = ""; }
+  });
+
+  /* =======================================================
+     Sidomenyn
+     ======================================================= */
+  function markeraVald(index) {
+    var alla = document.getElementById("lektionslista").querySelectorAll(".lektion");
+    for (var i = 0; i < alla.length; i++) alla[i].classList.toggle("vald", i === index);
+    startKnapp.classList.toggle("vald", index === -2);
+  }
+
+  var STARTSIDA = lektionstext.innerHTML;
+
+  /* ---- en buffert per kapitel, som separata notebooks ---- */
+  var buffertar = {};
+
+  function buffertnyckel() {
+    return aktivLektion !== null ? "kap:" + aktivLektion : "start";
+  }
+
+  function aktivtBuffert() {
+    var nyckel = buffertnyckel();
+    if (!buffertar[nyckel]) {
+      buffertar[nyckel] = { kod: kodruta.value, filnamn: filnamn,
+                            filhandtag: filhandtag, andrad: andrad,
+                            markor: 0, rullning: 0 };
+    }
+    return buffertar[nyckel];
+  }
+
+  function sparaBuffert() {
+    buffertar[buffertnyckel()] = {
+      kod: kodruta.value,
+      filnamn: filnamn,
+      filhandtag: filhandtag,
+      andrad: andrad,
+      markor: kodruta.selectionStart,
+      rullning: kodruta.scrollTop
+    };
+  }
+
+  /* Hämtar tillbaka en buffert, eller skapar den från originalkoden. */
+  function laddaBuffert(nyckel, standardkod, standardnamn) {
+    var b = buffertar[nyckel];
+    if (!b) {
+      b = { kod: standardkod, filnamn: standardnamn, filhandtag: null,
+            andrad: false, markor: 0, rullning: 0 };
+      buffertar[nyckel] = b;
+    }
+    kodruta.value = b.kod;
+    filnamn = b.filnamn;
+    filhandtag = b.filhandtag;
+    andrad = b.andrad;
+    visaFilnamn();
+    kodruta.scrollTop = b.rullning;
+    var pos = Math.min(b.markor, kodruta.value.length);
+    kodruta.setSelectionRange(pos, pos);
+    sistaMarkering = { start: 0, slut: 0 };
+    return b;
+  }
+
+  function visaStartsida() {
+    sparaBuffert();
+    aktivLektion = null;
+    laddaBuffert("start", STARTKOD, "nytt_program.py");
+    markeraVald(-2);
+    lektionstext.innerHTML = STARTSIDA;
+    lektionstext.className = "lektionstext start";
+    panelLektion.scrollTop = 0;
+    visaFlik("lektion");
+    byteAvSamtal();
+  }
+  startKnapp.addEventListener("click", visaStartsida);
+
+  function oppnaLektion(i) {
+    var lek = LEKTIONER[i];
+    sparaBuffert();
+    aktivLektion = i;
+    laddaBuffert("kap:" + i, lek.kod, lek.fil);
+    markeraVald(i);
+    lektionstext.innerHTML = "<h3>" + SPRAK.ord.kapitel_rubrik
+      .replace("{nr}", i + 1).replace("{titel}", lek.titel) + "</h3>" + lek.forklaring;
+    lektionstext.className = "lektionstext";
+    panelLektion.scrollTop = 0;
+    visaFlik("lektion");
+    byteAvSamtal();
+  }
+
+  /* Lägger tillbaka originalkoden — kapitlets, eller startprogrammet. */
+  function aterstallKapitel() {
+    var original = aktivLektion !== null ? LEKTIONER[aktivLektion].kod : STARTKOD;
+    var namn = aktivLektion !== null ? LEKTIONER[aktivLektion].fil : "nytt_program.py";
+    if (kodruta.value !== original &&
+        !confirm(SPRAK.fraga.aterstall.replace("{plats}", kapitelnamn()))) return;
+    delete buffertar[buffertnyckel()];
+    laddaBuffert(buffertnyckel(), original, namn);
+    kodruta.scrollTop = 0;
+    kodruta.setSelectionRange(0, 0);
+    rensaKonsol();
+    byteAvSamtal();
+    kodruta.focus();
+  }
+  aterstallKapitelKnapp.addEventListener("click", aterstallKapitel);
+
+
+  function ritaLektioner() {
+    var behallare = document.getElementById("lektionslista");
+    behallare.textContent = "";
+    var senasteDel = null;
+    LEKTIONER.forEach(function (lek, i) {
+      if (lek.del !== senasteDel) {
+        var d = document.createElement("p");
+        d.className = "delrubrik" + (senasteDel === null ? " forst" : "");
+        d.textContent = lek.del;
+        behallare.appendChild(d);
+        senasteDel = lek.del;
+      }
+      var knapp = document.createElement("button");
+      knapp.className = "lektion";
+      var nr = document.createElement("span");
+      nr.className = "nr";
+      nr.textContent = String(i + 1).padStart(2, "0");
+      var namn = document.createElement("span");
+      namn.textContent = lek.titel;
+      knapp.appendChild(nr);
+      knapp.appendChild(namn);
+      knapp.addEventListener("click", function () { oppnaLektion(i); });
+      behallare.appendChild(knapp);
+    });
+  }
+
+  /* =======================================================
+     AI-hjälp
+     ======================================================= */
+  var LEVERANTORER = {
+    ollama:              { url: "http://localhost:11434/v1/chat/completions", modell: "llama3.1", nyckel: false, stil: "openai" },
+    lmstudio:            { url: "http://localhost:1234/v1/chat/completions",  modell: "local-model", nyckel: false, stil: "openai" },
+    mistral:             { url: "https://api.mistral.ai/v1/chat/completions", modell: "mistral-small-latest", nyckel: true, stil: "openai" },
+    "openai-kompatibel": { url: "", modell: "", nyckel: true, stil: "openai" },
+    anthropic:           { url: "https://api.anthropic.com/v1/messages", modell: "claude-sonnet-4-6", nyckel: true, stil: "anthropic" },
+    openai:              { url: "https://api.openai.com/v1/chat/completions", modell: "gpt-4o-mini", nyckel: true, stil: "openai" }
+  };
+
+  var ai = { nyckel: "", ansluten: false, pa: false };
+
+  function oppnaDialog() {
+    if (!aiElement("ai-url").value.trim()) fyllStandard();
+    sattAiStatus(ai.ansluten ? SPRAK.chatt.ansluten : SPRAK.chatt.inte_ansluten, ai.ansluten ? "ok" : "");
+    overlagring.hidden = false;
+    setTimeout(function () { aiElement("ai-leverantor").focus(); }, 20);
+  }
+
+  function stangDialog() {
+    overlagring.hidden = true;
+  }
+
+  function sattAiStod(pa) {
+    if (pa && !ai.ansluten) {
+      // Slås på men inte verifierad än: fråga efter anslutning först.
+      ai.pa = false;
+      aiToggle.checked = true;
+      oppnaDialog();
+      return;
+    }
+    ai.pa = !!pa;
+    aiToggle.checked = ai.pa;
+    flikAi.hidden = !ai.pa;
+    chattEl.hidden = !ai.pa;
+    byteAvSamtal();
+    if (!ai.pa) {
+      var nyckelfalt = aiElement("ai-nyckel");
+      if (nyckelfalt) nyckelfalt.value = "";
+      ai.ansluten = false;
+      samtalen = {};
+      aiElement("ai-svar").textContent = "";
+      sattAiStatus(SPRAK.chatt.inte_ansluten, "");
+      var knappar = konsol.querySelectorAll(".ai-knapp");
+      for (var i = 0; i < knappar.length; i++) knappar[i].remove();
+      panelAi.hidden = true;
+      stangDialog();
+      if (flikAi.classList.contains("vald")) visaFlik("utskrift");
+    }
+  }
+
+  var LABB_FAKTA = SPRAK.ai_fakta;
+
+  var LARARROLL = SPRAK.ai_roll.replace("{fakta}", LABB_FAKTA);
+
+  /* Byggs ur kapitellistan så den aldrig blir inaktuell. */
+  var KURSEN = (function () {
+    var rader = [SPRAK.ai_kurs.rubrik];
+    LEKTIONER.forEach(function (lek, i) {
+      rader.push((i + 1) + ". " + lek.titel + "  [" + lek.del + "]");
+    });
+    rader.push(SPRAK.ai_kurs.not);
+    return rader.join("\n");
+  })();
+
+  function aiElement(id) { return document.getElementById(id); }
+
+  var chattEl = aiElement("ai-chatt");
+  var fragaFalt = aiElement("ai-fraga");
+  var skickaKnapp = aiElement("ai-skicka");
+  var kontextEl = aiElement("ai-kontext");
+  var overlagring = aiElement("ai-overlagring");
+  var dialogFel = aiElement("ai-dialog-fel");
+
+  function fyllStandard() {
+    var namn = aiElement("ai-leverantor").value;
+    var l = LEVERANTORER[namn];
+    aiElement("ai-url").value = l.url;
+    aiElement("ai-modell").value = l.modell;
+    aiElement("ai-nyckel-rad").style.display = l.nyckel ? "flex" : "none";
+  }
+
+  function sattAiStatus(text, klass) {
+    var el = aiElement("ai-status");
+    el.textContent = text;
+    el.className = "ai-status " + (klass || "");
+  }
+
+  var samtalen = {};          // en chatt per kapitel, plus en för egna filer
+  var arbetar = false;
+
+  function samtalsnyckel() {
+    if (aktivLektion !== null) return "kap:" + aktivLektion;
+    return "fil:" + filnamn;
+  }
+
+  function aktivtSamtal() {
+    var nyckel = samtalsnyckel();
+    if (!samtalen[nyckel]) samtalen[nyckel] = { visning: [], meddelanden: [] };
+    return samtalen[nyckel];
+  }
+
+  /* Ritar om chattrutan från det sparade samtalet. */
+  function ritaSamtal() {
+    var svarsyta = aiElement("ai-svar");
+    svarsyta.textContent = "";
+    var s = aktivtSamtal();
+    if (!s.visning.length) {
+      var tom = document.createElement("div");
+      tom.className = "bubbla arbetar";
+      tom.textContent = aktivLektion !== null
+        ? SPRAK.chatt.ny_kapitel.replace("{plats}", kapitelnamn())
+        : SPRAK.chatt.ny;
+      svarsyta.appendChild(tom);
+      return;
+    }
+    s.visning.forEach(function (post) {
+      ritaBubbla(post.rubrik, post.text, post.klass);
+    });
+    svarsyta.scrollTop = svarsyta.scrollHeight;
+  }
+
+  function byteAvSamtal() {
+    if (!ai.pa) return;
+    visaKontext();
+    ritaSamtal();
+  }
+
+  /* Plockar ut ren text ur kapitelrutan. */
+  function kapiteltext() {
+    var kopia = document.createElement("div");
+    kopia.innerHTML = lektionstext.innerHTML;
+    var text = (kopia.textContent || "").replace(/\s+/g, " ").trim();
+    return text.length > 2600 ? text.slice(0, 2600) + " …" : text;
+  }
+
+  function kapitelnamn() {
+    if (aktivLektion === null) return SPRAK.chatt.startsidan;
+    return SPRAK.chatt.kapitel.replace("{nr}", aktivLektion + 1)
+                              .replace("{titel}", LEKTIONER[aktivLektion].titel);
+  }
+
+  /* Sammanställer vad användaren har framför sig just nu. */
+  function nulage() {
+    var kod = kodruta.value;
+    if (kod.length > 4000) kod = kod.slice(0, 4000) + "\n# … (koden är avkortad)";
+    var delar = [
+      SPRAK.ai_nulage.rubrik,
+      SPRAK.ai_nulage.oppet + kapitelnamn(),
+      "",
+      SPRAK.ai_nulage.kapiteltext,
+      kapiteltext() || SPRAK.ai_nulage.ingen,
+      "",
+      SPRAK.ai_nulage.kod,
+      "```python",
+      kod,
+      "```"
+    ];
+
+    var vald = markeradKod();
+    if (vald.trim()) {
+      delar.push("", SPRAK.ai_nulage.markering, "```python", vald.trim(), "```");
+    }
+    return delar.join("\n");
+  }
+
+  var sistaMarkering = { start: 0, slut: 0 };
+
+  function markeradKod() {
+    var a = kodruta.selectionStart, b = kodruta.selectionEnd;
+    if (b > a) return kodruta.value.slice(a, b);
+    // Textrutan kan ha tappat markeringen när fokus flyttades.
+    if (sistaMarkering.slut > sistaMarkering.start &&
+        sistaMarkering.slut <= kodruta.value.length) {
+      return kodruta.value.slice(sistaMarkering.start, sistaMarkering.slut);
+    }
+    return "";
+  }
+
+  /* Lägger tillbaka markeringen och fokus i kodrutan, så att den syns
+     kvar efter att man klickat på en knapp som arbetar mot den. */
+  function aterstallMarkering() {
+    if (sistaMarkering.slut > sistaMarkering.start &&
+        sistaMarkering.slut <= kodruta.value.length) {
+      kodruta.focus();
+      kodruta.setSelectionRange(sistaMarkering.start, sistaMarkering.slut);
+    }
+  }
+
+  function kommIhagMarkering() {
+    var a = kodruta.selectionStart, b = kodruta.selectionEnd;
+    if (b > a) sistaMarkering = { start: a, slut: b };
+    else sistaMarkering = { start: 0, slut: 0 };
+  }
+
+  function visaKontext() {
+    var vald = markeradKod().trim();
+    var rader = vald ? vald.split("\n").length : 0;
+    kontextEl.textContent = vald
+      ? SPRAK.chatt.kontext_markerat.replace("{plats}", kapitelnamn()).replace("{rader}", rader)
+      : SPRAK.chatt.kontext_allt.replace("{plats}", kapitelnamn());
+  }
+
+  async function fragaModellen(meddelanden, systemtext) {
+    var namn = aiElement("ai-leverantor").value;
+    var stil = LEVERANTORER[namn].stil;
+    var url = aiElement("ai-url").value.trim();
+    var modell = aiElement("ai-modell").value.trim();
+    var nyckel = aiElement("ai-nyckel").value.trim();
+    if (!url) throw new Error("Ingen adress angiven.");
+    if (!modell) throw new Error("Ingen modell angiven.");
+
+    var system = systemtext || LARARROLL;
+    var huvud = { "Content-Type": "application/json" };
+    var kropp;
+
+    if (stil === "anthropic") {
+      huvud["x-api-key"] = nyckel;
+      huvud["anthropic-version"] = "2023-06-01";
+      huvud["anthropic-dangerous-direct-browser-access"] = "true";
+      kropp = { model: modell, max_tokens: 900, system: system, messages: meddelanden };
+    } else {
+      if (nyckel) huvud["Authorization"] = "Bearer " + nyckel;
+      kropp = {
+        model: modell, max_tokens: 900,
+        messages: [{ role: "system", content: system }].concat(meddelanden)
+      };
+    }
+
+    var svar;
+    try {
+      svar = await fetch(url, { method: "POST", headers: huvud, body: JSON.stringify(kropp) });
+    } catch (e) {
+      throw new Error(
+        "Kunde inte nå " + url + ". Kör du en lokal modell? Ollama måste startas med " +
+        "OLLAMA_ORIGINS=\"*\" för att släppa in webbsidor. En tjänst på internet kan " +
+        "blockera anrop från webbläsare (CORS)."
+      );
+    }
+    if (!svar.ok) {
+      var text = await svar.text();
+      throw new Error("Servern svarade " + svar.status + ": " + text.slice(0, 300));
+    }
+    var j = await svar.json();
+    if (stil === "anthropic") {
+      return (j.content || []).map(function (d) { return d.text || ""; }).join("").trim();
+    }
+    return ((j.choices && j.choices[0] && j.choices[0].message.content) || "").trim();
+  }
+
+  /* Liten markdown-tolk. Allt escapas först, så modellens svar kan
+     aldrig injicera HTML i sidan. */
+  function fly(text) {
+    return String(text)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function inline(rad) {
+    return rad
+      .replace(/`([^`]+)`/g, function (_, k) { return "<code>" + k + "</code>"; })
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;:)!?]|$)/g, "$1<em>$2</em>")
+      .replace(/(^|[\s(])_([^_\n]+)_(?=[\s.,;:)!?]|$)/g, "$1<em>$2</em>");
+  }
+
+  function markdown(text) {
+    var kodblock = [];
+    var matte = [];
+
+    // 1. Plocka undan kodblock så de inte rörs av resten.
+    var arbete = String(text).replace(/```([\w+-]*)\n?([\s\S]*?)```/g, function (_, sprak, kod) {
+      kodblock.push('<pre class="kodblock"><code>' + fly(kod.replace(/\n$/, "")) + "</code></pre>");
+      return "\u0000KOD" + (kodblock.length - 1) + "\u0000";
+    });
+
+    // 2. Plocka undan matematik: $$…$$, \[…\], $…$ och \(…\).
+    function sparaMatte(inneh, block) {
+      matte.push('<span class="matte' + (block ? " block" : "") + '">' +
+                 latex(fly(inneh)) + "</span>");
+      return "\u0000MAT" + (matte.length - 1) + "\u0000";
+    }
+    arbete = arbete
+      .replace(/\$\$([\s\S]+?)\$\$/g, function (_, m) { return sparaMatte(m, true); })
+      .replace(/\\\[([\s\S]+?)\\\]/g, function (_, m) { return sparaMatte(m, true); })
+      .replace(/\\\(([\s\S]+?)\\\)/g, function (_, m) { return sparaMatte(m, false); })
+      .replace(/(^|[^\\$])\$([^$\n]+?)\$/g, function (_, fore, m) {
+        return fore + sparaMatte(m, false);
+      });
+
+    arbete = fly(arbete);
+    var rader = arbete.split("\n");
+    var ut = [];
+    var lista = null;          // "ul" eller "ol" när vi är inne i en lista
+    var stycke = [];
+
+    function stangStycke() {
+      if (stycke.length) {
+        ut.push("<p>" + inline(stycke.join(" ")) + "</p>");
+        stycke = [];
+      }
+    }
+    function stangLista() {
+      if (lista) { ut.push("</" + lista + ">"); lista = null; }
+    }
+
+    rader.forEach(function (rad) {
+      var trim = rad.trim();
+
+      if (/^\u0000KOD\d+\u0000$/.test(trim)) {
+        stangStycke(); stangLista();
+        ut.push(trim);
+        return;
+      }
+      if (!trim) { stangStycke(); stangLista(); return; }
+
+      var rubrik = trim.match(/^(#{1,4})\s+(.*)$/);
+      if (rubrik) {
+        stangStycke(); stangLista();
+        var niva = Math.min(4, rubrik[1].length + 2);
+        ut.push("<h" + niva + ">" + inline(rubrik[2]) + "</h" + niva + ">");
+        return;
+      }
+      if (/^([-*•])\s+/.test(trim)) {
+        stangStycke();
+        if (lista !== "ul") { stangLista(); ut.push("<ul>"); lista = "ul"; }
+        ut.push("<li>" + inline(trim.replace(/^([-*•])\s+/, "")) + "</li>");
+        return;
+      }
+      var numrerad = trim.match(/^(\d+)[.)]\s+(.*)$/);
+      if (numrerad) {
+        stangStycke();
+        if (lista !== "ol") { stangLista(); ut.push("<ol>"); lista = "ol"; }
+        ut.push("<li>" + inline(numrerad[2]) + "</li>");
+        return;
+      }
+      if (/^(---+|===+|\*\*\*+)$/.test(trim)) {
+        stangStycke(); stangLista();
+        ut.push("<hr>");
+        return;
+      }
+      stangLista();
+      stycke.push(trim);
+    });
+    stangStycke(); stangLista();
+
+    var html = ut.join("\n");
+    // Lägg tillbaka kodblock och matematik.
+    return html
+      .replace(/\u0000KOD(\d+)\u0000/g, function (_, i) { return kodblock[i]; })
+      .replace(/\u0000MAT(\d+)\u0000/g, function (_, i) { return matte[i]; });
+  }
+
+  /* ---- liten LaTeX-tolk ----
+     Täcker det som faktiskt dyker upp i en programmeringskurs:
+     exponenter, index, bråk, rötter, grekiska bokstäver och operatorer.
+     Renderas med <sup>, <sub> och lite CSS — inget bibliotek behövs. */
+  var GREKISKA = {
+    alpha: "α", beta: "β", gamma: "γ", delta: "δ", epsilon: "ε", zeta: "ζ",
+    eta: "η", theta: "θ", iota: "ι", kappa: "κ", lambda: "λ", mu: "μ",
+    nu: "ν", xi: "ξ", pi: "π", rho: "ρ", sigma: "σ", tau: "τ", phi: "φ",
+    chi: "χ", psi: "ψ", omega: "ω",
+    Gamma: "Γ", Delta: "Δ", Theta: "Θ", Lambda: "Λ", Xi: "Ξ", Pi: "Π",
+    Sigma: "Σ", Phi: "Φ", Psi: "Ψ", Omega: "Ω"
+  };
+  var SYMBOLER = {
+    times: "×", cdot: "·", div: "÷", pm: "±", mp: "∓",
+    leq: "≤", le: "≤", geq: "≥", ge: "≥", neq: "≠", ne: "≠",
+    approx: "≈", equiv: "≡", propto: "∝", sim: "∼",
+    infty: "∞", partial: "∂", nabla: "∇", forall: "∀", exists: "∃",
+    in: "∈", notin: "∉", subset: "⊂", cup: "∪", cap: "∩",
+    sum: "∑", prod: "∏", int: "∫", sqrt: "√",
+    rightarrow: "→", to: "→", leftarrow: "←", Rightarrow: "⇒",
+    leftrightarrow: "↔", mapsto: "↦", ldots: "…", dots: "…", cdots: "⋯",
+    quad: " ", qquad: "  ", ",": " ", ";": " ", " ": " "
+  };
+
+  /* Läser en grupp: antingen {…} eller ett enda tecken. */
+  function grupp(src, i) {
+    if (src[i] === "{") {
+      var djup = 1, j = i + 1;
+      while (j < src.length && djup > 0) {
+        if (src[j] === "{") djup++;
+        else if (src[j] === "}") djup--;
+        j++;
+      }
+      return { text: src.slice(i + 1, j - 1), slut: j };
+    }
+    if (src[i] === "\\") {
+      var m = /^\\[a-zA-Z]+/.exec(src.slice(i));
+      if (m) return { text: m[0], slut: i + m[0].length };
+    }
+    return { text: src[i] || "", slut: i + 1 };
+  }
+
+  function latex(src) {
+    var ut = "";
+    var i = 0;
+    while (i < src.length) {
+      var c = src[i];
+
+      if (c === "^" || c === "_") {
+        var g = grupp(src, i + 1);
+        var tagg = c === "^" ? "sup" : "sub";
+        ut += "<" + tagg + ">" + latex(g.text) + "</" + tagg + ">";
+        i = g.slut;
+        continue;
+      }
+
+      if (c === "\\") {
+        var kommando = /^\\([a-zA-Z]+|.)/.exec(src.slice(i));
+        if (!kommando) { i++; continue; }
+        var namn = kommando[1];
+        var efter = i + kommando[0].length;
+
+        if (namn === "frac" || namn === "dfrac" || namn === "tfrac") {
+          var t = grupp(src, efter);
+          var n = grupp(src, t.slut);
+          ut += '<span class="brak"><span class="taljare">' + latex(t.text) +
+                '</span><span class="namnare">' + latex(n.text) + "</span></span>";
+          i = n.slut;
+          continue;
+        }
+        if (namn === "sqrt") {
+          var r = grupp(src, efter);
+          ut += '√<span class="rot">' + latex(r.text) + "</span>";
+          i = r.slut;
+          continue;
+        }
+        if (namn === "text" || namn === "mathrm" || namn === "mathbf" ||
+            namn === "operatorname" || namn === "mathit") {
+          var tx = grupp(src, efter);
+          var inneh = latex(tx.text);
+          ut += namn === "mathbf" ? "<strong>" + inneh + "</strong>" : inneh;
+          i = tx.slut;
+          continue;
+        }
+        if (namn === "left" || namn === "right") { i = efter; continue; }
+        if (GREKISKA[namn]) { ut += GREKISKA[namn]; i = efter; continue; }
+        if (SYMBOLER[namn] !== undefined) { ut += SYMBOLER[namn]; i = efter; continue; }
+        ut += namn;                      // okänt kommando: visa namnet
+        i = efter;
+        continue;
+      }
+
+      if (c === "{" || c === "}") { i++; continue; }
+      if (c === "*") { ut += "·"; i++; continue; }
+      ut += c;
+      i++;
+    }
+    return ut;
+  }
+
+  function ritaBubbla(rubrik, text, klass) {
+    var svarsyta = aiElement("ai-svar");
+    if (rubrik) {
+      var titel = document.createElement("p");
+      titel.className = "fraga-eko";
+      titel.textContent = rubrik;
+      svarsyta.appendChild(titel);
+    }
+    var bubbla = document.createElement("div");
+    bubbla.className = klass || "bubbla";
+    // Bara assistentens svar tolkas som markdown. Egna frågor och
+    // felmeddelanden visas ordagrant.
+    if (!klass || klass === "bubbla") {
+      bubbla.innerHTML = markdown(text);
+    } else {
+      bubbla.textContent = text;
+    }
+    svarsyta.appendChild(bubbla);
+    svarsyta.scrollTop = svarsyta.scrollHeight;
+    if (bubbla.scrollIntoView) bubbla.scrollIntoView({ block: "nearest" });
+    return bubbla;
+  }
+
+  /* Ritar och sparar, så att bubblan finns kvar när man byter kapitel. */
+  function aiBubbla(rubrik, text, klass, spara) {
+    if (spara !== false) {
+      aktivtSamtal().visning.push({ rubrik: rubrik, text: text, klass: klass });
+    }
+    return ritaBubbla(rubrik, text, klass);
+  }
+
+  /* Skickar en fråga och håller samtalet levande. */
+  async function skicka(fraga, etikett, behallMarkering) {
+    if (arbetar || !fraga.trim()) return;
+    visaFlik("ai");
+    arbetar = true;
+    skickaKnapp.disabled = true;
+
+    var s = aktivtSamtal();
+    var nyckel = samtalsnyckel();
+    if (!s.visning.length) aiElement("ai-svar").textContent = "";
+
+    aiBubbla(etikett || SPRAK.chatt.du_fragar, fraga, "fran-mig");
+    var bubbla = ritaBubbla(null, SPRAK.chatt.tanker, "bubbla arbetar");
+
+    // Nuläget skickas som färsk systemtext varje gång, så modellen
+    // alltid ser den kod som ligger i rutan just nu.
+    var system = LARARROLL + "\n\n" + KURSEN + "\n\n" + nulage();
+    s.meddelanden.push({ role: "user", content: fraga });
+    if (s.meddelanden.length > 12) s.meddelanden = s.meddelanden.slice(-12);
+
+    try {
+      var svar = await fragaModellen(s.meddelanden, system);
+      s.visning.push({ rubrik: null, text: svar, klass: "bubbla" });
+      s.meddelanden.push({ role: "assistant", content: svar });
+      if (samtalsnyckel() === nyckel) {
+        bubbla.innerHTML = markdown(svar);
+        bubbla.className = "bubbla";
+      }
+    } catch (e) {
+      var fel = (e && e.message) || String(e);
+      s.visning.push({ rubrik: null, text: fel, klass: "bubbla fel" });
+      s.meddelanden.pop();
+      if (samtalsnyckel() === nyckel) {
+        bubbla.textContent = fel;
+        bubbla.className = "bubbla fel";
+      }
+    } finally {
+      arbetar = false;
+      skickaKnapp.disabled = false;
+      if (behallMarkering) aterstallMarkering();
+      else fragaFalt.focus();
+    }
+  }
+
+  var UPPDRAG = {
+    kapitel: function () { return SPRAK.uppdrag.kapitel; },
+    kod: function () { return SPRAK.uppdrag.kod; },
+    markering: function () {
+      return markeradKod().trim() ? SPRAK.uppdrag.markering : null;
+    },
+    andra: function () { return SPRAK.uppdrag.andra; },
+    nasta: function () { return SPRAK.uppdrag.nasta; }
+  };
+
+
+
+  /* Felförklaring: tar med raden felet pekar på och koden runt omkring. */
+  function radUrFel(feltext) {
+    var trafffar = feltext.match(/line (\d+)/g);
+    if (!trafffar || !trafffar.length) return null;
+    return parseInt(trafffar[trafffar.length - 1].replace("line ", ""), 10);
+  }
+
+  function kodutdrag(radnummer, marginal) {
+    var rader = kodruta.value.split("\n");
+    if (!radnummer || radnummer > rader.length) return null;
+    var fran = Math.max(0, radnummer - marginal - 1);
+    var till = Math.min(rader.length, radnummer + marginal);
+    var ut = [];
+    for (var i = fran; i < till; i++) {
+      ut.push((i + 1 === radnummer ? ">> " : "   ") + (i + 1) + ": " + rader[i]);
+    }
+    return ut.join("\n");
+  }
+
+  function forklaraFel(feltext) {
+    var rad = radUrFel(feltext);
+    var utdrag = kodutdrag(rad, 4);
+    var fraga = "Jag körde programmet och fick det här felet:\n\n" + feltext + "\n\n";
+    if (utdrag) {
+      fraga += "Raden med >> är den felet pekar på:\n\n```\n" + utdrag + "\n```\n\n";
+    }
+    fraga +=
+      "Förklara: 1) vad feltypen betyder i allmänhet, 2) vad som konkret är fel " +
+      "i den här koden, och 3) en ledtråd om hur jag kan rätta det själv. " +
+      "Skriv inte den rättade koden. Om felet beror på en begränsning i " +
+      "Pythonlabbet — paket, filåtkomst, nätverk eller något som inte finns i " +
+      "webbläsarens Python — så säg det tydligt och beskriv vad som fungerar i stället.";
+    skicka(fraga, SPRAK.chatt.felrubrik);
+  }
+
+  function bryttAnslutning() {
+    if (dialogFel) dialogFel.hidden = true;
+    if (!ai.ansluten && !ai.pa) return;
+    ai.ansluten = false;
+    ai.pa = false;
+    sattAiStatus(SPRAK.chatt.andrat, "");
+  }
+  ["ai-url", "ai-modell", "ai-nyckel"].forEach(function (id) {
+    aiElement(id).addEventListener("input", bryttAnslutning);
+  });
+
+  aiElement("ai-leverantor").addEventListener("change", function () {
+    fyllStandard();
+    bryttAnslutning();
+  });
+  aiToggle.addEventListener("change", function () { sattAiStod(aiToggle.checked); });
+  document.getElementById("ai-snabb").addEventListener("click", function (e) {
+    var knapp = e.target.closest("[data-uppdrag]");
+    if (!knapp) return;
+    var bygg = UPPDRAG[knapp.dataset.uppdrag];
+    if (!bygg) return;
+    var fraga = bygg();
+    if (fraga === null) {
+      aiBubbla(SPRAK.chatt.ingen_markering_rubrik, SPRAK.chatt.ingen_markering,
+               "bubbla arbetar");
+      return;
+    }
+    skicka(fraga, knapp.textContent, knapp.dataset.uppdrag === "markering");
+  });
+
+  document.getElementById("ai-rensa-samtal").addEventListener("click", function () {
+    samtalen[samtalsnyckel()] = { visning: [], meddelanden: [] };
+    ritaSamtal();
+  });
+
+  skickaKnapp.addEventListener("click", function () {
+    var text = fragaFalt.value.trim();
+    if (!text) return;
+    fragaFalt.value = "";
+    skicka(text);
+  });
+
+  fragaFalt.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      skickaKnapp.click();
+    }
+  });
+
+  ["keyup", "mouseup", "input", "select"].forEach(function (h) {
+    kodruta.addEventListener(h, function () {
+      kommIhagMarkering();
+      visaKontext();
+    });
+  });
+
+  /* Knappar som arbetar mot markeringen får inte stjäla fokus från
+     textrutan — då försvinner den blå markeringen medan man klickar. */
+  aiElement("ai-snabb").addEventListener("mousedown", function (e) {
+    if (e.target.closest("button")) e.preventDefault();
+  });
+
+  aiElement("ai-avbryt").addEventListener("click", function () {
+    stangDialog();
+    if (!ai.ansluten) { ai.pa = false; aiToggle.checked = false; }
+  });
+
+  aiElement("ai-installningar-knapp").addEventListener("click", oppnaDialog);
+
+  overlagring.addEventListener("click", function (e) {
+    if (e.target === overlagring) aiElement("ai-avbryt").click();
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !overlagring.hidden) aiElement("ai-avbryt").click();
+  });
+
+  aiElement("ai-testa").addEventListener("click", async function () {
+    dialogFel.hidden = true;
+    var namn = aiElement("ai-leverantor").value;
+    if (LEVERANTORER[namn].nyckel && !aiElement("ai-nyckel").value.trim()) {
+      sattAiStatus(SPRAK.chatt.kraver_nyckel, "fel");
+      aiElement("ai-nyckel").focus();
+      return;
+    }
+    sattAiStatus(SPRAK.chatt.testar, "");
+    try {
+      var svar = await fragaModellen([{ role: "user", content: "Svara med exakt ordet: klart" }]);
+      ai.ansluten = true;
+      sattAiStatus(SPRAK.chatt.aktiv, "ok");
+      stangDialog();
+      sattAiStod(true);
+      visaFlik("ai");
+      visaKontext();
+      ritaSamtal();
+    } catch (e) {
+      ai.ansluten = false;
+      ai.pa = false;
+      aiToggle.checked = false;
+      chattEl.hidden = true;
+      sattAiStatus(SPRAK.chatt.kunde_inte, "fel");
+      dialogFel.textContent = (e && e.message) || String(e);
+      dialogFel.hidden = false;
+    }
+  });
+  fyllStandard();
+  sattAiStod(false);
+
+  /* =======================================================
+     Redigeraren
+     ======================================================= */
+  kodruta.addEventListener("input", markeraAndrad);
+
+  kodruta.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); kor(); return; }
+    if (e.key.toLowerCase() === "s" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sparaFil(e.shiftKey); return; }
+    if (e.key.toLowerCase() === "o" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); oppnaFil(); return; }
+    if (e.key === "Tab") {
+      e.preventDefault();
+      var start = kodruta.selectionStart, slut = kodruta.selectionEnd, text = kodruta.value;
+      if (e.shiftKey) {
+        var radstart = text.lastIndexOf("\n", start - 1) + 1;
+        if (text.substr(radstart, 4) === "    ") {
+          kodruta.value = text.slice(0, radstart) + text.slice(radstart + 4);
+          kodruta.selectionStart = kodruta.selectionEnd = Math.max(radstart, start - 4);
+        }
+      } else {
+        kodruta.value = text.slice(0, start) + "    " + text.slice(slut);
+        kodruta.selectionStart = kodruta.selectionEnd = start + 4;
+      }
+      markeraAndrad();
+      return;
+    }
+    if (e.key === "Enter") {
+      var pos = kodruta.selectionStart;
+      var innan = kodruta.value.slice(0, pos);
+      var rad = innan.slice(innan.lastIndexOf("\n") + 1);
+      var indrag = (rad.match(/^\s*/) || [""])[0];
+      if (/:\s*$/.test(rad)) indrag += "    ";
+      if (indrag) {
+        e.preventDefault();
+        kodruta.value = innan + "\n" + indrag + kodruta.value.slice(kodruta.selectionEnd);
+        kodruta.selectionStart = kodruta.selectionEnd = pos + 1 + indrag.length;
+        markeraAndrad();
+      }
+    }
+  });
+
+  /* =======================================================
+     Körning
+     ======================================================= */
+  function paus(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  async function kor() {
+    if (!pyodide) return;
+    korKnapp.disabled = true;
+    rensaKonsol();
+    visaFlik("utskrift");
+    markeraSteg(0); await paus(140);
+    markeraSteg(1); await paus(140);
+
+    if (pyodide.loadPackagesFromImports) {
+      try {
+        statusEl.className = "status";
+        statusText.textContent = SPRAK.status.kontroll;
+        await andas();
+        await pyodide.loadPackagesFromImports(kodruta.value, {
+          messageCallback: function (m) {
+            skriv(m + "\n", "system");
+            var kort = String(m).replace(/^Loading /, "Hämtar ");
+            statusText.textContent = kort.length > 46 ? kort.slice(0, 46) + "…" : kort;
+          }
+        });
+        await andas();
+      } catch (e) {
+        skriv(SPRAK.msg.paketfel + ((e && e.message) || e) + "\n", "fel");
+      }
+      statusEl.className = "status klar";
+      statusText.textContent = SPRAK.status.redo;
+    }
+
+    if (/matplotlib|pyplot/.test(kodruta.value)) {
+      try {
+        await pyodide.runPythonAsync(`
+import matplotlib
+matplotlib.use('AGG')
+import matplotlib.pyplot as _plt
+import base64 as _base64
+import io as _io
+import js as _js
+
+_plt.rcParams.update({
+    'figure.facecolor': '#142643',
+    'axes.facecolor': '#0e1c33',
+    'axes.edgecolor': '#93a9cc',
+    'axes.labelcolor': '#e8f0ff',
+    'axes.titlecolor': '#ffc94a',
+    'text.color': '#e8f0ff',
+    'xtick.color': '#93a9cc',
+    'ytick.color': '#93a9cc',
+    'grid.color': '#1b3255',
+    'font.size': 9,
+    'figure.figsize': (8, 3.2),
+})
+
+
+def _labb_visa(*a, **k):
+    for nummer in _plt.get_fignums():
+        figur = _plt.figure(nummer)
+        buffert = _io.BytesIO()
+        figur.savefig(buffert, format='png', dpi=120, bbox_inches='tight')
+        kod = _base64.b64encode(buffert.getvalue()).decode()
+        _js.window._labbBild('data:image/png;base64,' + kod)
+    _plt.close('all')
+
+
+_plt.show = _labb_visa
+`);
+      } catch (e) {
+        skriv(SPRAK.msg.matplotlibfel + ((e && e.message) || e) + "\n", "fel");
+      }
+    }
+
+    markeraSteg(2);
+    var start = performance.now();
+    try {
+      var vakt = felsakertToggle.checked;
+      var attKora = kodruta.value;
+      if (forberedKod) {
+        try { attKora = forberedKod(attKora, vakt); }
+        catch (e) { attKora = kodruta.value; }
+      }
+      if (vakt && nollstallVakt) {
+        try { nollstallVakt(45.0); } catch (e) { /* ingen vakt */ }
+      }
+      window._labbStopp = false;
+      // Vakten sitter i looparna. Väntan på input eller nätverk går att
+      // avbryta ändå, så knappen visas under hela körningen.
+      korning.igang = true;
+      korning.vakter = vakt ? (attKora.match(/_labb_kontroll/g) || []).length : 0;
+      uppdateraStoppKnapp();
+      await pyodide.runPythonAsync(attKora);
+      markeraSteg(3);
+      if (!konsol.textContent.trim()) {
+        skriv(SPRAK.msg.ingen_utskrift + "\n", "system");
+      }
+      skriv("\n" + SPRAK.msg.klart.replace("{ms}", Math.round(performance.now() - start)) + "\n", "system");
+    } catch (err) {
+      markeraSteg(2);
+      visaFel(String((err && err.message) || err));
+    } finally {
+      korKnapp.disabled = false;
+      korning.igang = false;
+      korning.vakter = 0;
+      window._labbStopp = false;
+      avbrytAllVantan();
+      stoppaKnapp.hidden = true;
+      stoppaKnapp.disabled = false;
+      stoppaKnapp.textContent = SPRAK.ui.stoppa;
+    }
+  }
+
+  var omOverlagring = document.getElementById("om-overlagring");
+  document.getElementById("om-knapp").addEventListener("click", function () {
+    omOverlagring.hidden = false;
+    document.getElementById("om-stang").focus();
+  });
+  document.getElementById("om-stang").addEventListener("click", function () {
+    omOverlagring.hidden = true;
+  });
+  omOverlagring.addEventListener("click", function (e) {
+    if (e.target === omOverlagring) omOverlagring.hidden = true;
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !omOverlagring.hidden) omOverlagring.hidden = true;
+  });
+
+  document.getElementById("kor-knapp").addEventListener("click", kor);
+  stoppaKnapp.addEventListener("click", function () {
+    window._labbStopp = true;
+    stoppaKnapp.disabled = true;
+    stoppaKnapp.textContent = SPRAK.ord.stoppar;
+    avbrytAllVantan();          // väcker input, filväljare och hämtningar
+  });
+  felsakertToggle.addEventListener("change", function () {
+    skriv((felsakertToggle.checked ? SPRAK.msg.felsakert_pa
+                                   : SPRAK.msg.felsakert_av) + "\n", "system");
+    visaFlik("utskrift");
+  });
+  document.getElementById("rensa-knapp").addEventListener("click", function () { rensaKonsol(); visaFlik("utskrift"); });
+  document.getElementById("oppna-knapp").addEventListener("click", oppnaFil);
+  document.getElementById("spara-knapp").addEventListener("click", function () { sparaFil(false); });
+  document.getElementById("spara-som-knapp").addEventListener("click", function () { sparaFil(true); });
+  document.getElementById("ny-knapp").addEventListener("click", function () {
+    if (kodruta.value.trim() &&
+        !confirm(SPRAK.fraga.toma.replace("{plats}", kapitelnamn()))) return;
+    var b = aktivtBuffert();
+    b.kod = STARTKOD;
+    b.filnamn = "nytt_program.py";
+    b.filhandtag = null;
+    b.andrad = false;
+    b.markor = 0;
+    b.rullning = 0;
+    laddaBuffert(buffertnyckel(), STARTKOD, "nytt_program.py");
+    rensaKonsol();
+    byteAvSamtal();
+    kodruta.focus();
+  });
+
+  /* =======================================================
+     Starta Python
+     ======================================================= */
+  /* ---- laddningsskärmen ---- */
+  var laddskarm = document.getElementById("laddskarm");
+  var laddRubrik = document.getElementById("ladd-rubrik");
+  var laddFyll = document.getElementById("ladd-fyll");
+  var laddText = document.getElementById("ladd-text");
+
+  function ladd(procent, rubrik, text) {
+    if (rubrik) laddRubrik.textContent = rubrik;
+    if (text !== undefined) laddText.textContent = text;
+    if (procent === null) {
+      laddFyll.classList.add("obestamd");
+    } else {
+      laddFyll.classList.remove("obestamd");
+      laddFyll.style.width = Math.max(0, Math.min(100, procent)) + "%";
+    }
+  }
+
+  /* Ger webbläsaren en chans att rita om. Utan detta hinner den aldrig
+     visa framstegen, och varnar för att sidan inte svarar. */
+  function andas() {
+    return new Promise(function (klar) {
+      requestAnimationFrame(function () { setTimeout(klar, 0); });
+    });
+  }
+
+  function megabyte(bytes) {
+    return (bytes / 1048576).toFixed(1) + " MB";
+  }
+
+  /* Hämtar den stora wasm-filen själv, med byte-räknare. Pyodide hittar
+     den sedan i webbläsarens cache och slipper hämta om den. */
+  async function forhamta(bas) {
+    var url = bas + "pyodide.asm.wasm";
+    try {
+      var svar = await fetch(url);
+      if (!svar.ok || !svar.body) return;
+      var totalt = parseInt(svar.headers.get("content-length") || "0", 10);
+      var lasare = svar.body.getReader();
+      var hamtat = 0;
+      var sist = 0;
+      while (true) {
+        var bit = await lasare.read();
+        if (bit.done) break;
+        hamtat += bit.value.length;
+        if (hamtat - sist > 262144) {          // uppdatera var 256:e kB
+          sist = hamtat;
+          ladd(totalt ? 8 + (hamtat / totalt) * 52 : null, null,
+               totalt ? SPRAK.ladd.av.replace("{gjort}", megabyte(hamtat)).replace("{totalt}", megabyte(totalt))
+                      : SPRAK.ladd.hamtat.replace("{gjort}", megabyte(hamtat)));
+          await andas();
+        }
+      }
+      ladd(60, null, SPRAK.ladd.nedladdning_klar);
+      await andas();
+    } catch (e) {
+      // Går det inte hämtar Pyodide filen själv i stället.
+    }
+  }
+
+  var KALLOR = [
+    { url: "https://cdn.jsdelivr.net/pyodide/v314.0.4/full/", namn: "jsDelivr v314.0.4" },
+    { url: "https://cdn.jsdelivr.net/pyodide/v0.26.1/full/", namn: "jsDelivr v0.26.1" }
+  ];
+
+  function laddaSkript(url) {
+    return new Promise(function (klar, fel) {
+      var s = document.createElement("script");
+      s.src = url;
+      s.onload = klar;
+      s.onerror = function () { fel(new Error("kunde inte hämta " + url)); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function medTidsgrans(loften, ms, vad) {
+    return Promise.race([
+      loften,
+      new Promise(function (_, fel) {
+        setTimeout(function () { fel(new Error("tidsgränsen gick ut: " + vad)); }, ms);
+      })
+    ]);
+  }
+
+  async function startaPython() {
+    for (var i = 0; i < KALLOR.length; i++) {
+      var kalla = KALLOR[i];
+      statusText.textContent = SPRAK.status.hamtar.replace("{kalla}", kalla.namn);
+      skriv(SPRAK.msg.forsoker_hamta.replace("{kalla}", kalla.namn) + "\n", "system");
+      try {
+        ladd(4, SPRAK.ladd.hamtar, SPRAK.ladd.kontaktar.replace("{kalla}", kalla.namn));
+        await andas();
+        await medTidsgrans(laddaSkript(kalla.url + "pyodide.js"), 25000, kalla.namn);
+
+        ladd(8, SPRAK.ladd.hamtar, SPRAK.ladd.laddar_ner);
+        await andas();
+        await forhamta(kalla.url);
+
+        ladd(null, SPRAK.ladd.startar, SPRAK.ladd.packar);
+        await andas();
+        await andas();
+        pyodide = await medTidsgrans(loadPyodide({ indexURL: kalla.url }), 120000, kalla.namn);
+
+        ladd(90, SPRAK.ladd.nastan, SPRAK.ladd.forbereder);
+        await andas();
+        return true;
+      } catch (e) {
+        skriv(SPRAK.msg.gick_inte + ((e && e.message) || e) + "\n", "system");
+        ladd(4, SPRAK.ladd.igen, SPRAK.ladd.byter);
+        await andas();
+        try { delete window.loadPyodide; } catch (ignorera) { window.loadPyodide = undefined; }
+      }
+    }
+    return false;
+  }
+
+  (async function init() {
+    kodruta.value = STARTKOD;
+    visaFilnamn();
+    ritaLektioner();
+    visaFlik("utskrift");
+
+    var ok = await startaPython();
+    if (!ok) {
+      statusEl.className = "status trasig";
+      statusText.textContent = SPRAK.status.misslyckades;
+      laddskarm.className = "laddskarm trasig";
+      ladd(100, SPRAK.ladd.misslyckades, SPRAK.ladd.ingen_kalla);
+      document.getElementById("ladd-text").textContent = SPRAK.ladd.ladda_om;
+      setTimeout(function () {
+        laddskarm.classList.add("klar");
+        setTimeout(function () { laddskarm.hidden = true; }, 400);
+      }, 2600);
+      skriv("\n" + SPRAK.msg.ingen_kalla + "\n", "fel");
+      visaFlik("utskrift");
+      return;
+    }
+
+    ladd(96, SPRAK.ladd.nastan, SPRAK.ladd.verktyg);
+    await andas();
+
+    pyodide.setStdout({ batched: function (t) { skriv(t + "\n", "ut"); } });
+    pyodide.setStderr({ batched: function (t) { skriv(t + "\n", "fel"); } });
+
+    pyodide.globals.set("_T", pyodide.toPy(SPRAK.py));
+    pyodide.runPython(`
+import ast
+import builtins
+import js
+
+def _tomt(varde):
+    """Sant om värdet inte är ett riktigt svar.
+
+    JavaScript har två sorters tomhet, null och undefined, och Pyodide
+    översätter dem olika. Vi litar därför inte på jämförelser mot None —
+    ett riktigt svar är alltid en sträng, allt annat betyder avbrott.
+    """
+    return not isinstance(varde, str)
+
+
+async def _labb_input(text=''):
+    svar = await _labb_vanta(js.window._labbFraga(str(text)))
+    if _tomt(svar):
+        if js.window._labbStopp:
+            raise KeyboardInterrupt(_T['stopp_svar'])
+        raise KeyboardInterrupt(_T['avbrot_input'])
+    return svar
+
+builtins.input = _labb_input
+
+
+import asyncio as _asyncio
+import time as _time
+
+_labb = {'varv': 0, 'start': 0.0, 'sist': 0.0, 'grans': 45.0}
+
+
+def _labb_nollstall(grans=45.0):
+    """Kallas före varje körning."""
+    nu = _time.time()
+    _labb.update({'varv': 0, 'start': nu, 'sist': nu, 'grans': grans})
+
+
+async def _labb_vanta(loften):
+    """Väntar på något som människan eller nätet styr över.
+
+    Tiden som går här räknas inte mot tidsgränsen — annars skulle
+    programmet avbrytas medan någon funderar på vad de ska skriva.
+    """
+    borjan = _time.time()
+    try:
+        return await loften
+    finally:
+        paus = _time.time() - borjan
+        _labb['start'] += paus
+        _labb['sist'] = _time.time()
+
+
+async def _labb_kontroll():
+    """Vakt som körs först i varje varv av varje loop.
+
+    Nästan alla anrop returnerar direkt. Ungefär tjugo gånger i sekunden
+    lämnas kontrollen tillbaka till webbläsaren, så att Stoppa-knappen
+    hinner klickas och sidan hinner rita om.
+    """
+    _labb['varv'] += 1
+    if _labb['varv'] & 63:
+        return
+    nu = _time.time()
+    if nu - _labb['sist'] < 0.03:
+        return
+    _labb['sist'] = nu
+
+    # Lämna kontrollen till webbläsaren FÖRST. Ett klick som kommer under
+    # pausen hinner då sätta flaggan innan vi läser den här nedanför.
+    await _asyncio.sleep(0)
+
+    if js.window._labbStopp:
+        raise KeyboardInterrupt(_T['stoppades'])
+    gangna = _time.time() - _labb['start']
+    if _labb['grans'] and gangna > _labb['grans']:
+        raise TimeoutError(_T['tidsgrans'].replace('{sek}', '{:.0f}'.format(gangna)))
+
+
+def _labb_generator(fnod):
+    """Sant om funktionen innehåller yield — då är den en generator.
+
+    Nästlade funktioner räknas inte: deras yield tillhör dem, inte oss.
+    """
+    ko = list(fnod.body)
+    while ko:
+        nod = ko.pop()
+        if isinstance(nod, (ast.Yield, ast.YieldFrom)):
+            return True
+        if isinstance(nod, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+            continue
+        ko.extend(ast.iter_child_nodes(nod))
+    return False
+
+
+def _labb_forbered(kallkod, vakt=True):
+    """Skriver om koden innan den körs.
+
+    Två saker händer: funktioner som väntar på något (input, nätverk)
+    görs asynkrona, och varje loop får en vakt som gör att programmet
+    kan avbrytas. Vakten hoppas över i prestandaläge.
+    """
+    try:
+        trad = ast.parse(kallkod)
+    except SyntaxError:
+        return kallkod
+
+    if vakt:
+        class Loopvakt(ast.NodeTransformer):
+            """Lägger in ett anrop först i varje loopkropp.
+
+            Generatorer hoppas över: ett await i en funktion med yield gör
+            den till en asynkron generator, och en sådan går inte att
+            loopa över med vanlig for.
+            """
+
+            def __init__(self):
+                self.i_generator = 0
+
+            def _funktion(self, nod):
+                gen = _labb_generator(nod)
+                if gen:
+                    self.i_generator += 1
+                self.generic_visit(nod)
+                if gen:
+                    self.i_generator -= 1
+                return nod
+
+            visit_FunctionDef = _funktion
+            visit_AsyncFunctionDef = _funktion
+
+            def _vakta(self, nod):
+                self.generic_visit(nod)
+                if self.i_generator:
+                    return nod
+                anrop = ast.Expr(value=ast.Call(
+                    func=ast.Name(id='_labb_kontroll', ctx=ast.Load()),
+                    args=[], keywords=[]))
+                nod.body = [anrop] + nod.body
+                return nod
+
+            visit_While = _vakta
+            visit_For = _vakta
+            visit_AsyncFor = _vakta
+
+        trad = ast.fix_missing_locations(Loopvakt().visit(trad))
+
+    funktioner = {}
+
+    def samla(nod, i_klass=False):
+        # Metoder i klasser tas med: annars kan de aldrig bli asynkrona,
+        # och en loop eller ett input() inuti en metod skulle ge syntaxfel.
+        for barn in ast.iter_child_nodes(nod):
+            if isinstance(barn, ast.ClassDef):
+                samla(barn, True)
+            elif isinstance(barn, ast.FunctionDef):
+                # Generatorer lämnas som de är — de kan inte bli asynkrona
+                # utan att sluta fungera med vanlig for.
+                if not _labb_generator(barn):
+                    funktioner[barn.name] = barn
+                samla(barn, False)
+            else:
+                samla(barn, i_klass)
+
+    samla(trad)
+
+    def anropade_namn(nod):
+        namn = set()
+        for barn in ast.walk(nod):
+            if isinstance(barn, ast.Call):
+                if isinstance(barn.func, ast.Name):
+                    namn.add(barn.func.id)
+                elif isinstance(barn.func, ast.Attribute):
+                    namn.add(barn.func.attr)
+        return namn
+
+    vantar = {'input', 'fetch_json', 'fetch_text', 'fetch_csv',
+              'open_file', 'open_csv', 'open_json'}
+    if vakt:
+        vantar.add('_labb_kontroll')
+    andrat = True
+    while andrat:
+        andrat = False
+        for namn, nod in funktioner.items():
+            if namn not in vantar and (anropade_namn(nod) & vantar):
+                vantar.add(namn)
+                andrat = True
+
+    class Omvandlare(ast.NodeTransformer):
+        def visit_FunctionDef(self, nod):
+            self.generic_visit(nod)
+            if nod.name in vantar and nod.name in funktioner:
+                falt = {f: getattr(nod, f) for f in nod._fields}
+                return ast.copy_location(ast.AsyncFunctionDef(**falt), nod)
+            return nod
+
+        def visit_Call(self, nod):
+            self.generic_visit(nod)
+            if isinstance(nod.func, ast.Name) and nod.func.id in vantar:
+                return ast.copy_location(ast.Await(value=nod), nod)
+            if isinstance(nod.func, ast.Attribute) and nod.func.attr in vantar:
+                return ast.copy_location(ast.Await(value=nod), nod)
+            return nod
+
+    try:
+        ny = ast.fix_missing_locations(Omvandlare().visit(trad))
+        return ast.unparse(ny)
+    except Exception:
+        return kallkod
+
+
+import sys as _sys
+import types as _types
+
+_scen_modul = _types.ModuleType('scene')
+_bro = js.window._labbScen
+
+
+def _kolla():
+    if not _bro.loaded():
+        raise RuntimeError(_T['ingen_3d'])
+
+
+def _starta():
+    _kolla()
+    global _aktiv_callback
+    if _aktiv_callback is not None:
+        try:
+            _aktiv_callback.destroy()
+        except Exception:
+            pass
+        _aktiv_callback = None
+    _bro.start()
+
+
+def _kub(x=0, y=0, z=0, size=1, color='#ffc94a'):
+    _kolla()
+    return _bro.cube(x, y, z, size, color)
+
+
+def _lada(x=0, y=0, z=0, width=1, height=1, depth=1, color='#ffc94a'):
+    _kolla()
+    return _bro.box(x, y, z, width, height, depth, color)
+
+
+def _klot(x=0, y=0, z=0, radius=0.5, color='#6ee7b7'):
+    _kolla()
+    return _bro.sphere(x, y, z, radius, color)
+
+
+def _cylinder(x=0, y=0, z=0, radius=0.5, height=1, color='#8fb4ff'):
+    _kolla()
+    return _bro.cylinder(x, y, z, radius, height, color)
+
+
+def _kon(x=0, y=0, z=0, radius=0.5, height=1, color='#ff7d6b'):
+    _kolla()
+    return _bro.cone(x, y, z, radius, height, color)
+
+
+_scen_modul.start = _starta
+_scen_modul.cube = _kub
+_scen_modul.box = _lada
+_scen_modul.sphere = _klot
+_scen_modul.cylinder = _cylinder
+_scen_modul.cone = _kon
+
+
+def _modellbyggare(name, default_color):
+    def bygg(x=0, y=0, z=0, color=None, size=1):
+        _kolla()
+        return getattr(_bro, name)(x, y, z, color if color else default_color, size)
+    bygg.__name__ = name
+    return bygg
+
+
+for _namn, _standard in [
+    ('car', '#ff7d6b'),
+    ('truck', '#8fb4ff'),
+    ('plane', '#dfe8fa'),
+    ('rocket', '#e8f0ff'),
+    ('dog', '#c98b4a'),
+    ('bird', '#6ee7b7'),
+    ('fish', '#ffc94a'),
+    ('house', '#ffc94a'),
+    ('skyscraper', '#3d5a8a'),
+    ('tower', '#dfe8fa'),
+    ('tree', '#4f9e6a'),
+]:
+    setattr(_scen_modul, _namn, _modellbyggare(_namn, _standard))
+
+
+def _mark(size=30, color='#1b3255'):
+    _kolla()
+    return _bro.ground(size, color)
+
+
+def _stapel(x=0, z=0, height=1, color='#ffc94a', width=0.4):
+    _kolla()
+    return _bro.bar(x, z, height, color, width)
+
+
+def _panel(x=0, y=2, z=0, width=4, height=2.5, image=None, color='#dfe8fa'):
+    _kolla()
+    return _bro.panel(x, y, z, width, height, image, color)
+
+
+def _markor(x=0, y=0, z=0, color='#ff7d6b', size=1):
+    _kolla()
+    return _bro.marker(x, y, z, color, size)
+
+
+def _linje(x1, y1, z1, x2, y2, z2, color='#8fb4ff', thickness=0.05):
+    _kolla()
+    return _bro.line(x1, y1, z1, x2, y2, z2, color, thickness)
+
+
+def _moln(x=0, y=6, z=0, size=1, color='#dfe8fa'):
+    _kolla()
+    return _bro.cloud(x, y, z, size, color)
+
+
+def _sol(x=0, y=10, z=0, radius=1, color='#ffc94a'):
+    _kolla()
+    return _bro.sun(x, y, z, radius, color)
+
+
+def _ljus_figur(figure):
+    """Färgar om en figure till mörk text på vitt, så den syns som en sign."""
+    MORK = '#1a2740'
+    GRA = '#5b6b85'
+    figure.patch.set_facecolor('white')
+    for text in figure.texts:
+        text.set_color(MORK)
+    for panel in figure.axes:
+        panel.set_facecolor('white')
+        for edge in panel.spines.values():
+            edge.set_color(GRA)
+        panel.tick_params(colors=GRA)
+        panel.xaxis.label.set_color(MORK)
+        panel.yaxis.label.set_color(MORK)
+        panel.title.set_color(MORK)
+        for text in panel.texts:
+            text.set_color(MORK)
+        panel.grid(color='#dfe4ee')
+        legend = panel.get_legend()
+        if legend is not None:
+            legend.get_frame().set_facecolor('white')
+            legend.get_frame().set_edgecolor(GRA)
+            for text in legend.get_texts():
+                text.set_color(MORK)
+
+
+def _diagram_till_bild(figure=None, width_px=2000, light=True):
+    """Renderar en matplotlib-figure till en image som three.js kan använda."""
+    import base64
+    import io
+    import matplotlib.pyplot as plt
+    if figure is None:
+        figure = plt.gcf()
+    if light:
+        _ljus_figur(figure)
+    buffer = io.BytesIO()
+    figure.savefig(buffer, format='png',
+                  dpi=width_px / max(1.0, figure.get_figwidth()),
+                  bbox_inches='tight', pad_inches=0.28,
+                  facecolor=figure.get_facecolor())
+    code = base64.b64encode(buffer.getvalue()).decode()
+    return 'data:image/png;base64,' + code
+
+
+def _diagramskarm(x=0, y=6, z=0, width=12, height=6.5, figure=None, light=True,
+                  tilt=0.0, turn=0.0, stand=True, face_camera=False):
+    """Visar ett diagram på en TV-liknande skärm i 3D-scenen.
+
+    turn anges i grader: positivt vrider skärmens framsida åt höger.
+    """
+    _kolla()
+    import math as _math
+    import matplotlib.pyplot as plt
+    image = _diagram_till_bild(figure, light=light)
+    plt.close(figure if figure is not None else plt.gcf())
+    tv = _bro.screen(x, y, z, width, height, image, stand)
+    if tilt or turn:
+        tv.rotate(tilt, _math.radians(turn), 0)
+    if face_camera:
+        tv.face_camera()
+    return tv
+
+
+def _diagrampanel(x=0, y=3, z=0, width=6, height=3.4, figure=None, light=True, tilt=0.0):
+    """Sätter upp ett diagram som en platt sign i 3D-scenen."""
+    _kolla()
+    import matplotlib.pyplot as plt
+    image = _diagram_till_bild(figure, light=light)
+    plt.close(figure if figure is not None else plt.gcf())
+    sign = _bro.panel(x, y, z, width, height, image, '#ffffff')
+    if tilt:
+        sign.rotate(tilt, 0, 0)
+    return sign
+
+
+_scen_modul.ground = _mark
+_scen_modul.bar = _stapel
+_scen_modul.panel = _panel
+_scen_modul.marker = _markor
+_scen_modul.line = _linje
+_scen_modul.cloud = _moln
+_scen_modul.sun = _sol
+def _kontur(points, color='#8fb4ff', thickness=0.08, y=0.06, closed=True):
+    """Ritar en linje genom en lista av (x, z)-points."""
+    _kolla()
+    return _bro.outline([list(p) for p in points], color, thickness, y, closed)
+
+
+# Sveriges gräns och kustlinje, kraftigt förenklad. (latitud, longitud)
+SVERIGE = [
+    (69.06, 20.55), (68.90, 21.60), (68.35, 22.35), (67.90, 23.30),
+    (67.30, 23.60), (66.55, 23.90), (65.90, 24.15), (65.70, 23.10),
+    (65.55, 22.15), (65.05, 21.55), (64.55, 21.25), (64.00, 20.95),
+    (63.55, 19.90), (63.15, 19.05), (62.65, 18.05), (62.15, 17.55),
+    (61.40, 17.35), (60.70, 17.45), (60.35, 18.55), (59.75, 19.00),
+    (59.35, 18.35), (58.85, 17.55), (58.65, 16.95), (58.10, 16.85),
+    (57.45, 16.65), (56.75, 16.45), (56.15, 15.85), (56.05, 14.75),
+    (55.60, 14.35), (55.35, 13.35), (55.55, 12.90), (56.05, 12.55),
+    (56.65, 12.60), (57.20, 12.25), (57.70, 11.85), (58.25, 11.45),
+    (58.90, 11.15), (59.10, 11.45), (59.65, 11.75), (60.20, 12.55),
+    (60.90, 12.55), (61.55, 12.25), (62.25, 12.15), (62.90, 12.05),
+    (63.55, 12.55), (64.05, 13.95), (64.55, 14.15), (65.10, 14.55),
+    (65.60, 15.45), (66.15, 15.55), (66.60, 16.45), (67.20, 16.15),
+    (67.60, 17.35), (68.05, 18.15), (68.45, 18.15), (68.70, 19.55),
+]
+
+GOTLAND = [
+    (57.95, 18.85), (57.75, 19.05), (57.40, 18.90), (57.00, 18.35),
+    (56.90, 18.15), (57.25, 18.10), (57.60, 18.25), (57.90, 18.55),
+]
+
+OLAND = [
+    (57.37, 17.10), (57.05, 17.05), (56.55, 16.65), (56.20, 16.40),
+    (56.30, 16.30), (56.75, 16.55), (57.15, 16.85), (57.40, 16.95),
+]
+
+
+def _sverige(to_scene, color='#7fa4dd', thickness=0.11, y=0.08, islands=True):
+    """Ritar Sveriges kontur. to_scene(lat, lon) ska ge (x, z)."""
+    _kolla()
+    drawn = [_kontur([to_scene(la, lo) for la, lo in SVERIGE],
+                      color=color, thickness=thickness, y=y)]
+    if islands:
+        for ö in (GOTLAND, OLAND):
+            drawn.append(_kontur([to_scene(la, lo) for la, lo in ö],
+                                  color=color, thickness=thickness * 0.8, y=y))
+    return drawn
+
+
+def _i_polygon(lat, lon, polygon):
+    """Ray casting: räknar hur många gånger en stråle korsar kanten."""
+    inne = False
+    n = len(polygon)
+    j = n - 1
+    for i in range(n):
+        la_i, lo_i = polygon[i]
+        la_j, lo_j = polygon[j]
+        if (lo_i > lon) != (lo_j > lon):
+            skarning = (la_j - la_i) * (lon - lo_i) / (lo_j - lo_i) + la_i
+            if lat < skarning:
+                inne = not inne
+        j = i
+    return inne
+
+
+def _i_sverige(lat, lon, with_islands=True):
+    """Ligger punkten innanför Sveriges kontur?"""
+    if _i_polygon(lat, lon, SVERIGE):
+        return True
+    if with_islands:
+        return _i_polygon(lat, lon, GOTLAND) or _i_polygon(lat, lon, OLAND)
+    return False
+
+
+_scen_modul.outline = _kontur
+_scen_modul.sweden = _sverige
+_scen_modul.in_sweden = _i_sverige
+_scen_modul.SWEDEN = SVERIGE
+_scen_modul.chart_panel = _diagrampanel
+_scen_modul.chart_screen = _diagramskarm
+_scen_modul.screen = lambda x=0, y=6, z=0, width=12, height=6.5, image=None, stand=True: (
+    _bro.screen(x, y, z, width, height, image, stand))
+_scen_modul.chart_to_image = _diagram_till_bild
+_scen_modul.reset = lambda: _bro.reset()
+_scen_modul.look_at = lambda x=0, y=0, z=0: _bro.look_at(x, y, z)
+_scen_modul.move_camera = lambda framat=0, isidled=0, upp=0: (
+    _bro.move_camera(framat, isidled, upp))
+_scen_modul.fullscreen = lambda: _bro.fullscreen()
+
+from pyodide.ffi import create_proxy as _create_proxy
+
+_aktiv_callback = None
+
+
+def _varje_bildruta(fn):
+    """Python-funktioner måste få ett bestående omslag för att kunna
+    anropas av JavaScript efter att anropet är slut."""
+    global _aktiv_callback
+    gammal = _aktiv_callback
+    _aktiv_callback = _create_proxy(fn)
+    _bro.every_frame(_aktiv_callback)
+    if gammal is not None:
+        try:
+            gammal.destroy()
+        except Exception:
+            pass
+
+
+def _stoppa():
+    global _aktiv_callback
+    _bro.stop()
+    if _aktiv_callback is not None:
+        try:
+            _aktiv_callback.destroy()
+        except Exception:
+            pass
+        _aktiv_callback = None
+
+
+_scen_modul.every_frame = _varje_bildruta
+_scen_modul.stop = _stoppa
+_scen_modul.camera = lambda x=0, y=2.5, z=7: _bro.camera(x, y, z)
+_scen_modul.background = lambda color: _bro.background(color)
+_sys.modules['scene'] = _scen_modul
+
+# ---- modulen "data": hämta öppna dataset över nätet ----
+_data_modul = _types.ModuleType('data')
+
+
+async def _hamta_text(url):
+    from pyodide.http import pyfetch
+    # Styrningen låter Stoppa-knappen avbryta en hämtning som drar ut.
+    control = js.window._labbStyrning()
+    try:
+        answer = await _labb_vanta(pyfetch(url, signal=control.signal))
+    except Exception as error:
+        if js.window._labbStopp:
+            raise KeyboardInterrupt(_T['avbrot_hamtning']) from None
+        raise RuntimeError(
+            _T['cors'].replace('{url}', str(url)).replace('{error}', str(error))
+        ) from None
+    finally:
+        control.klar()
+    if answer.status != 200:
+        raise RuntimeError(_T['statuskod'].replace('{code}', str(answer.status)))
+    return await answer.string()
+
+
+async def _hamta_json(url):
+    import json
+    return json.loads(await _hamta_text(url))
+
+
+async def _hamta_csv(url, delimiter=','):
+    import csv
+    import io
+    text = await _hamta_text(url)
+    return list(csv.DictReader(io.StringIO(text), delimiter=delimiter))
+
+
+def _reservdata():
+    """Används när nätet inte går att nå — samma form som SMHI:s answer."""
+    panel = [
+        ('Kiruna Flygplats', 67.82, -4.1), ('Gällivare', 67.13, -2.8),
+        ('Luleå-Kallax', 65.54, -1.2), ('Umeå Flygplats', 63.79, 0.4),
+        ('Östersund-Frösön', 63.19, -1.9), ('Sundsvall-Timrå', 62.53, 1.1),
+        ('Mora', 61.00, 2.0), ('Karlstad Flygplats', 59.44, 4.2),
+        ('Uppsala Flygplats', 59.89, 3.8), ('Stockholm-Bromma', 59.35, 4.9),
+        ('Norrköping-Kungsängen', 58.58, 5.2), ('Göteborg-Landvetter', 57.67, 5.8),
+        ('Visby Flygplats', 57.66, 4.4), ('Växjö-Kronoberg', 56.93, 5.1),
+        ('Malmö-Sturup', 55.55, 6.7), ('Lund', 55.71, 7.0),
+    ]
+    return [
+        {'name': n, 'latitude': la, 'longitude': 15.0,
+         'value': [{'date': 0, 'value': str(t), 'quality': 'G'}]}
+        for n, la, t in panel
+    ]
+
+
+_data_modul.fetch_text = _hamta_text
+_data_modul.fetch_json = _hamta_json
+_data_modul.fetch_csv = _hamta_csv
+_data_modul.backup_data = _reservdata
+
+
+def _exportera(filename, content):
+    """Laddar ner text till datorn under det angivna filnamnet."""
+    js.window._labbLaddaNer(str(filename), str(content))
+    print(_T['laddade_ner'].replace('{name}', str(filename))
+          .replace('{tecken}', str(len(str(content)))))
+
+
+def _ladda_ner(path, save_as=None):
+    """Tar en fil du skapat med open() och laddar ner den till datorn."""
+    import os
+    if not os.path.exists(path):
+        raise FileNotFoundError(_T['saknas'].replace('{name}', str(path)))
+    with open(path, 'r', encoding='utf-8') as _fil:
+        content = _fil.read()
+    _exportera(save_as or os.path.basename(path), content)
+
+
+def _exportera_csv(filename, rows, columns=None, delimiter=','):
+    """Skriver en lista med dictionaries till en CSV-fil på datorn."""
+    import csv
+    import io
+    if not rows:
+        raise ValueError(_T['tom_lista'])
+    if columns is None:
+        columns = list(rows[0].keys())
+    buffer = io.StringIO()
+    skrivare = csv.DictWriter(buffer, fieldnames=columns, delimiter=delimiter)
+    skrivare.writeheader()
+    for rad in rows:
+        skrivare.writerow({k: rad.get(k, '') for k in columns})
+    _exportera(filename, buffer.getvalue())
+
+
+_data_modul.export = _exportera
+_data_modul.download = _ladda_ner
+_data_modul.export_csv = _exportera_csv
+
+
+async def _oppna_fil(save_as=None, filter='.csv,.json,.txt,.py,.md'):
+    """Visar en filväljare och kopierar in filen i labbets filsystem.
+
+    Returnerar filnamnet, som sedan kan öppnas med vanlig open().
+    """
+    chosen = await _labb_vanta(js.window._labbValjFil(filter))
+    if chosen is None or not hasattr(chosen, 'content'):
+        if js.window._labbStopp:
+            raise KeyboardInterrupt(_T['stopp_fil'])
+        raise FileNotFoundError(_T['ingen_fil'])
+    name = save_as or chosen.name
+    with open(name, 'w', encoding='utf-8') as _fil:
+        _fil.write(chosen.content)
+    print(_T['laste_in'].replace('{fran}', str(chosen.name)).replace('{till}', str(name))
+          .replace('{tecken}', str(len(chosen.content))))
+    return name
+
+
+async def _oppna_csv(delimiter=','):
+    """Väljer en CSV-fil och returnerar den som en lista med dictionaries."""
+    import csv
+    import io
+    name = await _oppna_fil(filter='.csv,.txt')
+    with open(name, encoding='utf-8') as _fil:
+        return list(csv.DictReader(_fil, delimiter=delimiter))
+
+
+async def _oppna_json():
+    """Väljer en JSON-fil och returnerar innehållet."""
+    import json
+    name = await _oppna_fil(filter='.json')
+    with open(name, encoding='utf-8') as _fil:
+        return json.load(_fil)
+
+
+def _lista_filer(folder='.'):
+    """Visar vilka filer som finns i labbets filsystem."""
+    import os
+    entries = sorted(
+        f for f in os.listdir(folder)
+        if os.path.isfile(os.path.join(folder, f)) and not f.startswith('.')
+    )
+    if not entries:
+        print(_T['inga_filer'])
+        return entries
+    for f in entries:
+        print(f'{f:<28} {os.path.getsize(os.path.join(folder, f)):>8} byte')
+    return entries
+
+
+_data_modul.open_file = _oppna_fil
+_data_modul.open_csv = _oppna_csv
+_data_modul.open_json = _oppna_json
+_data_modul.list_files = _lista_filer
+_sys.modules['data'] = _data_modul
+`);
+
+    forberedKod = pyodide.globals.get("_labb_forbered");
+    nollstallVakt = pyodide.globals.get("_labb_nollstall");
+
+    statusEl.className = "status klar";
+    statusText.textContent = SPRAK.status.redo;
+    korKnapp.disabled = false;
+    rensaKonsol();
+    skriv(SPRAK.msg.redo + "\n", "system");
+    visaFlik("lektion");
+
+    ladd(100, SPRAK.ladd.klart, SPRAK.ladd.redo);
+    await andas();
+    laddskarm.classList.add("klar");
+    setTimeout(function () { laddskarm.hidden = true; }, 400);
+
+    laddaThree().then(function (ok) {
+      if (!ok) skriv(SPRAK.msg.ingen_3d + "\n", "system");
+    });
+  })();
+};
+</script>
+</div>
+
+<script>
+/* Väljer språk och laddar rätt textfil innan motorn startar.
+   ?lang=en i adressen vinner, annars sparat val, annars webbläsarens språk.
+
+   En språkfil får vara ofullständig: saknade nycklar hämtas från
+   basspråket. Det gör att en översättning kan växa fram stegvis utan
+   att något i gränssnittet blir tomt. */
+(function () {
+  var SPRAKEN = ["sv", "en"];
+  var BAS = "sv";
+
+  function valt() {
+    var p = (location.search.match(/[?&]lang=([a-z]{2})/i) || [])[1];
+    if (p && SPRAKEN.indexOf(p.toLowerCase()) >= 0) return p.toLowerCase();
+    try {
+      var sparat = localStorage.getItem("pythonlab.sprak");
+      if (sparat && SPRAKEN.indexOf(sparat) >= 0) return sparat;
+    } catch (e) { /* lagring kan vara avstängd */ }
+    // Bara svensktalande får svenska. Alla andra får engelska, som är
+    // det närmaste ett gemensamt språk labbet har.
+    var webblasare = (navigator.language || "en").slice(0, 2).toLowerCase();
+    return webblasare === "sv" ? "sv" : "en";
+  }
+
+  /* Fyller på med basspråkets texter där översättningen saknas.
+     Listor vävs samman post för post — så kan kapitel 1-8 vara
+     översatta medan resten faller tillbaka på basspråket. */
+  function komplettera(bas, over) {
+    if (bas === undefined || bas === null) return over;
+    if (over === undefined || over === null) return bas;
+    if (Array.isArray(bas) && Array.isArray(over)) {
+      var lista = bas.slice();
+      for (var i = 0; i < over.length; i++) {
+        lista[i] = komplettera(bas[i], over[i]);
+      }
+      return lista;
+    }
+    if (Array.isArray(bas) || typeof bas !== "object") return over;
+    var ut = {};
+    Object.keys(bas).forEach(function (k) { ut[k] = bas[k]; });
+    Object.keys(over).forEach(function (k) {
+      ut[k] = (k in bas) ? komplettera(bas[k], over[k]) : over[k];
+    });
+    return ut;
+  }
+
+  function ladda(kod, klar, fel) {
+    var s = document.createElement("script");
+    s.src = "sprak-" + kod + ".js";
+    s.onload = function () {
+      var spr = window.PYTHONLAB_SPRAK && window.PYTHONLAB_SPRAK[kod];
+      spr ? klar(spr) : fel();
+    };
+    s.onerror = fel;
+    document.head.appendChild(s);
+  }
+
+  function misslyckades(kod) {
+    var r = document.getElementById("ladd-rubrik");
+    var t = document.getElementById("ladd-text");
+    if (r) r.textContent = "Language file missing";
+    if (t) t.textContent = 'Could not load "sprak-' + kod + '.js". '
+      + "Keep it in the same folder as this page.";
+  }
+
+  function starta(spr) {
+    document.documentElement.lang = spr.html_lang || spr.kod || BAS;
+    window.PYTHONLAB_START(spr);
+  }
+
+  var kod = valt();
+  ladda(BAS, function (bas) {
+    if (kod === BAS) return starta(bas);
+    ladda(kod, function (over) { starta(komplettera(bas, over)); },
+          function () { starta(bas); });     // saknas översättningen: kör basspråket
+  }, function () { misslyckades(BAS); });
+})();
+</script>
+</body>
+</html>
