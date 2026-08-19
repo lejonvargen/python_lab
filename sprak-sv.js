@@ -26,6 +26,12 @@ window.PYTHONLAB_SPRAK.sv = {
   "flik_scen": "3D-scen",
   "flik_ai": "AI-hjälp"
 },
+  steg: {
+    "kalla": "Källkod",
+    "tolk": "Tolkning",
+    "kor": "Exekvering",
+    "resultat": "Resultat"
+  },
   ord: {
   "tips": "Tips: ",
     "kapitel_rubrik": "Kapitel {nr} — {titel}",

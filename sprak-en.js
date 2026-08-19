@@ -31,6 +31,13 @@ window.PYTHONLAB_SPRAK.en = {
     flik_ai: "AI assistant"
   },
 
+  steg: {
+    kalla: "Source code",
+    tolk: "Parsing",
+    kor: "Execution",
+    resultat: "Result"
+  },
+
   ord: {
     tips: "Hint: ",
     kapitel_rubrik: "Chapter {nr} — {titel}",

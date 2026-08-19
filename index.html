@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.28";
+  window.PYTHONLABBET_VERSION = "1.29";
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pythonlab</title>
@@ -235,6 +235,15 @@
     color: #2a0a05; font-weight: 650;
   }
   #app-root button.stoppa:hover { background: #ff9686; }
+  #app-root.kor-lage .lektion:disabled,
+  #app-root.kor-lage .verktyg .knapp:disabled,
+  #app-root.kor-lage .strombrytare:has(input:disabled),
+  #app-root.kor-lage .omlank:disabled,
+  #app-root.kor-lage .ai-chip:disabled {
+    opacity: .38;
+    cursor: not-allowed;
+  }
+  #app-root.kor-lage .strombrytare:has(input:disabled) { pointer-events: none; }
   #app-root button.stoppa:disabled {
     background: transparent; border-color: var(--line);
     color: var(--chalk-dim); cursor: default;
@@ -608,10 +617,10 @@
     </div>
 
     <div class="spar" id="spar" aria-hidden="true">
-      <span class="steg" data-steg="0">Din kod</span><span class="pil">→</span>
-      <span class="steg" data-steg="1">Python läser rad för rad</span><span class="pil">→</span>
-      <span class="steg" data-steg="2">Datorn räknar</span><span class="pil">→</span>
-      <span class="steg" data-steg="3">Utskrift</span>
+      <span class="steg" data-steg="0" data-i18n="steg.kalla"></span><span class="pil">→</span>
+      <span class="steg" data-steg="1" data-i18n="steg.tolk"></span><span class="pil">→</span>
+      <span class="steg" data-steg="2" data-i18n="steg.kor"></span><span class="pil">→</span>
+      <span class="steg" data-steg="3" data-i18n="steg.resultat"></span>
     </div>
 
     <div class="nedre">
@@ -2889,9 +2898,41 @@ window.PYTHONLAB_START = function (SPRAK) {
      ======================================================= */
   function paus(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
+  /* Medan koden kör låses allt som ändrar tillstånd eller lägger sig
+     över skärmen. Kvar går att göra: stoppa, byta flik, svara på input()
+     och röra kameran. Ett halvbytt tillstånd mitt i en körning är annars
+     nästan omöjligt att förstå — både för användaren och för koden. */
+  var LASTA = ["ny-knapp", "aterstall-kapitel", "oppna-knapp", "spara-knapp",
+               "spara-som-knapp", "om-knapp", "felsakert-toggle", "ai-toggle",
+               "ai-installningar-knapp", "ai-rensa-samtal", "ai-skicka", "ai-fraga",
+               "start-knapp"];
+
+  function lasGranssnitt(las) {
+    LASTA.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.disabled = las;
+    });
+    Array.prototype.forEach.call(
+      document.querySelectorAll("#ai-snabb [data-uppdrag]"), function (b) {
+        b.disabled = las;
+      });
+    Array.prototype.forEach.call(
+      document.querySelectorAll("#lektionslista .lektion"), function (b) {
+        b.disabled = las;
+      });
+    var app = document.getElementById("app-root");
+    if (app) app.classList.toggle("kor-lage", las);
+    if (!las) {
+      // återta det som styrs av annan logik
+      if (skickaKnapp) skickaKnapp.disabled = arbetar;
+      uppdateraStoppKnapp();
+    }
+  }
+
   async function kor() {
     if (!pyodide) return;
     korKnapp.disabled = true;
+    lasGranssnitt(true);
     rensaKonsol();
     visaFlik("utskrift");
     markeraSteg(0); await paus(140);
@@ -2990,6 +3031,7 @@ _plt.show = _labb_visa
       korKnapp.disabled = false;
       korning.igang = false;
       korning.vakter = 0;
+      lasGranssnitt(false);
       window._labbStopp = false;
       avbrytAllVantan();
       stoppaKnapp.hidden = true;
