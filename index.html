@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.29";
+  window.PYTHONLABBET_VERSION = "1.33";
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pythonlab</title>
@@ -603,7 +603,7 @@
   <section class="arbetsyta">
     <div class="redigerare" id="redigerare">
       <div class="verktyg">
-        <span class="filnamn" id="filnamn">nytt_program.py</span>
+        <span class="filnamn" id="filnamn"></span>
         <button class="knapp" id="ny-knapp" data-i18n="ui.ny"></button>
         <button class="knapp" id="aterstall-kapitel" data-i18n="ui.aterstall"></button>
         <button class="knapp" id="oppna-knapp" data-i18n="ui.oppna"></button>
@@ -637,29 +637,29 @@
         <div class="lektionstext start" id="lektionstext"></div>
       </div>
       <div class="flikinnehall" id="panel-utskrift" hidden>
-        <div class="konsol" id="konsol"><span class="system">Python laddas ner till webbläsaren. Det tar några sekunder första gången.</span>
+        <div class="konsol" id="konsol"><span class="system" data-i18n="konsol.startar"></span>
 </div>
       </div>
       <div class="flikinnehall" id="panel-scen" hidden>
-        <div id="scenruta" class="scenruta"><p class="tomt">Ingen scen igång. Kör <code>scen.starta()</code> i ett program så dyker den upp här.</p></div>
+        <div id="scenruta" class="scenruta"><p class="tomt" data-i18n-html="scen.tom"></p></div>
       </div>
       <div class="flikinnehall" id="panel-ai" hidden>
         <div class="ai-chatt" id="ai-chatt" hidden>
           <div class="ai-snabb" id="ai-snabb">
-            <button class="ai-chip" data-uppdrag="kapitel">Sammanfatta kapitlet</button>
-            <button class="ai-chip" data-uppdrag="kod">Förklara koden</button>
-            <button class="ai-chip" data-uppdrag="markering">Förklara markeringen</button>
-            <button class="ai-chip" data-uppdrag="andra">Ändra koden</button>
-            <button class="ai-chip" data-uppdrag="nasta">Nästa steg</button>
-            <button class="ai-chip mild" id="ai-installningar-knapp" title="Anslutning">Anslutning</button>
-            <button class="ai-chip" id="ai-rensa-samtal">Rensa samtalet</button>
+            <button class="ai-chip" data-uppdrag="kapitel" data-i18n="chip.kapitel"></button>
+            <button class="ai-chip" data-uppdrag="kod" data-i18n="chip.kod"></button>
+            <button class="ai-chip" data-uppdrag="markering" data-i18n="chip.markering"></button>
+            <button class="ai-chip" data-uppdrag="andra" data-i18n="chip.andra"></button>
+            <button class="ai-chip" data-uppdrag="nasta" data-i18n="chip.nasta"></button>
+            <button class="ai-chip mild" id="ai-installningar-knapp" data-i18n="ui.anslutning"></button>
+            <button class="ai-chip" id="ai-rensa-samtal" data-i18n="ui.rensa_samtal"></button>
           </div>
           <div class="ai-svar" id="ai-svar"></div>
           <div class="ai-skriv">
             <span class="ai-kontext" id="ai-kontext"></span>
             <div class="ai-skrivrad">
               <textarea id="ai-fraga" rows="2" placeholder="Ställ en fråga om koden eller kapitlet …"></textarea>
-              <button class="knapp kor" id="ai-skicka">Skicka</button>
+              <button class="knapp kor" id="ai-skicka" data-i18n="ui.skicka"></button>
             </div>
           </div>
         </div>
@@ -688,10 +688,27 @@ window.PYTHONLAB_START = function (SPRAK) {
         return (o && o[del] !== undefined) ? o[del] : null;
       }, SPRAK);
     }
+    var saknade = [];
     Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) {
-      var text = slaUpp(el.getAttribute("data-i18n"));
-      if (text !== null) el.textContent = text;
+      var vag = el.getAttribute("data-i18n");
+      var text = slaUpp(vag);
+      if (text !== null) {
+        el.textContent = text;
+      } else if (!el.textContent.trim()) {
+        // Hellre nyckelns namn än en tom yta — då syns det att språkfilen
+        // är för gammal i stället för att knappen bara försvinner.
+        el.textContent = vag.split(".").pop();
+        saknade.push(vag);
+      }
     });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-html]"), function (el) {
+      var text = slaUpp(el.getAttribute("data-i18n-html"));
+      if (text !== null) el.innerHTML = text;
+    });
+    if (saknade.length && window.console) {
+      console.warn("Language file is missing " + saknade.length + " strings: "
+        + saknade.join(", ") + ". Reload the page with Ctrl+F5.");
+    }
     function fyllHtml(id, html) {
       var el = document.getElementById(id);
       if (el && html) el.innerHTML = html;
@@ -751,7 +768,7 @@ window.PYTHONLAB_START = function (SPRAK) {
   var forberedKod = null;
   var nollstallVakt = null;
   var filhandtag = null;
-  var filnamn = "nytt_program.py";
+  var filnamn = SPRAK.ui.nytt_filnamn || "nytt_program.py";
   var andrad = false;
   var aktivLektion = null;
 
@@ -2102,7 +2119,7 @@ window.PYTHONLAB_START = function (SPRAK) {
   function visaStartsida() {
     sparaBuffert();
     aktivLektion = null;
-    laddaBuffert("start", STARTKOD, "nytt_program.py");
+    laddaBuffert("start", STARTKOD, SPRAK.ui.nytt_filnamn);
     markeraVald(-2);
     lektionstext.innerHTML = STARTSIDA;
     lektionstext.className = "lektionstext start";
@@ -2129,7 +2146,7 @@ window.PYTHONLAB_START = function (SPRAK) {
   /* Lägger tillbaka originalkoden — kapitlets, eller startprogrammet. */
   function aterstallKapitel() {
     var original = aktivLektion !== null ? LEKTIONER[aktivLektion].kod : STARTKOD;
-    var namn = aktivLektion !== null ? LEKTIONER[aktivLektion].fil : "nytt_program.py";
+    var namn = aktivLektion !== null ? LEKTIONER[aktivLektion].fil : SPRAK.ui.nytt_filnamn;
     if (kodruta.value !== original &&
         !confirm(SPRAK.fraga.aterstall.replace("{plats}", kapitelnamn()))) return;
     delete buffertar[buffertnyckel()];
@@ -2316,7 +2333,7 @@ window.PYTHONLAB_START = function (SPRAK) {
   /* Sammanställer vad användaren har framför sig just nu. */
   function nulage() {
     var kod = kodruta.value;
-    if (kod.length > 4000) kod = kod.slice(0, 4000) + "\n# … (koden är avkortad)";
+    if (kod.length > 4000) kod = kod.slice(0, 4000) + "\n# " + SPRAK.ai_nulage.avkortad;
     var delar = [
       SPRAK.ai_nulage.rubrik,
       SPRAK.ai_nulage.oppet + kapitelnamn(),
@@ -2404,11 +2421,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     try {
       svar = await fetch(url, { method: "POST", headers: huvud, body: JSON.stringify(kropp) });
     } catch (e) {
-      throw new Error(
-        "Kunde inte nå " + url + ". Kör du en lokal modell? Ollama måste startas med " +
-        "OLLAMA_ORIGINS=\"*\" för att släppa in webbsidor. En tjänst på internet kan " +
-        "blockera anrop från webbläsare (CORS)."
-      );
+      throw new Error(SPRAK.chatt.nadde_inte.replace("{url}", url));
     }
     if (!svar.ok) {
       var text = await svar.text();
@@ -2732,16 +2745,11 @@ window.PYTHONLAB_START = function (SPRAK) {
   function forklaraFel(feltext) {
     var rad = radUrFel(feltext);
     var utdrag = kodutdrag(rad, 4);
-    var fraga = "Jag körde programmet och fick det här felet:\n\n" + feltext + "\n\n";
+    var fraga = SPRAK.uppdrag.fel_inledning + "\n\n" + feltext + "\n\n";
     if (utdrag) {
-      fraga += "Raden med >> är den felet pekar på:\n\n```\n" + utdrag + "\n```\n\n";
+      fraga += SPRAK.uppdrag.fel_rad + "\n\n```\n" + utdrag + "\n```\n\n";
     }
-    fraga +=
-      "Förklara: 1) vad feltypen betyder i allmänhet, 2) vad som konkret är fel " +
-      "i den här koden, och 3) en ledtråd om hur jag kan rätta det själv. " +
-      "Skriv inte den rättade koden. Om felet beror på en begränsning i " +
-      "Pythonlabbet — paket, filåtkomst, nätverk eller något som inte finns i " +
-      "webbläsarens Python — så säg det tydligt och beskriv vad som fungerar i stället.";
+    fraga += SPRAK.uppdrag.fel_fraga;
     skicka(fraga, SPRAK.chatt.felrubrik);
   }
 
@@ -2946,7 +2954,7 @@ window.PYTHONLAB_START = function (SPRAK) {
         await pyodide.loadPackagesFromImports(kodruta.value, {
           messageCallback: function (m) {
             skriv(m + "\n", "system");
-            var kort = String(m).replace(/^Loading /, "Hämtar ");
+            var kort = String(m).replace(/^Loading /, SPRAK.status.hamtar_paket);
             statusText.textContent = kort.length > 46 ? kort.slice(0, 46) + "…" : kort;
           }
         });
@@ -3076,12 +3084,12 @@ _plt.show = _labb_visa
         !confirm(SPRAK.fraga.toma.replace("{plats}", kapitelnamn()))) return;
     var b = aktivtBuffert();
     b.kod = STARTKOD;
-    b.filnamn = "nytt_program.py";
+    b.filnamn = SPRAK.ui.nytt_filnamn;
     b.filhandtag = null;
     b.andrad = false;
     b.markor = 0;
     b.rullning = 0;
-    laddaBuffert(buffertnyckel(), STARTKOD, "nytt_program.py");
+    laddaBuffert(buffertnyckel(), STARTKOD, SPRAK.ui.nytt_filnamn);
     rensaKonsol();
     byteAvSamtal();
     kodruta.focus();
@@ -3159,7 +3167,7 @@ _plt.show = _labb_visa
       var s = document.createElement("script");
       s.src = url;
       s.onload = klar;
-      s.onerror = function () { fel(new Error("kunde inte hämta " + url)); };
+      s.onerror = function () { fel(new Error(SPRAK.msg.hamtning_misslyckades + url)); };
       document.head.appendChild(s);
     });
   }
@@ -3168,7 +3176,7 @@ _plt.show = _labb_visa
     return Promise.race([
       loften,
       new Promise(function (_, fel) {
-        setTimeout(function () { fel(new Error("tidsgränsen gick ut: " + vad)); }, ms);
+        setTimeout(function () { fel(new Error(SPRAK.msg.tidsgrans + vad)); }, ms);
       })
     ]);
   }
@@ -3992,7 +4000,12 @@ _sys.modules['data'] = _data_modul
 
   function ladda(kod, klar, fel) {
     var s = document.createElement("script");
-    s.src = "sprak-" + kod + ".js";
+    // Versionen i adressen gör att webbläsaren hämtar om språkfilen när
+    // labbet uppdaterats, i stället för att visa en gammal från cachen.
+    // Frågetecken fungerar inte överallt på file://, så det hoppas över där.
+    var stampel = (location.protocol === "file:" || !window.PYTHONLABBET_VERSION)
+      ? "" : "?v=" + window.PYTHONLABBET_VERSION;
+    s.src = "sprak-" + kod + ".js" + stampel;
     s.onload = function () {
       var spr = window.PYTHONLAB_SPRAK && window.PYTHONLAB_SPRAK[kod];
       spr ? klar(spr) : fel();

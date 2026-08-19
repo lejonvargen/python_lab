@@ -13,6 +13,10 @@ window.PYTHONLAB_SPRAK.en = {
   beskrivning: "Pythonlab is an interactive Python course that runs entirely in your browser. 29 chapters, from your first print statement to 3D graphics, machine learning and transformers.",
 
   ui: {
+    anslutning: "Connection",
+    rensa_samtal: "Clear the chat",
+    skicka: "Send",
+    nytt_filnamn: "new_program.py",
     ny: "New",
     aterstall: "Reset",
     oppna: "Open file",
@@ -38,6 +42,19 @@ window.PYTHONLAB_SPRAK.en = {
     resultat: "Result"
   },
 
+  chip: {
+    kapitel: "Summarise the chapter",
+    kod: "Explain the code",
+    markering: "Explain the selection",
+    andra: "Change the code",
+    nasta: "Next step",
+  },
+  konsol: {
+    startar: "Python is being downloaded to your browser. The first time takes a few seconds.",
+  },
+  scen: {
+    tom: "No scene running. Call <code>scene.start()</code> in a program and it will appear here.",
+  },
   ord: {
     tips: "Hint: ",
     kapitel_rubrik: "Chapter {nr} — {titel}",
@@ -52,6 +69,7 @@ window.PYTHONLAB_SPRAK.en = {
   },
 
   status: {
+    hamtar_paket: "Fetching ",
     startar: "Starting Python …",
     hamtar: "Fetching Python from {kalla} …",
     kontroll: "Fetching packages …",
@@ -84,6 +102,8 @@ window.PYTHONLAB_SPRAK.en = {
   },
 
   msg: {
+    hamtning_misslyckades: "could not fetch ",
+    tidsgrans: "timed out: ",
     sparad_hamtade: "Saved as {namn} in your Downloads folder.",
     sparad_till: "Saved to {namn}.",
     oppnade: "Opened {namn} in {plats}.",
@@ -108,6 +128,7 @@ window.PYTHONLAB_SPRAK.en = {
   },
 
   chatt: {
+    nadde_inte: "Could not reach {url}. Are you running a local model? Ollama has to be started with OLLAMA_ORIGINS=\"*\" to let web pages in. A service on the internet may block calls from browsers (CORS).",
     ny_kapitel: "New chat for {plats}. Ask a question, or use the buttons above.",
     ny: "New chat. Ask a question about the code you have open.",
     ingen_markering_rubrik: "Nothing selected",
@@ -130,6 +151,9 @@ window.PYTHONLAB_SPRAK.en = {
   },
 
   uppdrag: {
+    fel_inledning: "I ran the program and got this error:",
+    fel_rad: "The line marked >> is the one the error points at:",
+    fel_fraga: "Explain: 1) what this kind of error means in general, 2) what is concretely wrong in this code, and 3) a hint about how I can fix it myself. Do not write the corrected code. If the error is due to a limitation of the lab — packages, file access, networking or something absent from the browser’s Python — say so plainly and describe what does work instead.",
     kapitel: "Summarise this chapter in your own words. Put the most important thing first and bring out what the actual point is. Base it on the chapter text.",
     kod: "Go through the code in the editor and explain what each part does and why it is needed.",
     markering: "Explain the selected part of the code. What does it do, why does it look like that, and what would happen if it were removed?",
@@ -158,6 +182,7 @@ window.PYTHONLAB_SPRAK.en = {
   },
 
   ai_nulage: {
+    avkortad: "… (the code is truncated)",
     rubrik: "THE USER'S CURRENT STATE",
     oppet: "Currently open: ",
     kapiteltext: "The chapter's explanatory text:",

@@ -9,6 +9,10 @@ window.PYTHONLAB_SPRAK.sv = {
   titel: "Pythonlabbet",
   beskrivning: "Pythonlabbet är en interaktiv kurs i Python som körs direkt i webbläsaren. 29 kapitel från din första utskrift till 3D-grafik, maskininlärning och transformers.",
   ui: {
+    "anslutning": "Anslutning",
+    "rensa_samtal": "Rensa samtalet",
+    "skicka": "Skicka",
+    "nytt_filnamn": "nytt_program.py",
   "ny": "Nytt",
   "aterstall": "Återställ",
   "oppna": "Öppna fil",
@@ -32,6 +36,19 @@ window.PYTHONLAB_SPRAK.sv = {
     "kor": "Exekvering",
     "resultat": "Resultat"
   },
+  chip: {
+    "kapitel": "Sammanfatta kapitlet",
+    "kod": "Förklara koden",
+    "markering": "Förklara markeringen",
+    "andra": "Ändra koden",
+    "nasta": "Nästa steg",
+  },
+  konsol: {
+    "startar": "Python laddas ner till webbläsaren. Det tar några sekunder första gången.",
+  },
+  scen: {
+    "tom": "Ingen scen igång. Kör <code>scene.start()</code> i ett program så dyker den upp här.",
+  },
   ord: {
   "tips": "Tips: ",
     "kapitel_rubrik": "Kapitel {nr} — {titel}",
@@ -45,6 +62,7 @@ window.PYTHONLAB_SPRAK.sv = {
   "stopp_inget": "Koden har inga loopar och väntar inte på något — ladda om sidan om den fastnar"
 },
   status: {
+    "hamtar_paket": "Hämtar ",
   "startar": "Startar Python …",
   "hamtar": "Hämtar Python från {kalla} …",
   "kontroll": "Hämtar paket …",
@@ -75,6 +93,8 @@ window.PYTHONLAB_SPRAK.sv = {
   "ladda_om": "Ladda om sidan och försök igen."
 },
   msg: {
+    "hamtning_misslyckades": "kunde inte hämta ",
+    "tidsgrans": "tidsgränsen gick ut: ",
   "sparad_hamtade": "Sparad som {namn} i mappen Hämtade filer.",
   "sparad_till": "Sparad till {namn}.",
   "oppnade": "Öppnade {namn} i {plats}.",
@@ -97,6 +117,7 @@ window.PYTHONLAB_SPRAK.sv = {
   "filnamn": "Vad ska filen heta?"
 },
   chatt: {
+    "nadde_inte": "Kunde inte nå {url}. Kör du en lokal modell? Ollama måste startas med OLLAMA_ORIGINS=\"*\" för att släppa in webbsidor. En tjänst på internet kan blockera anrop från webbläsare (CORS).",
   "ny_kapitel": "Ny chatt för {plats}. Ställ en fråga, eller använd knapparna ovanför.",
   "ny": "Ny chatt. Ställ en fråga om koden du har framme.",
   "ingen_markering_rubrik": "Ingen markering",
@@ -118,6 +139,9 @@ window.PYTHONLAB_SPRAK.sv = {
   "andrat": "Inställningarna ändrades — testa igen"
 },
   uppdrag: {
+    "fel_inledning": "Jag körde programmet och fick det här felet:",
+    "fel_rad": "Raden med >> är den felet pekar på:",
+    "fel_fraga": "Förklara: 1) vad feltypen betyder i allmänhet, 2) vad som konkret är fel i den här koden, och 3) en ledtråd om hur jag kan rätta det själv. Skriv inte den rättade koden. Om felet beror på en begränsning i labbet — paket, filåtkomst, nätverk eller något som inte finns i webbläsarens Python — så säg det tydligt och beskriv vad som fungerar i stället.",
   "kapitel": "Sammanfatta det här kapitlet med egna ord. Ta det viktigaste först och lyft fram vad som är själva poängen. Utgå från kapitlets text.",
   "kod": "Gå igenom koden i redigeraren och förklara vad varje del gör och varför den behövs.",
   "markering": "Förklara den markerade delen av koden. Vad gör den, varför ser den ut så, och vad skulle hända om den togs bort?",
@@ -143,6 +167,7 @@ window.PYTHONLAB_SPRAK.sv = {
   "not": "Varje kapitel har sin egen chatt. Användaren kan ha frågat om annat i andra kapitel — du minns bara den här chatten, men du får gärna hänvisa till vad tidigare kapitel handlade om."
 },
   ai_nulage: {
+    "avkortad": "… (koden är avkortad)",
   "rubrik": "ANVÄNDARENS NULÄGE",
   "oppet": "Öppet just nu: ",
   "kapiteltext": "Kapitlets förklaringstext:",
