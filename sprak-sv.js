@@ -9,6 +9,8 @@ window.PYTHONLAB_SPRAK.sv = {
   titel: "Pythonlabbet",
   beskrivning: "Pythonlabbet är en interaktiv kurs i Python som körs direkt i webbläsaren. 29 kapitel från din första utskrift till 3D-grafik, maskininlärning och transformers.",
   ui: {
+    "felsakert_info": "Loopvakt som gör att programmet kan stoppas och inte kan låsa sidan.",
+    "fragefalt": "Ställ en fråga om koden eller kapitlet …",
     "anslutning": "Anslutning",
     "rensa_samtal": "Rensa samtalet",
     "skicka": "Skicka",

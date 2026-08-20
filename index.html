@@ -1,24 +1,43 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html>
 <head>
 <meta charset="utf-8">
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.33";
+  window.PYTHONLABBET_VERSION = "1.35";
+
+  /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
+     om den ska erbjuda översättning, och hinner den se svensk markup
+     dyker förslaget upp även när det engelska paketet laddas. */
+  window.PYTHONLAB_VALT = (function () {
+    var p = (location.search.match(/[?&]lang=([a-z]{2})/i) || [])[1];
+    if (p) p = p.toLowerCase();
+    if (p !== "sv" && p !== "en") {
+      try {
+        var sparat = localStorage.getItem("pythonlab.sprak");
+        if (sparat === "sv" || sparat === "en") p = sparat;
+      } catch (e) { /* lagring kan vara avstängd */ }
+    }
+    if (p !== "sv" && p !== "en") {
+      p = (navigator.language || "en").slice(0, 2).toLowerCase() === "sv" ? "sv" : "en";
+    }
+    document.documentElement.lang = p;
+    return p;
+  })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pythonlab</title>
-<meta name="description" content="Pythonlabbet är en interaktiv kurs i Python som körs direkt i webbläsaren. 28 kapitel från din första utskrift till 3D-grafik, maskininlärning och transformers.">
-<meta name="author" content="Pythonlabbet">
+<meta name="description" content="An interactive Python course that runs in your browser.">
+<meta name="author" content="Gabriel Westman">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0e1c33">
-<meta name="application-name" content="Pythonlabbet">
-<meta name="apple-mobile-web-app-title" content="Pythonlabbet">
+<meta name="application-name" content="Pythonlab">
+<meta name="apple-mobile-web-app-title" content="Pythonlab">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Pythonlabbet">
-<meta property="og:description" content="Lär dig Python direkt i webbläsaren — 28 kapitel från print() till transformers.">
-<meta property="og:locale" content="sv_SE">
+<meta property="og:title" content="Pythonlab">
+<meta property="og:description" content="Learn Python in your browser — 29 chapters from print() to transformers.">
+<meta property="og:locale" content="en_US">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230e1c33'/%3E%3Cpath d='M14 20h10M14 32h10M14 44h10' stroke='%231b3255' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M30 18l10 14-10 14' fill='none' stroke='%23ffc94a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M44 46h8' stroke='%236ee7b7' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230e1c33'/%3E%3Cpath d='M14 20h10M14 32h10M14 44h10' stroke='%231b3255' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M30 18l10 14-10 14' fill='none' stroke='%23ffc94a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M44 46h8' stroke='%236ee7b7' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
 </head>
@@ -577,7 +596,7 @@
 
 <header class="topbar">
   <h1 class="wordmark"><span data-i18n="titel"></span><span class="version" data-version></span></h1>
-  <label class="strombrytare" title="Loopvakt som gör att programmet kan stoppas och inte kan låsa sidan.">
+  <label class="strombrytare" data-i18n-title="ui.felsakert_info">
     <input type="checkbox" id="felsakert-toggle">
     <span class="spar-toggle"><span class="knopp"></span></span>
     <span class="toggle-text" data-i18n="ui.felsakert"></span>
@@ -658,7 +677,7 @@
           <div class="ai-skriv">
             <span class="ai-kontext" id="ai-kontext"></span>
             <div class="ai-skrivrad">
-              <textarea id="ai-fraga" rows="2" placeholder="Ställ en fråga om koden eller kapitlet …"></textarea>
+              <textarea id="ai-fraga" rows="2" data-i18n-placeholder="ui.fragefalt"></textarea>
               <button class="knapp kor" id="ai-skicka" data-i18n="ui.skicka"></button>
             </div>
           </div>
@@ -701,6 +720,13 @@ window.PYTHONLAB_START = function (SPRAK) {
         saknade.push(vag);
       }
     });
+    [["data-i18n-title", "title"], ["data-i18n-placeholder", "placeholder"]]
+      .forEach(function (par) {
+        Array.prototype.forEach.call(document.querySelectorAll("[" + par[0] + "]"), function (el) {
+          var text = slaUpp(el.getAttribute(par[0]));
+          if (text !== null) el.setAttribute(par[1], text);
+        });
+      });
     Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-html]"), function (el) {
       var text = slaUpp(el.getAttribute("data-i18n-html"));
       if (text !== null) el.innerHTML = text;
@@ -3963,17 +3989,10 @@ _sys.modules['data'] = _data_modul
   var SPRAKEN = ["sv", "en"];
   var BAS = "sv";
 
+  /* Valet gjordes redan i dokumenthuvudet, innan sidan ritades. */
   function valt() {
-    var p = (location.search.match(/[?&]lang=([a-z]{2})/i) || [])[1];
-    if (p && SPRAKEN.indexOf(p.toLowerCase()) >= 0) return p.toLowerCase();
-    try {
-      var sparat = localStorage.getItem("pythonlab.sprak");
-      if (sparat && SPRAKEN.indexOf(sparat) >= 0) return sparat;
-    } catch (e) { /* lagring kan vara avstängd */ }
-    // Bara svensktalande får svenska. Alla andra får engelska, som är
-    // det närmaste ett gemensamt språk labbet har.
-    var webblasare = (navigator.language || "en").slice(0, 2).toLowerCase();
-    return webblasare === "sv" ? "sv" : "en";
+    var p = window.PYTHONLAB_VALT;
+    return SPRAKEN.indexOf(p) >= 0 ? p : BAS;
   }
 
   /* Fyller på med basspråkets texter där översättningen saknas.
@@ -4023,7 +4042,10 @@ _sys.modules['data'] = _data_modul
   }
 
   function starta(spr) {
-    document.documentElement.lang = spr.html_lang || spr.kod || BAS;
+    var kod = spr.html_lang || spr.kod || BAS;
+    document.documentElement.lang = kod;
+    var lokal = document.querySelector('meta[property="og:locale"]');
+    if (lokal) lokal.setAttribute("content", kod === "sv" ? "sv_SE" : "en_US");
     window.PYTHONLAB_START(spr);
   }
 

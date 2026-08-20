@@ -13,6 +13,8 @@ window.PYTHONLAB_SPRAK.en = {
   beskrivning: "Pythonlab is an interactive Python course that runs entirely in your browser. 29 chapters, from your first print statement to 3D graphics, machine learning and transformers.",
 
   ui: {
+    felsakert_info: "A loop guard that lets the program be stopped and keeps it from freezing the page.",
+    fragefalt: "Ask a question about the code or the chapter …",
     anslutning: "Connection",
     rensa_samtal: "Clear the chat",
     skicka: "Send",
