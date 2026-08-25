@@ -104,6 +104,7 @@ window.PYTHONLAB_SPRAK.en = {
   },
 
   msg: {
+    syntaxfel: "Syntax error on line {rad}, character {kolumn}: {text}",
     hamtning_misslyckades: "could not fetch ",
     tidsgrans: "timed out: ",
     sparad_hamtade: "Saved as {namn} in your Downloads folder.",

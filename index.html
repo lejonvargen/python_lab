@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.35";
+  window.PYTHONLABBET_VERSION = "1.37";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -272,6 +272,28 @@
     flex: 1 1 auto; width: 100%; resize: none; border: 0; outline: none;
     background: transparent; color: var(--chalk); font-family: var(--mono);
     font-size: 14.5px; line-height: 1.65; padding: 14px 16px; tab-size: 4;
+  }
+
+  /* ---- radnummer ----
+     Spalten måste ha exakt samma teckenstorlek, radhöjd och övre
+     marginal som textrutan, annars glider siffrorna isär från koden. */
+  #app-root .kodyta {
+    flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden;
+  }
+  #app-root .kodyta textarea { padding-left: 10px; }
+  #app-root .radnummer {
+    flex: 0 0 auto; overflow: hidden; user-select: none;
+    padding: 14px 8px 14px 14px; text-align: right;
+    font-family: var(--mono); font-size: 14.5px; line-height: 1.65;
+    color: var(--chalk-dim); opacity: .45;
+    border-right: 1px solid var(--line);
+    background: rgba(0, 0, 0, .13);
+  }
+  #app-root .radnummer b { display: block; font-weight: inherit; }
+  #app-root .radnummer b.fel {
+    color: var(--coral); opacity: 1; font-weight: 700;
+    background: rgba(255, 125, 107, .2);
+    margin: 0 -8px 0 -14px; padding: 0 8px 0 14px;
   }
   #app-root textarea::selection { background: rgba(255, 201, 74, 0.3); }
   #app-root .redigerare.slapp { outline: 2px dashed var(--amber); outline-offset: -6px; }
@@ -631,7 +653,10 @@
         <button class="knapp kor" id="kor-knapp" disabled data-i18n="ui.kor"></button>
         <button class="knapp stoppa" id="stoppa-knapp" hidden data-i18n="ui.stoppa"></button>
       </div>
-      <textarea id="kod" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+      <div class="kodyta">
+        <div class="radnummer" id="radnummer" aria-hidden="true"></div>
+        <textarea id="kod" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+      </div>
       <input type="file" id="filvaljare" accept=".py,.txt" hidden>
     </div>
 
@@ -793,6 +818,9 @@ window.PYTHONLAB_START = function (SPRAK) {
   var pyodide = null;
   var forberedKod = null;
   var nollstallVakt = null;
+  var syntaxkoll = null;
+  var korProgram = null;
+  var raknaVakter = null;
   var filhandtag = null;
   var filnamn = SPRAK.ui.nytt_filnamn || "nytt_program.py";
   var andrad = false;
@@ -1932,6 +1960,7 @@ window.PYTHONLAB_START = function (SPRAK) {
   function visaFel(text) {
     visaFlik("utskrift");
     skriv(text.trim() + "\n", "fel");
+    markeraFelrad(radUrFel(text));
     for (var i = 0; i < FELTIPS.length; i++) {
       if (FELTIPS[i].m.test(text)) {
         var tips = document.createElement("div");
@@ -1965,6 +1994,39 @@ window.PYTHONLAB_START = function (SPRAK) {
       filnamnEl.appendChild(prick);
     }
   }
+  /* ---- radnummer ---- */
+  var radspalt = document.getElementById("radnummer");
+  var felradNu = 0;
+
+  function ritaRadnummer() {
+    var antal = kodruta.value.split("\n").length;
+    var bitar = [];
+    for (var i = 1; i <= antal; i++) {
+      bitar.push(i === felradNu ? '<b class="fel">' + i + "</b>" : "<b>" + i + "</b>");
+    }
+    radspalt.innerHTML = bitar.join("");
+    radspalt.scrollTop = kodruta.scrollTop;
+  }
+
+  /* Markerar raden ett fel pekar på och rullar dit. */
+  function markeraFelrad(rad) {
+    felradNu = rad || 0;
+    ritaRadnummer();
+    if (!rad) return;
+    var radhojd = kodruta.scrollHeight / Math.max(1, kodruta.value.split("\n").length);
+    var mitt = (rad - 1) * radhojd - kodruta.clientHeight / 2 + radhojd;
+    kodruta.scrollTop = Math.max(0, mitt);
+    radspalt.scrollTop = kodruta.scrollTop;
+  }
+
+  kodruta.addEventListener("scroll", function () {
+    radspalt.scrollTop = kodruta.scrollTop;
+  });
+  kodruta.addEventListener("input", function () {
+    if (felradNu) felradNu = 0;
+    ritaRadnummer();
+  });
+
   function markeraAndrad() {
     if (!andrad) { andrad = true; visaFilnamn(); }
     if (buffertar[buffertnyckel()]) buffertar[buffertnyckel()].kod = kodruta.value;
@@ -2139,6 +2201,8 @@ window.PYTHONLAB_START = function (SPRAK) {
     var pos = Math.min(b.markor, kodruta.value.length);
     kodruta.setSelectionRange(pos, pos);
     sistaMarkering = { start: 0, slut: 0 };
+    felradNu = 0;
+    ritaRadnummer();
     return b;
   }
 
@@ -2750,10 +2814,43 @@ window.PYTHONLAB_START = function (SPRAK) {
 
 
   /* Felförklaring: tar med raden felet pekar på och koden runt omkring. */
+  /* Visar ett syntaxfel innan programmet ens startat. */
+  function visaSyntaxfel(fel) {
+    var rad = fel[0], kolumn = fel[1], text = fel[2];
+    skriv(SPRAK.msg.syntaxfel
+      .replace("{rad}", rad).replace("{kolumn}", kolumn).replace("{text}", text) + "\n", "fel");
+    var rader = kodruta.value.split("\n");
+    if (rad >= 1 && rad <= rader.length) {
+      skriv("  " + rad + " | " + rader[rad - 1] + "\n", "system");
+      skriv("  " + new Array(String(rad).length + 4).join(" ")
+            + new Array(Math.max(1, kolumn)).join(" ") + "^\n", "system");
+    }
+    markeraFelrad(rad);
+    visaFlik("utskrift");
+    if (ai.pa) {
+      var knapp = document.createElement("button");
+      knapp.className = "ai-knapp";
+      knapp.textContent = SPRAK.chatt.felknapp;
+      var beskrivning = SPRAK.msg.syntaxfel
+        .replace("{rad}", rad).replace("{kolumn}", kolumn).replace("{text}", text);
+      knapp.addEventListener("click", function () { forklaraFel(beskrivning); });
+      konsol.appendChild(knapp);
+      konsol.scrollTop = konsol.scrollHeight;
+    }
+  }
+
+  /* Plockar ut radnumret ur en traceback.
+
+     Ramar från användarens eget program heter <program>. Vi letar efter
+     dem först, så att interna rader ur Pyodide aldrig pekas ut som fel. */
   function radUrFel(feltext) {
-    var trafffar = feltext.match(/line (\d+)/g);
-    if (!trafffar || !trafffar.length) return null;
-    return parseInt(trafffar[trafffar.length - 1].replace("line ", ""), 10);
+    var egna = feltext.match(/File "<program>", line (\d+)/g);
+    if (egna && egna.length) {
+      return parseInt(egna[egna.length - 1].replace(/\D+/g, ""), 10);
+    }
+    var alla = feltext.match(/line (\d+)/g);
+    if (!alla || !alla.length) return null;
+    return parseInt(alla[alla.length - 1].replace("line ", ""), 10);
   }
 
   function kodutdrag(radnummer, marginal) {
@@ -3038,11 +3135,18 @@ _plt.show = _labb_visa
     var start = performance.now();
     try {
       var vakt = felsakertToggle.checked;
-      var attKora = kodruta.value;
-      if (forberedKod) {
-        try { attKora = forberedKod(attKora, vakt); }
-        catch (e) { attKora = kodruta.value; }
+      var kallkod = kodruta.value;
+
+      // Syntaxen kontrolleras mot användarens egen kod, före all
+      // omskrivning. Radnumret gäller då exakt det som står i rutan.
+      if (syntaxkoll) {
+        var syntaxfel = syntaxkoll(kallkod);
+        if (syntaxfel) {
+          visaSyntaxfel(syntaxfel.toJs ? syntaxfel.toJs() : syntaxfel);
+          return;
+        }
       }
+
       if (vakt && nollstallVakt) {
         try { nollstallVakt(45.0); } catch (e) { /* ingen vakt */ }
       }
@@ -3050,9 +3154,16 @@ _plt.show = _labb_visa
       // Vakten sitter i looparna. Väntan på input eller nätverk går att
       // avbryta ändå, så knappen visas under hela körningen.
       korning.igang = true;
-      korning.vakter = vakt ? (attKora.match(/_labb_kontroll/g) || []).length : 0;
+      korning.vakter = 0;
+      if (vakt && raknaVakter) {
+        try { korning.vakter = raknaVakter(kallkod, true); } catch (e) { /* strunt */ }
+      }
       uppdateraStoppKnapp();
-      await pyodide.runPythonAsync(attKora);
+      if (korProgram) {
+        await korProgram(kallkod, vakt);
+      } else {
+        await pyodide.runPythonAsync(kallkod);
+      }
       markeraSteg(3);
       if (!konsol.textContent.trim()) {
         skriv(SPRAK.msg.ingen_utskrift + "\n", "system");
@@ -3242,6 +3353,7 @@ _plt.show = _labb_visa
   (async function init() {
     kodruta.value = STARTKOD;
     visaFilnamn();
+    ritaRadnummer();
     ritaLektioner();
     visaFlik("utskrift");
 
@@ -3363,6 +3475,46 @@ def _labb_generator(fnod):
     return False
 
 
+def _labb_syntax(kallkod):
+    """Kontrollerar syntaxen mot ANVÄNDARENS kod, före all omskrivning.
+
+    Returnerar (rad, kolumn, meddelande) eller None. Radnumret gäller
+    alltså exakt det som står i redigeraren.
+    """
+    try:
+        ast.parse(kallkod)
+        return None
+    except SyntaxError as fel:
+        return (fel.lineno or 1, fel.offset or 1, fel.msg)
+
+
+async def _labb_kor(kallkod, vakt=True):
+    """Kör användarens kod.
+
+    Trädet kompileras direkt i stället för att skrivas ut som text igen.
+    Noderna bär med sig sina ursprungliga radnummer, så en traceback
+    pekar på samma rad som användaren ser i redigeraren.
+    """
+    trad = _labb_trad(kallkod, vakt)
+    if trad is None:
+        trad = ast.parse(kallkod)
+    kod = compile(trad, '<program>', 'exec',
+                  flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+    resultat = eval(kod, globals())
+    if resultat is not None:
+        await resultat
+
+
+def _labb_antal_vakter(kallkod, vakt=True):
+    """Hur många avbrottspunkter koden fick. Noll betyder att den
+    inte kan stoppas."""
+    trad = _labb_trad(kallkod, vakt)
+    if trad is None:
+        return 0
+    return sum(1 for n in ast.walk(trad)
+               if isinstance(n, ast.Name) and n.id == '_labb_kontroll')
+
+
 def _labb_forbered(kallkod, vakt=True):
     """Skriver om koden innan den körs.
 
@@ -3370,10 +3522,16 @@ def _labb_forbered(kallkod, vakt=True):
     görs asynkrona, och varje loop får en vakt som gör att programmet
     kan avbrytas. Vakten hoppas över i prestandaläge.
     """
+    trad = _labb_trad(kallkod, vakt)
+    return kallkod if trad is None else ast.unparse(trad)
+
+
+def _labb_trad(kallkod, vakt=True):
+    """Bygger om koden till ett träd. None betyder att den inte gick att tolka."""
     try:
         trad = ast.parse(kallkod)
     except SyntaxError:
-        return kallkod
+        return None
 
     if vakt:
         class Loopvakt(ast.NodeTransformer):
@@ -3473,10 +3631,9 @@ def _labb_forbered(kallkod, vakt=True):
             return nod
 
     try:
-        ny = ast.fix_missing_locations(Omvandlare().visit(trad))
-        return ast.unparse(ny)
+        return ast.fix_missing_locations(Omvandlare().visit(trad))
     except Exception:
-        return kallkod
+        return None
 
 
 import sys as _sys
@@ -3957,6 +4114,9 @@ _sys.modules['data'] = _data_modul
 
     forberedKod = pyodide.globals.get("_labb_forbered");
     nollstallVakt = pyodide.globals.get("_labb_nollstall");
+    syntaxkoll = pyodide.globals.get("_labb_syntax");
+    korProgram = pyodide.globals.get("_labb_kor");
+    raknaVakter = pyodide.globals.get("_labb_antal_vakter");
 
     statusEl.className = "status klar";
     statusText.textContent = SPRAK.status.redo;

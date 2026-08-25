@@ -95,6 +95,7 @@ window.PYTHONLAB_SPRAK.sv = {
   "ladda_om": "Ladda om sidan och försök igen."
 },
   msg: {
+    "syntaxfel": "Syntaxfel på rad {rad}, tecken {kolumn}: {text}",
     "hamtning_misslyckades": "kunde inte hämta ",
     "tidsgrans": "tidsgränsen gick ut: ",
   "sparad_hamtade": "Sparad som {namn} i mappen Hämtade filer.",
