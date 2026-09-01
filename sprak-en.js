@@ -1,4 +1,4 @@
-/* Pythonlab — English texts.
+/* Pytho — English texts.
    Loaded with a plain <script src>, which is the only method that works
    both from file:// and from a web server.
 
@@ -9,8 +9,8 @@ window.PYTHONLAB_SPRAK.en = {
   kod: "en",
   namn: "English",
   html_lang: "en",
-  titel: "Pythonlab",
-  beskrivning: "Pythonlab is an interactive Python course that runs entirely in your browser. 29 chapters, from your first print statement to 3D graphics, machine learning and transformers.",
+  titel: "Pytho",
+  beskrivning: "Pytho is an interactive Python course that runs entirely in your browser. 29 chapters, from your first print statement to 3D graphics, machine learning and transformers.",
 
   ui: {
     felsakert_info: "A loop guard that lets the program be stopped and keeps it from freezing the page.",
@@ -28,7 +28,7 @@ window.PYTHONLAB_SPRAK.en = {
     stoppa: "Stop",
     felsakert: "Failsafe mode",
     ai_stod: "AI assistant",
-    om: "About Pythonlab",
+    om: "About Pytho",
     start: "Start",
     kapitel_rubrik: "Chapters",
     flik_kapitel: "Chapter",
@@ -92,8 +92,8 @@ window.PYTHONLAB_SPRAK.en = {
     startar: "Starting Python",
     packar: "Unpacking and starting the interpreter — the page may freeze briefly",
     nastan: "Almost done",
-    forbereder: "Preparing the lab",
-    verktyg: "Connecting the lab's tools",
+    forbereder: "Preparing Pytho",
+    verktyg: "Connecting Pytho's tools",
     igen: "Trying again",
     byter: "Switching source",
     klart: "Done",
@@ -156,7 +156,7 @@ window.PYTHONLAB_SPRAK.en = {
   uppdrag: {
     fel_inledning: "I ran the program and got this error:",
     fel_rad: "The line marked >> is the one the error points at:",
-    fel_fraga: "Explain: 1) what this kind of error means in general, 2) what is concretely wrong in this code, and 3) a hint about how I can fix it myself. Do not write the corrected code. If the error is due to a limitation of the lab — packages, file access, networking or something absent from the browser’s Python — say so plainly and describe what does work instead.",
+    fel_fraga: "Explain: 1) what this kind of error means in general, 2) what is concretely wrong in this code, and 3) a hint about how I can fix it myself. Do not write the corrected code. If the error is due to a limitation of Pytho — packages, file access, networking or something absent from the browser’s Python — say so plainly and describe what does work instead.",
     kapitel: "Summarise this chapter in your own words. Put the most important thing first and bring out what the actual point is. Base it on the chapter text.",
     kod: "Go through the code in the editor and explain what each part does and why it is needed.",
     markering: "Explain the selected part of the code. What does it do, why does it look like that, and what would happen if it were removed?",
@@ -214,10 +214,10 @@ window.PYTHONLAB_SPRAK.en = {
 
   ai_roll: "You are a knowledgeable and patient Python tutor. The user may be a complete beginner, an experienced programmer who is new to Python, or somewhere in between — and may be any age.\n\nTone and level:\n- Write in English, plainly and to the point. No more than 150 words unless more is needed.\n- Address the user as a capable adult. No cheering, no pet names, no lavish praise. Write as you would to a colleague.\n- Read the level from the questions and the code, and adjust as you go. If the question is basic, explain from the ground up without being childish. If it is advanced, skip the obvious.\n- Use correct technical terms, but explain them the first time they appear.\n- If you need mathematics: write it as LaTeX between $ … $ inline or $$ … $$ on its own line. The chat renders exponents, subscripts, fractions, roots, Greek letters and common operators. Keep expressions simple — matrices and multi-line layouts are not rendered.\n- Comparisons and examples should make sense at any age. Avoid analogies drawn from school or from a child's daily life.\n\nHow you tutor:\n- Give explanations and hints, not finished solutions. Do not write the whole program.\n- When there is a bug: point out WHERE the fault is and EXPLAIN why, but let the user write the correction.\n- Short code examples of one or two lines are good for showing a principle.\n- If the user explicitly asks for a finished solution, briefly explain why you would rather guide them — then give enough structure that they can get there themselves.\n- Feel free to end with a question or a suggestion that leads onwards.\n\n{fakta}",
 
-  ai_fakta: "The user is working in Pythonlab, an interactive Python course in the browser.\nThe code runs in Pythonlab: Python via Pyodide inside a web browser.\nThis is what applies in this environment:\n- open() writes to an in-memory file system, not to the hard drive. Files disappear on reload.\n- Python cannot read files from the computer. Use data.open_file() or data.open_csv(), which show a file picker.\n- data.download(filename) downloads a file to the computer.\n- Networking only works through data.fetch_json/fetch_text/fetch_csv, and only against servers that allow CORS.\n- No pip install. Available packages: numpy, pandas, matplotlib, scikit-learn, xgboost, nltk, sqlite3 and the standard library.\n- nltk.download() does NOT work (no network from Python). The Snowball stemmer works without downloads.\n- pygame, tkinter, requests and GPU/CUDA do not work.\n- 3D is done with the scene module (scene.cube, scene.bar, scene.panel, scene.chart_panel and others).\n- input() works and asks in the output pane.\n- An infinite loop freezes the page; you have to reload.\nNever suggest anything from the list of things that do not work.",
+  ai_fakta: "The user is working in Pytho, an interactive Python course in the browser.\nThe code runs in Pytho: Python via Pyodide inside a web browser.\nThis is what applies in this environment:\n- open() writes to an in-memory file system, not to the hard drive. Files disappear on reload.\n- Python cannot read files from the computer. Use data.open_file() or data.open_csv(), which show a file picker.\n- data.download(filename) downloads a file to the computer.\n- Networking only works through data.fetch_json/fetch_text/fetch_csv, and only against servers that allow CORS.\n- No pip install. Available packages: numpy, pandas, matplotlib, scikit-learn, xgboost, nltk, sqlite3 and the standard library.\n- nltk.download() does NOT work (no network from Python). The Snowball stemmer works without downloads.\n- pygame, tkinter, requests and GPU/CUDA do not work.\n- 3D is done with the scene module (scene.cube, scene.bar, scene.panel, scene.chart_panel and others).\n- input() works and asks in the output pane.\n- An infinite loop freezes the page; you have to reload.\nNever suggest anything from the list of things that do not work.",
 
   startkod: [
-    "# Welcome to Pythonlab!",
+    "# Welcome to Pytho!",
     "# Press Run (or Ctrl + Enter) and see what happens.",
     "",
     "print(\"Hello world!\")",
@@ -227,7 +227,7 @@ window.PYTHONLAB_SPRAK.en = {
 
 /* Del 2 av den engelska språkfilen: startsida, dialoger, kapitel 1-8. */
 window.PYTHONLAB_SPRAK.en.start = `
-          <p class="valkomst">Welcome to Pythonlab</p>
+          <p class="valkomst">Welcome to Pytho</p>
           <p class="ingress">A real Python interpreter running inside your browser. No installation, no account — the code runs on your own computer. 29 chapters take you from your first print statement to how a language model works on the inside.</p>
 
           <div class="snabbstart">
@@ -295,14 +295,14 @@ window.PYTHONLAB_SPRAK.en.start = `
             </div>
           </div>
 
-          <h3>When you outgrow the lab</h3>
+          <h3>When you outgrow Pytho</h3>
           <p>Almost everything here works unchanged in a normal Python on your computer. Download it from python.org and write in Thonny or VS Code — then you get real files, a stop button that works, and every library there is. It is a ten-minute install, and chapter 12 tells you what does not come along.</p>
 `;
 
 window.PYTHONLAB_SPRAK.en.om = `
-    <h2 class="dialog-rubrik" id="om-rubrik">About Pythonlab</h2>
+    <h2 class="dialog-rubrik" id="om-rubrik">About Pytho</h2>
     <p class="dialog-ingress" data-version></p>
-    <p class="om-text">Pythonlab is developed by Gabriel Westman.</p>
+    <p class="om-text">Pytho is developed by Gabriel Westman.</p>
     <p class="om-text">If you are interested in using the application for education or teaching — get in touch via
       <a href="https://www.linkedin.com/in/gabriel-westman-08a708206/"
          target="_blank" rel="noopener">LinkedIn</a>.</p>
@@ -446,7 +446,7 @@ window.PYTHONLAB_SPRAK.en.kapitel = [
     forklaring: `
       <h3>input pauses the program</h3>
       <p><code>input()</code> stops the program, shows the text you gave it, and waits until the user answers. The answer becomes the function's <em>return value</em> — what comes back and what you catch in a variable.</p>
-      <p>In Pythonlab the question appears as a small field in the output pane. In a normal Python on your computer it is written in the terminal instead, but the code is identical.</p>
+      <p>In Pytho the question appears as a small field in the output pane. In a normal Python on your computer it is written in the terminal instead, but the code is identical.</p>
       <h3>Type conversion</h3>
       <p>Since the answer is always a <code>str</code>, you have to convert it before you can calculate:</p>
       <ul>
@@ -772,8 +772,8 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       "connection.close()",
       "print()",
       "",
-      "# ===== 5. Out of and into the lab =====",
-      "print(\"Files in the lab's file system:\")",
+      "# ===== 5. Out of and into Pytho =====",
+      "print(\"Files in Pytho's file system:\")",
       "data.list_files()",
       "print()",
       "",
@@ -819,15 +819,15 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <p><strong>Your actual hard drive</strong> is never reached by Python. A web page is not allowed to read or write in your file system at will — the same protection as CORS, and it exists so that a page you visit cannot rummage through your documents.</p>
       <p>Two bridges are therefore needed between the worlds, and neither of them is Python writing to disk:</p>
       <ul>
-        <li><code>data.download("animals.csv")</code> reads the file out of the lab and hands the contents to the browser, which performs an ordinary download. The same as clicking a download link.</li>
-        <li><code>data.open_file()</code> opens a file picker. The file <em>you</em> point at is copied into the lab's file system and can then be read with ordinary <code>open()</code>. Your active choice is what grants permission — the program cannot choose for you.</li>
+        <li><code>data.download("animals.csv")</code> reads the file out of Pytho and hands the contents to the browser, which performs an ordinary download. The same as clicking a download link.</li>
+        <li><code>data.open_file()</code> opens a file picker. The file <em>you</em> point at is copied into Pytho's file system and can then be read with ordinary <code>open()</code>. Your active choice is what grants permission — the program cannot choose for you.</li>
       </ul>
-      <p>There are shortcuts: <code>data.open_csv()</code> gives you a list of dictionaries directly, and <code>data.open_json()</code> gives back what was saved. <code>data.list_files()</code> shows what is in the lab right now.</p>
+      <p>There are shortcuts: <code>data.open_csv()</code> gives you a list of dictionaries directly, and <code>data.open_json()</code> gives back what was saved. <code>data.list_files()</code> shows what is in Pytho right now.</p>
       <p>It also means you can take in <strong>any CSV at all</strong> — an export from Excel, downloaded statistics, a file from school — and analyse it with the code in this chapter.</p>
       <h3>On a real computer</h3>
       <p>There is only one file system there. <code>open()</code> writes straight to the hard drive, files stay forever, and the database survives between runs. None of the <code>data</code> functions are needed — they exist precisely to compensate for the browser's restrictions. All the other code in this chapter works unchanged.</p>
       <div class="fallgrop"><strong>Worth knowing:</strong> because files live on between runs, old contents can linger and confuse you. Run something with <code>"a"</code> twice and the file grows. <code>data.list_files()</code> shows what is actually there, and reloading the page starts from empty.</div>
-      <div class="uppgift"><strong>Exercise:</strong> build a diary in sqlite3. One function adds a date and a piece of text, another fetches every entry, and a third searches for a word with <code>WHERE text LIKE ?</code> and the pattern <code>"%word%"</code>. Then export the whole diary to CSV and download it — and next time you open the lab, read it back with <code>data.open_csv()</code> and refill the database. Then you have a diary that actually survives.</div>`
+      <div class="uppgift"><strong>Exercise:</strong> build a diary in sqlite3. One function adds a date and a piece of text, another fetches every entry, and a third searches for a word with <code>WHERE text LIKE ?</code> and the pattern <code>"%word%"</code>. Then export the whole diary to CSV and download it — and next time you open Pytho, read it back with <code>data.open_csv()</code> and refill the database. Then you have a diary that actually survives.</div>`
   },
   {
     del: "Building structure", titel: "Functions", fil: "10_functions.py",
@@ -962,8 +962,8 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
         <li><code>math</code> — <code>sqrt</code>, <code>isqrt</code>, <code>floor</code>, <code>ceil</code>, <code>pi</code>, <code>gcd</code>.</li>
         <li><code>time</code> — <code>time()</code> gives seconds since 1970, handy for measuring how long your code takes.</li>
       </ul>
-      <h3>What works here in the lab</h3>
-      <p>Pythonlab runs Python inside the browser. The standard modules are there, but anything that touches the outside world is not: you cannot open files on the hard drive from Python code, cannot browse the web, and cannot use graphics libraries such as <code>tkinter</code> or <code>pygame</code>. <code>time.sleep()</code> works but freezes the page while it runs — keep it short.</p>
+      <h3>What works here in Pytho</h3>
+      <p>Pytho runs Python inside the browser. The standard modules are there, but anything that touches the outside world is not: you cannot open files on the hard drive from Python code, cannot browse the web, and cannot use graphics libraries such as <code>tkinter</code> or <code>pygame</code>. <code>time.sleep()</code> works but freezes the page while it runs — keep it short.</p>
       <p>If you want to go there later you need Python installed on your computer. Then the whole world opens up: games, graphics, files, the internet.</p>
       <div class="uppgift"><strong>Exercise:</strong> build rock–paper–scissors against the computer. Use <code>random.choice</code>, keep the score in variables, and play best of five.</div>`
   }
@@ -1327,7 +1327,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
     ].join("\n"),
     forklaring: `
       <h3>Python driving JavaScript</h3>
-      <p>Pythonlab runs Python inside a web page, and on that same page sits <strong>three.js</strong> — a JavaScript library for 3D graphics. The <code>scene</code> module is a bridge between the two: you write Python, and the 3D engine draws.</p>
+      <p>Pytho runs Python inside a web page, and on that same page sits <strong>three.js</strong> — a JavaScript library for 3D graphics. The <code>scene</code> module is a bridge between the two: you write Python, and the 3D engine draws.</p>
       <p>This is not a toy version. It is the same three.js used on real websites, and the same Python that ran the prime sieve. Two languages talking to each other.</p>
       <h3>The coordinate system</h3>
       <p>Three axes: <code>x</code> goes right, <code>y</code> goes up, <code>z</code> comes towards you. The point <code>(0, 0, 0)</code> is the middle. The camera sits at <code>(0, 3, 9)</code>, slightly raised and a little back, looking at the centre.</p>
@@ -2044,7 +2044,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <p>That is why it is called <em>boosting</em>: many weak guessers lifting each other. <code>learning_rate</code> controls how large a correction each tree may make — a low value means more cautious but more stable learning, and requires more trees.</p>
       <h3>About the GPU</h3>
       <p><code>tree_method="hist"</code> computes on the processor. On a real computer with an Nvidia card you switch to <code>device="cuda"</code> and get tenfold faster training, because a graphics card can do thousands of calculations at once.</p>
-      <p>That does <strong>not</strong> work here. Pythonlab runs Python compiled to WebAssembly, which for security reasons has no route to the graphics card's compute engine. The browser lets graphics through (that is how three.js draws) but not general computation. On 600 animals you will not notice — on 60 million rows it makes all the difference.</p>
+      <p>That does <strong>not</strong> work here. Pytho runs Python compiled to WebAssembly, which for security reasons has no route to the graphics card's compute engine. The browser lets graphics through (that is how three.js draws) but not general computation. On 600 animals you will not notice — on 60 million rows it makes all the difference.</p>
       <div class="fallgrop"><strong>Worth knowing:</strong> the data here is invented and therefore a little too easy. Real data is messier, has gaps and contains traps. A model scoring 99 % on practice data means very little.</div>
       <div class="uppgift"><strong>Exercise:</strong> change <code>dog_weight</code> to <code>rng.normal(8, 7, NUMBER_OF_DOGS)</code> so the dogs weigh almost as much as the cats. Look at the histogram first: the colours now overlap almost completely. Then run the training — how far does the accuracy fall, and which feature takes over as the most important? Also try removing <code>dog_sounds</code> and <code>cat_sounds</code> entirely.</div>`
   },
@@ -2313,7 +2313,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
     forklaring: `
       <h3>Real data instead of invented data</h3>
       <p>In chapter 22 we invented the dogs. Here the readings are fetched from SMHI's open API, collected from several hundred real weather stations within the last hour. Run the program again in an hour and you get new figures.</p>
-      <p>The <code>data</code> module exists only in Pythonlab. It has three functions: <code>fetch_json(url)</code>, <code>fetch_text(url)</code> and <code>fetch_csv(url)</code>. On a real computer you would use the <code>requests</code> library instead, but the principle is the same.</p>
+      <p>The <code>data</code> module exists only in Pytho. It has three functions: <code>fetch_json(url)</code>, <code>fetch_text(url)</code> and <code>fetch_csv(url)</code>. On a real computer you would use the <code>requests</code> library instead, but the principle is the same.</p>
       <h3>JSON</h3>
       <p>APIs almost always answer with <strong>JSON</strong> — a text format that looks exactly like Python's dictionaries and lists, and becomes precisely that when unpacked. SMHI's answer is a dictionary with the key <code>"station"</code>, which contains a list with one dictionary per station, which in turn has a list of readings. Digging through such layers is a large part of the work with real data.</p>
       <h3>Real data is broken</h3>
