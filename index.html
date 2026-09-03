@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.38";
+  window.PYTHONLABBET_VERSION = "1.54";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -281,6 +281,85 @@
     flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden;
   }
   #app-root .kodyta textarea { padding-left: 10px; }
+  /* ---- dev-läge: ett vyfilter, inget annat ----
+     Kapitlen finns kvar i minnet och kommer tillbaka orörda när man
+     växlar tillbaka. Här döljs bara det som hör kursen till. */
+  #app-root.dev-lage #lektionslista,
+  #app-root.dev-lage #kapitel-rubrik,
+  #app-root.dev-lage #start-knapp,
+  #app-root.dev-lage #flik-lektion,
+  #app-root.dev-lage #spar { display: none; }
+
+  /* Stegraden är rutnätets mittersta rad. Döljs den finns bara två
+     objekt kvar, och den nedre panelen skulle ärva "auto" — alltså växa
+     med sitt innehåll och klämma ihop kodrutan. Därför tas raden bort
+     ur mallen samtidigt. */
+  #app-root.dev-lage .arbetsyta {
+    grid-template-rows: minmax(0, 1fr) minmax(0, 0.95fr);
+  }
+  #app-root.dev-lage #fillista { margin-top: 4px; }
+  /* Nytt är borttaget: Återställ lägger tillbaka originalet i ett
+     kapitel, Rensa fil tömmer en fil utan original.
+
+     Öppna fil pekar inåt — den läser in något utifrån i arbetsytan.
+     Det behovet finns i utvecklarläget, inte mitt i en kurs där allt
+     redan sparas automatiskt. Spara pekar utåt och behövs i båda. */
+  #app-root:not(.dev-lage) #oppna-knapp { display: none; }
+
+  #app-root .replrad {
+    display: flex; align-items: center; gap: 8px;
+    border-top: 1px solid var(--line); padding: 8px 16px;
+    background: rgba(0, 0, 0, .13);
+  }
+  #app-root .replrad[hidden] { display: none; }
+  #app-root .replprompt {
+    font-family: var(--mono); font-size: 13.5px; color: var(--mint);
+    user-select: none;
+  }
+  #app-root #repl {
+    flex: 1 1 auto; background: transparent; border: 0; outline: none;
+    color: var(--chalk); font-family: var(--mono); font-size: 13.5px;
+    padding: 2px 0;
+  }
+  #app-root #repl::placeholder { color: var(--chalk-dim); opacity: .6; }
+  #app-root .minifil {
+    width: 100%; margin-top: 6px; font-size: 12px; padding: 5px 10px;
+    justify-content: center;
+  }
+  #app-root .filrad {
+    display: flex; align-items: center; gap: 6px; width: 100%;
+    background: none; border: 0; cursor: pointer; text-align: left;
+    color: var(--chalk-dim); font-family: var(--mono); font-size: 12.5px;
+    padding: 5px 8px; border-radius: 6px;
+  }
+  #app-root .filrad:hover { background: var(--panel-2); color: var(--chalk); }
+  #app-root .filrad.vald { background: var(--panel-2); color: var(--amber); }
+  #app-root .filrad .bort {
+    margin-left: auto; opacity: 0; border: 0; background: none;
+    color: var(--chalk-dim); cursor: pointer; font-size: 14px; padding: 0 3px;
+  }
+  #app-root .filrad:hover .bort { opacity: .7; }
+  #app-root .filrad .bort:hover { color: var(--coral); opacity: 1; }
+  #app-root .kapitelfiler { margin-top: 4px; }
+  #app-root .kapitelfiler > summary {
+    cursor: pointer; list-style: none;
+    color: var(--chalk-dim); font-family: var(--mono); font-size: 11.5px;
+    padding: 5px 8px; border-radius: 6px; opacity: .8;
+  }
+  #app-root .kapitelfiler > summary::-webkit-details-marker { display: none; }
+  #app-root .kapitelfiler > summary::before { content: "▸ "; }
+  #app-root .kapitelfiler[open] > summary::before { content: "▾ "; }
+  #app-root .kapitelfiler > summary:hover { color: var(--amber); opacity: 1; }
+  #app-root .visa-alla {
+    width: 100%; background: none; border: 0; cursor: pointer;
+    color: var(--chalk-dim); font-family: var(--mono); font-size: 11.5px;
+    padding: 6px 8px; text-align: left; opacity: .75;
+  }
+  #app-root .visa-alla:hover { color: var(--amber); opacity: 1; }
+  #app-root .tomlista {
+    font-size: 11.5px; color: var(--chalk-dim); opacity: .7;
+    padding: 4px 8px; line-height: 1.5;
+  }
   #app-root .radnummer {
     flex: 0 0 auto; overflow: hidden; user-select: none;
     padding: 14px 8px 14px 14px; text-align: right;
@@ -321,9 +400,16 @@
     color: var(--chalk-dim); padding: 6px 10px; cursor: pointer;
   }
   #app-root button.flik.vald { color: var(--amber); border-bottom-color: var(--amber); }
-  #app-root .flikinnehall { flex: 1 1 auto; overflow-y: auto; padding: 8px 16px 18px; min-height: 0; }
+  #app-root .flikinnehall {
+    flex: 1 1 auto; overflow-y: auto; padding: 8px 16px 18px;
+    min-height: 0; height: 0;      /* höjden kommer från raden, inte innehållet */
+  }
   #app-root .flikinnehall[hidden] { display: none; }
 
+  #app-root #panel-utskrift { display: flex; flex-direction: column; }
+  /* Två id-selektorer väger tyngre än .flikinnehall[hidden], så den
+     dolda panelen måste sägas ifrån på samma nivå. */
+  #app-root #panel-utskrift[hidden] { display: none; }
   #app-root .konsol { font-family: var(--mono); font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
   #app-root .konsol .ut { color: var(--chalk); }
   #app-root .konsol .fel { color: var(--coral); }
@@ -341,7 +427,7 @@
     margin: 10px 0; border: 1px solid var(--line); border-radius: 8px;
   }
   #app-root .scenruta {
-    width: 100%; height: 100%; min-height: 220px;
+    width: 100%; height: 100%; min-height: 0;
     display: flex; align-items: center; justify-content: center;
     border-radius: 8px; overflow: hidden; position: relative;
   }
@@ -608,7 +694,7 @@
     #app-root .layout { grid-template-columns: 1fr; }
     #app-root .rail { border-right: 0; border-bottom: 1px solid var(--line); max-height: 220px; }
     #app-root textarea { min-height: 280px; }
-    #app-root .flikinnehall { min-height: 220px; }
+    #app-root .flikinnehall { min-height: 220px; height: auto; }
   }
   @media (prefers-reduced-motion: reduce) {
     #app-root .dot { animation: none; }
@@ -618,6 +704,11 @@
 
 <header class="topbar">
   <h1 class="wordmark"><span data-i18n="titel"></span><span class="version" data-version></span></h1>
+  <label class="strombrytare" data-i18n-title="ui.dev_info">
+    <input type="checkbox" id="dev-toggle">
+    <span class="spar-toggle"><span class="knopp"></span></span>
+    <span class="toggle-text" data-i18n="ui.dev"></span>
+  </label>
   <label class="strombrytare" data-i18n-title="ui.felsakert_info">
     <input type="checkbox" id="felsakert-toggle">
     <span class="spar-toggle"><span class="knopp"></span></span>
@@ -637,15 +728,18 @@
     <button class="lektion startknapp vald" id="start-knapp">
       <span class="nr">•</span><span data-i18n="ui.start"></span>
     </button>
-    <p class="rubrik" style="margin-top:14px" data-i18n="ui.kapitel_rubrik"></p>
+    <p class="rubrik" id="kapitel-rubrik" style="margin-top:14px" data-i18n="ui.kapitel_rubrik"></p>
     <div id="lektionslista"></div>
+
+    <p class="rubrik" style="margin-top:18px" data-i18n="ui.filer_rubrik"></p>
+    <div id="fillista"></div>
+    <button class="knapp minifil" id="ny-fil-knapp" data-i18n="ui.ny_fil"></button>
   </aside>
 
   <section class="arbetsyta">
     <div class="redigerare" id="redigerare">
       <div class="verktyg">
         <span class="filnamn" id="filnamn"></span>
-        <button class="knapp" id="ny-knapp" data-i18n="ui.ny"></button>
         <button class="knapp" id="aterstall-kapitel" data-i18n="ui.aterstall"></button>
         <button class="knapp" id="oppna-knapp" data-i18n="ui.oppna"></button>
         <button class="knapp" id="spara-knapp" data-i18n="ui.spara"></button>
@@ -683,6 +777,11 @@
       <div class="flikinnehall" id="panel-utskrift" hidden>
         <div class="konsol" id="konsol"><span class="system" data-i18n="konsol.startar"></span>
 </div>
+        <div class="replrad" id="replrad" hidden>
+          <span class="replprompt">&gt;&gt;&gt;</span>
+          <input type="text" id="repl" spellcheck="false" autocomplete="off"
+                 autocapitalize="off" autocorrect="off" data-i18n-placeholder="ui.repl">
+        </div>
       </div>
       <div class="flikinnehall" id="panel-scen" hidden>
         <div id="scenruta" class="scenruta"><p class="tomt" data-i18n-html="scen.tom"></p></div>
@@ -821,10 +920,11 @@ window.PYTHONLAB_START = function (SPRAK) {
   var syntaxkoll = null;
   var korProgram = null;
   var raknaVakter = null;
+  var skrivArbetsfiler = null;
+  var replKor = null;
   var filhandtag = null;
   var filnamn = SPRAK.ui.nytt_filnamn || "nytt_program.py";
   var andrad = false;
-  var aktivLektion = null;
 
   /* =======================================================
      KAPITEL
@@ -1994,6 +2094,115 @@ window.PYTHONLAB_START = function (SPRAK) {
       filnamnEl.appendChild(prick);
     }
   }
+  /* ================= fillistan =================
+     Visar en fil om den är ändrad, egenskapad, eller den du står i.
+     Ett orört kapitel du bara tittat på skräpar alltså inte ner, men
+     den aktiva filen saknas aldrig i listan. */
+  var fillistan = document.getElementById("fillista");
+  var visaAllaFiler = false;
+  var kapitelfilerOppna = false;
+
+  function synligaFiler() {
+    return Object.keys(arbetsyta).filter(function (n) {
+      var f = arbetsyta[n];
+      return visaAllaFiler || f.egen || f.andrad || n === aktivFil;
+    }).sort();
+  }
+
+  function ritaFiler() {
+    fillistan.textContent = "";
+    var namnen = synligaFiler();
+    var har = nuvarandeVarld();
+    var egna = namnen.filter(function (n) { return varldFor(arbetsyta[n]) === har; });
+    var andra = namnen.filter(function (n) { return varldFor(arbetsyta[n]) !== har; });
+
+    if (!egna.length && !andra.length) {
+      var tom = document.createElement("p");
+      tom.className = "tomlista";
+      tom.textContent = SPRAK.ui.inga_filer;
+      fillistan.appendChild(tom);
+    }
+    egna.forEach(function (namn) { fillistan.appendChild(filrad(namn)); });
+
+    // Kapitelfilerna ligger hopfällda i utvecklarläget — de hör till
+    // kursen och ska inte skräpa, men de finns kvar och går att öppna.
+    if (andra.length) {
+      var yta = document.createElement("details");
+      yta.className = "kapitelfiler";
+      yta.open = kapitelfilerOppna;
+      yta.addEventListener("toggle", function () { kapitelfilerOppna = yta.open; });
+      var rubrik = document.createElement("summary");
+      rubrik.textContent = (devlage ? SPRAK.ui.kapitelfiler : SPRAK.ui.devfiler)
+        .replace("{antal}", andra.length);
+      yta.appendChild(rubrik);
+      andra.forEach(function (namn) { yta.appendChild(filrad(namn)); });
+      fillistan.appendChild(yta);
+    }
+
+    var totalt = Object.keys(arbetsyta).length;
+    if (totalt > namnen.length || visaAllaFiler) {
+      var mer = document.createElement("button");
+      mer.className = "visa-alla";
+      mer.textContent = visaAllaFiler
+        ? SPRAK.ui.visa_farre
+        : SPRAK.ui.visa_alla.replace("{antal}", totalt);
+      mer.addEventListener("click", function () {
+        visaAllaFiler = !visaAllaFiler;
+        ritaFiler();
+      });
+      fillistan.appendChild(mer);
+    }
+  }
+
+  function filrad(namn) {
+    var f = arbetsyta[namn];
+    var rad = document.createElement("button");
+    rad.className = "filrad" + (namn === aktivFil ? " vald" : "");
+    var etikett = document.createElement("span");
+    etikett.textContent = namn + (f.andrad ? " •" : "");
+    rad.appendChild(etikett);
+    if (!horTillKursen(f)) {
+      var bort = document.createElement("button");
+      bort.className = "bort";
+      bort.textContent = "×";
+      bort.title = SPRAK.ui.ta_bort;
+      bort.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (!confirm(SPRAK.fraga.radera_fil.replace("{namn}", namn))) return;
+        delete arbetsyta[namn];
+        if (aktivFil === namn) visaStartsida();
+        else ritaFiler();
+        sparaSnart();
+      });
+      rad.appendChild(bort);
+    }
+    rad.addEventListener("click", function () { oppna(namn); });
+    return rad;
+  }
+
+  function nyttFilnamn(forslag) {
+    var namn = prompt(SPRAK.fraga.nytt_filnamn, forslag);
+    if (!namn) return null;
+    namn = namn.trim();
+    if (!/\.py$/.test(namn)) namn += ".py";
+    if (!gangbartNamn(namn)) { alert(SPRAK.fraga.ogiltigt_namn); return null; }
+    return namn;
+  }
+
+  function nyFil() {
+    var forslag = "verktyg.py";
+    var n = 2;
+    while (arbetsyta[forslag]) { forslag = "verktyg" + n + ".py"; n++; }
+    var namn = nyttFilnamn(forslag);
+    if (!namn) return;
+    if (arbetsyta[namn]) { oppna(namn); return; }
+    var modul = namn.replace(/\.py$/, "");
+    sakerstallFil(namn, SPRAK.ui.filmall.replace(/\{namn\}/g, namn)
+                                        .replace(/\{modul\}/g, modul), null, true);
+    oppna(namn);
+    sparaSnart();
+  }
+
   /* ---- radnummer ---- */
   var radspalt = document.getElementById("radnummer");
   var felradNu = 0;
@@ -2029,9 +2238,14 @@ window.PYTHONLAB_START = function (SPRAK) {
 
   function markeraAndrad() {
     if (!andrad) { andrad = true; visaFilnamn(); }
-    if (buffertar[buffertnyckel()]) buffertar[buffertnyckel()].kod = kodruta.value;
+    if (aktivFil && arbetsyta[aktivFil]) {
+      arbetsyta[aktivFil].kod = kodruta.value;
+      arbetsyta[aktivFil].andrad = true;
+    }
+    ritaFiler();
+    sparaSnart();
   }
-  function markeraSparad() { andrad = false; visaFilnamn(); sparaBuffert(); }
+  function markeraSparad() { andrad = false; visaFilnamn(); sparaAktiv(); ritaFiler(); sparaSnart(); }
 
   function harFilsystem() {
     return typeof window.showSaveFilePicker === "function";
@@ -2083,15 +2297,21 @@ window.PYTHONLAB_START = function (SPRAK) {
 
   /* Läser in en fil i den buffert man står i. Koden ligger sedan kvar
      där tills man trycker Återställ, precis som all annan redigering. */
+  /* En fil från hårddisken blir en fil i arbetsytan — samma sak som
+     allt annat, och därmed importerbar. */
   function laddaText(text, namn, handtag) {
-    var b = aktivtBuffert();
-    b.kod = text;
-    b.filnamn = namn;
-    b.filhandtag = handtag || null;
-    b.andrad = false;
-    b.markor = 0;
-    b.rullning = 0;
-    laddaBuffert(buffertnyckel(), text, namn);
+    if (!gangbartNamn(namn) && !confirm(SPRAK.fraga.ej_importerbar.replace("{namn}", namn))) return;
+    if (arbetsyta[namn] && arbetsyta[namn].kod !== text &&
+        !confirm(SPRAK.fraga.ersatt_fil.replace("{namn}", namn))) return;
+    sparaAktiv();
+    var f = sakerstallFil(namn, text, null, true);
+    f.kod = text;
+    f.filhandtag = handtag || null;
+    f.andrad = false;
+    f.markor = 0;
+    f.rullning = 0;
+    aktivFil = null;
+    oppna(namn);
     visaFlik("utskrift");
     rensaKonsol();
     skriv(SPRAK.msg.oppnade.replace("{namn}", namn).replace("{plats}", kapitelnamn()) + "\n", "system");
@@ -2136,13 +2356,9 @@ window.PYTHONLAB_START = function (SPRAK) {
     lasare.readAsText(fil);
   });
 
-  window.addEventListener("beforeunload", function (e) {
-    sparaBuffert();
-    var osparat = andrad;
-    Object.keys(buffertar).forEach(function (n) {
-      if (buffertar[n].andrad && buffertar[n].kod.trim()) osparat = true;
-    });
-    if (osparat) { e.preventDefault(); e.returnValue = ""; }
+  window.addEventListener("beforeunload", function () {
+    // Arbetsytan sparas i webbläsaren, så ingen varning behövs längre.
+    sparaArbetsyta();
   });
 
   /* =======================================================
@@ -2156,95 +2372,306 @@ window.PYTHONLAB_START = function (SPRAK) {
 
   var STARTSIDA = lektionstext.innerHTML;
 
-  /* ---- en buffert per kapitel, som separata notebooks ---- */
-  var buffertar = {};
+  /* ================= arbetsytan =================
+     En enda princip: allt är filer. Kapitel, filer du läst in från
+     hårddisken och filer du skapat själv ligger i samma struktur,
+     nycklade på filnamn. Därför kan allt importeras, allt sparas och
+     allt har ett namn som är sant.
 
-  function buffertnyckel() {
-    return aktivLektion !== null ? "kap:" + aktivLektion : "start";
+     En post: { namn, kod, kapitel, filhandtag, andrad, egen, markor, rullning }
+     Fältet kapitel är index i LEKTIONER, eller null. Det är det enda
+     som skiljer en kapitelfil från en annan — Återställ behöver veta
+     vilket original som gäller. */
+  var arbetsyta = {};
+  var aktivFil = null;
+
+  var LAGER = { namn: "pytho", butik: "arbetsyta", nyckel: 1, format: 2 };
+  var sparklocka = null;
+
+  function huvudfil() { return SPRAK.ui.huvudfil || "huvudprogram.py"; }
+
+  /* Ett giltigt modulnamn kan importeras. Siffra först duger inte. */
+  function gangbartNamn(namn) {
+    return /^[A-Za-z_]\w*\.py$/.test(namn);
   }
 
-  function aktivtBuffert() {
-    var nyckel = buffertnyckel();
-    if (!buffertar[nyckel]) {
-      buffertar[nyckel] = { kod: kodruta.value, filnamn: filnamn,
-                            filhandtag: filhandtag, andrad: andrad,
-                            markor: 0, rullning: 0 };
+  function post(namn) { return arbetsyta[namn]; }
+
+  /* Skapar posten om den saknas. Returnerar den alltid. */
+  function sakerstallFil(namn, kod, kapitel, egen) {
+    if (!arbetsyta[namn]) {
+      arbetsyta[namn] = {
+        namn: namn, kod: kod || "", kapitel: (kapitel === undefined ? null : kapitel),
+        filhandtag: null, andrad: false, egen: !!egen,
+        kurs: namn === huvudfil(),
+        varld: (kapitel !== null && kapitel !== undefined) || namn === huvudfil()
+               ? "kurs" : nuvarandeVarld(),
+        markor: 0, rullning: 0
+      };
     }
-    return buffertar[nyckel];
+    return arbetsyta[namn];
   }
 
-  function sparaBuffert() {
-    buffertar[buffertnyckel()] = {
-      kod: kodruta.value,
-      filnamn: filnamn,
-      filhandtag: filhandtag,
-      andrad: andrad,
-      markor: kodruta.selectionStart,
-      rullning: kodruta.scrollTop
-    };
+  /* Vid språkbyte ska texterna följa med — men bara i filer du inte
+     rört. Har du skrivit något är det ditt, oavsett språk. */
+  function foljSpraket() {
+    Object.keys(arbetsyta).forEach(function (n) {
+      var f = arbetsyta[n];
+      if (f.andrad) return;
+      if (f.kurs) f.kod = STARTKOD;
+      else if (n === DEV_DEMO) f.kod = SPRAK.ui.scene_demo;
+      else if (f.kapitel !== null && LEKTIONER[f.kapitel] &&
+               LEKTIONER[f.kapitel].fil === n) {
+        f.kod = LEKTIONER[f.kapitel].kod;
+      }
+    });
+    // Kapitelfiler från ett annat språk heter något annat och går inte
+    // att nå via kapitellistan. Orörda sådana städas bort; har du
+    // ändrat i dem får de vara kvar som vanliga filer.
+    Object.keys(arbetsyta).forEach(function (n) {
+      var f = arbetsyta[n];
+      if (f.kapitel === null || f.andrad) return;
+      if (!LEKTIONER[f.kapitel] || LEKTIONER[f.kapitel].fil !== n) {
+        delete arbetsyta[n];
+      }
+    });
   }
 
-  /* Hämtar tillbaka en buffert, eller skapar den från originalkoden. */
-  function laddaBuffert(nyckel, standardkod, standardnamn) {
-    var b = buffertar[nyckel];
-    if (!b) {
-      b = { kod: standardkod, filnamn: standardnamn, filhandtag: null,
-            andrad: false, markor: 0, rullning: 0 };
-      buffertar[nyckel] = b;
+  /* Tillhörigheten sitter på filen, inte i en namnjämförelse. En sparad
+     arbetsyta från en tidigare version saknar fältet — då sätts det här,
+     en gång, utifrån namnet. */
+  function normaliseraArbetsyta() {
+    Object.keys(arbetsyta).forEach(function (n) {
+      var f = arbetsyta[n];
+      if (f.kurs === undefined) f.kurs = (n === huvudfil());
+      if (f.kapitel === undefined) f.kapitel = null;
+      if (!f.varld) f.varld = (f.kapitel !== null || f.kurs) ? "kurs" : "dev";
+      // Startfilen beter sig som ett kapitel: den listas när den är
+      // ändrad eller öppen, inte annars.
+      if (f.kurs) f.egen = false;
+      f.namn = n;
+    });
+  }
+
+  /* ---- lagring ---- */
+  function oppnaLager() {
+    return new Promise(function (klar, fel) {
+      if (!window.indexedDB) return fel(new Error("ingen lagring"));
+      var beg = indexedDB.open(LAGER.namn, 1);
+      beg.onupgradeneeded = function () { beg.result.createObjectStore(LAGER.butik); };
+      beg.onsuccess = function () { klar(beg.result); };
+      beg.onerror = function () { fel(beg.error); };
+    });
+  }
+
+  async function sparaArbetsyta() {
+    sparaAktiv();
+    var rena = {};
+    Object.keys(arbetsyta).forEach(function (n) {
+      var f = arbetsyta[n];
+      rena[n] = { namn: f.namn, kod: f.kod, kapitel: f.kapitel,
+                  andrad: f.andrad, egen: f.egen, kurs: f.kurs, varld: f.varld,
+                  markor: f.markor, rullning: f.rullning };
+    });
+    try {
+      var db = await oppnaLager();
+      db.transaction(LAGER.butik, "readwrite").objectStore(LAGER.butik).put(
+        { format: LAGER.format, filer: rena, aktiv: aktivFil, dev: devlage,
+          devfiler: devfilerSkapade,
+          sparad: Date.now(), version: window.PYTHONLABBET_VERSION },
+        LAGER.nyckel);
+      db.close();
+    } catch (e) { /* lagring kan vara avstängd — kör vidare utan */ }
+  }
+
+  function sparaSnart() {
+    clearTimeout(sparklocka);
+    sparklocka = setTimeout(sparaArbetsyta, 800);
+  }
+
+  /* Läser in en sparad arbetsyta. Data från det gamla formatet med
+     separata buffertar och filer översätts en gång, så att ingen
+     förlorar det de skrivit. */
+  async function laddaArbetsyta() {
+    var data;
+    try {
+      var db = await oppnaLager();
+      data = await new Promise(function (klar, fel) {
+        var b = db.transaction(LAGER.butik, "readonly")
+                  .objectStore(LAGER.butik).get(LAGER.nyckel);
+        b.onsuccess = function () { klar(b.result); };
+        b.onerror = function () { fel(b.error); };
+      });
+      db.close();
+    } catch (e) { return false; }
+    if (!data) return false;
+
+    if (data.format === LAGER.format) {
+      Object.keys(data.filer || {}).forEach(function (n) {
+        arbetsyta[n] = Object.assign({ filhandtag: null }, data.filer[n]);
+      });
+      devfilerSkapade = !!data.devfiler;
+      // Namnbytet måste ske FÖRE normaliseringen: den avgör tillhörighet
+      // utifrån namnet, och skulle annars stämpla startfilen som en
+      // utvecklarfil bara för att den heter något gammalt.
+      ["huvudprogram.py", "main_program.py"].forEach(function (gammalt) {
+        if (arbetsyta[gammalt] && !arbetsyta[huvudfil()]) {
+          arbetsyta[huvudfil()] = arbetsyta[gammalt];
+          arbetsyta[huvudfil()].namn = huvudfil();
+          arbetsyta[huvudfil()].kurs = true;
+          arbetsyta[huvudfil()].varld = "kurs";
+          delete arbetsyta[gammalt];
+          if (data.aktiv === gammalt) data.aktiv = huvudfil();
+        }
+      });
+      normaliseraArbetsyta();
+      foljSpraket();
+      return data;
     }
-    kodruta.value = b.kod;
-    filnamn = b.filnamn;
-    filhandtag = b.filhandtag;
-    andrad = b.andrad;
+    return migrera(data);
+  }
+
+  function migrera(gammal) {
+    Object.keys(gammal.filer || {}).forEach(function (n) {
+      sakerstallFil(n, gammal.filer[n], null, true).andrad = true;
+    });
+    Object.keys(gammal.buffertar || {}).forEach(function (nyckel) {
+      var b = gammal.buffertar[nyckel];
+      if (!b || !b.kod) return;
+      if (nyckel === "start") {
+        sakerstallFil(huvudfil(), b.kod, null, true).andrad = true;
+      } else if (nyckel.indexOf("kap:") === 0) {
+        var i = parseInt(nyckel.slice(4), 10);
+        var lek = LEKTIONER[i];
+        if (!lek || b.kod === lek.kod) return;      // orörd — hoppa över
+        var f = sakerstallFil(lek.fil, b.kod, i, false);
+        f.kod = b.kod;
+        f.andrad = true;
+      } else if (nyckel.indexOf("fil:") === 0) {
+        sakerstallFil(nyckel.slice(4), b.kod, null, true).andrad = true;
+      }
+    });
+    normaliseraArbetsyta();
+    foljSpraket();
+    return { aktiv: null, dev: gammal.dev, migrerad: true };
+  }
+
+  /* ---- att byta fil ---- */
+  function sparaAktiv() {
+    if (!aktivFil || !arbetsyta[aktivFil]) return;
+    var f = arbetsyta[aktivFil];
+    f.kod = kodruta.value;
+    f.andrad = andrad;
+    f.filhandtag = filhandtag;
+    f.markor = kodruta.selectionStart;
+    f.rullning = kodruta.scrollTop;
+  }
+
+  function oppna(namn) {
+    var f = arbetsyta[namn];
+    if (!f) return;
+    if (aktivFil !== namn) sparaAktiv();
+    aktivFil = namn;
+    kodruta.value = f.kod;
+    filnamn = f.namn;
+    filhandtag = f.filhandtag;
+    andrad = f.andrad;
     visaFilnamn();
-    kodruta.scrollTop = b.rullning;
-    var pos = Math.min(b.markor, kodruta.value.length);
+    kodruta.scrollTop = f.rullning;
+    var pos = Math.min(f.markor || 0, kodruta.value.length);
     kodruta.setSelectionRange(pos, pos);
     sistaMarkering = { start: 0, slut: 0 };
     felradNu = 0;
     ritaRadnummer();
-    return b;
+    markeraVald(f.kapitel === null ? -1 : f.kapitel);
+    aterstallKapitelKnapp.textContent = knapptextAterstall();
+    ritaFiler();
+    byteAvSamtal();
   }
 
+  /* Originalet att gå tillbaka till: kapitlets kod för en kapitelfil,
+     startprogrammet för startfilen, inget för en fil du skapat själv. */
+  /* Hör filen till kursen? Kapitlen och startfilen gör det — de har
+     ett original, kan inte tas bort, och grupperas ihop. */
+  /* Varje fil hör till en värld: kursen eller utvecklarläget. Den värld
+     man inte står i läggs hopfälld längst ner. Symmetriskt åt båda håll —
+     kapitlen skräpar inte i utvecklarläget, och utvecklarfilerna skräpar
+     inte i kursen. */
+  function horTillKursen(f) {
+    return !!f && varldFor(f) === "kurs";
+  }
+
+  function varldFor(f) {
+    if (!f) return "kurs";
+    if (f.varld) return f.varld;
+    return (f.kapitel !== null || f.kurs === true) ? "kurs" : "dev";
+  }
+
+  function nuvarandeVarld() { return devlage ? "dev" : "kurs"; }
+
+  function originalFor(f) {
+    if (!f) return null;
+    if (f.kapitel !== null) return LEKTIONER[f.kapitel].kod;
+    if (f.kurs) return STARTKOD;
+    return null;
+  }
+
+  function knapptextAterstall() {
+    return originalFor(post(aktivFil)) !== null
+      ? SPRAK.ui.aterstall : SPRAK.ui.tom_fil;
+  }
+
+  function aktivtKapitel() {
+    var f = post(aktivFil);
+    return f ? f.kapitel : null;
+  }
+
+  /* ---- vyerna ---- */
   function visaStartsida() {
-    sparaBuffert();
-    aktivLektion = null;
-    laddaBuffert("start", STARTKOD, SPRAK.ui.nytt_filnamn);
+    sparaAktiv();
+    sakerstallFil(huvudfil(), STARTKOD, null, true).kurs = true;
+    oppna(huvudfil());
     markeraVald(-2);
     lektionstext.innerHTML = STARTSIDA;
     lektionstext.className = "lektionstext start";
     panelLektion.scrollTop = 0;
     visaFlik("lektion");
-    byteAvSamtal();
   }
   startKnapp.addEventListener("click", visaStartsida);
 
   function oppnaLektion(i) {
     var lek = LEKTIONER[i];
-    sparaBuffert();
-    aktivLektion = i;
-    laddaBuffert("kap:" + i, lek.kod, lek.fil);
-    markeraVald(i);
+    sakerstallFil(lek.fil, lek.kod, i, false);
+    oppna(lek.fil);
     lektionstext.innerHTML = "<h3>" + SPRAK.ord.kapitel_rubrik
       .replace("{nr}", i + 1).replace("{titel}", lek.titel) + "</h3>" + lek.forklaring;
     lektionstext.className = "lektionstext";
     panelLektion.scrollTop = 0;
     visaFlik("lektion");
-    byteAvSamtal();
   }
 
-  /* Lägger tillbaka originalkoden — kapitlets, eller startprogrammet. */
+  /* Återställ: kapitlets original, eller tom fil om inget original finns. */
   function aterstallKapitel() {
-    var original = aktivLektion !== null ? LEKTIONER[aktivLektion].kod : STARTKOD;
-    var namn = aktivLektion !== null ? LEKTIONER[aktivLektion].fil : SPRAK.ui.nytt_filnamn;
-    if (kodruta.value !== original &&
-        !confirm(SPRAK.fraga.aterstall.replace("{plats}", kapitelnamn()))) return;
-    delete buffertar[buffertnyckel()];
-    laddaBuffert(buffertnyckel(), original, namn);
-    kodruta.scrollTop = 0;
-    kodruta.setSelectionRange(0, 0);
+    var f = post(aktivFil);
+    if (!f) return;
+    var original = originalFor(f);
+    if (original !== null) {
+      if (kodruta.value !== original &&
+          !confirm(SPRAK.fraga.aterstall.replace("{plats}", f.namn))) return;
+      f.kod = original;
+      f.andrad = false;
+    } else {
+      if (!kodruta.value.trim()) return;
+      if (!confirm(SPRAK.fraga.tom_fil.replace("{namn}", f.namn))) return;
+      f.kod = "";
+      f.andrad = true;
+    }
+    f.markor = 0;
+    f.rullning = 0;
+    aktivFil = null;            // tvinga full omladdning av rutan
+    oppna(f.namn);
     rensaKonsol();
-    byteAvSamtal();
+    sparaSnart();
     kodruta.focus();
   }
   aterstallKapitelKnapp.addEventListener("click", aterstallKapitel);
@@ -2331,7 +2758,10 @@ window.PYTHONLAB_START = function (SPRAK) {
 
   var LABB_FAKTA = SPRAK.ai_fakta;
 
-  var LARARROLL = SPRAK.ai_roll.replace("{fakta}", LABB_FAKTA);
+  function lararroll() {
+    var mall = devlage && SPRAK.ai_roll_dev ? SPRAK.ai_roll_dev : SPRAK.ai_roll;
+    return mall.replace("{fakta}", LABB_FAKTA);
+  }
 
   /* Byggs ur kapitellistan så den aldrig blir inaktuell. */
   var KURSEN = (function () {
@@ -2369,9 +2799,9 @@ window.PYTHONLAB_START = function (SPRAK) {
   var samtalen = {};          // en chatt per kapitel, plus en för egna filer
   var arbetar = false;
 
+  /* En chatt per fil — samma nyckel som arbetsytan använder. */
   function samtalsnyckel() {
-    if (aktivLektion !== null) return "kap:" + aktivLektion;
-    return "fil:" + filnamn;
+    return aktivFil || "start";
   }
 
   function aktivtSamtal() {
@@ -2388,7 +2818,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     if (!s.visning.length) {
       var tom = document.createElement("div");
       tom.className = "bubbla arbetar";
-      tom.textContent = aktivLektion !== null
+      tom.textContent = aktivtKapitel() !== null
         ? SPRAK.chatt.ny_kapitel.replace("{plats}", kapitelnamn())
         : SPRAK.chatt.ny;
       svarsyta.appendChild(tom);
@@ -2415,9 +2845,10 @@ window.PYTHONLAB_START = function (SPRAK) {
   }
 
   function kapitelnamn() {
-    if (aktivLektion === null) return SPRAK.chatt.startsidan;
-    return SPRAK.chatt.kapitel.replace("{nr}", aktivLektion + 1)
-                              .replace("{titel}", LEKTIONER[aktivLektion].titel);
+    var i = aktivtKapitel();
+    if (i === null) return aktivFil || SPRAK.chatt.startsidan;
+    return SPRAK.chatt.kapitel.replace("{nr}", i + 1)
+                              .replace("{titel}", LEKTIONER[i].titel);
   }
 
   /* Sammanställer vad användaren har framför sig just nu. */
@@ -2773,7 +3204,10 @@ window.PYTHONLAB_START = function (SPRAK) {
 
     // Nuläget skickas som färsk systemtext varje gång, så modellen
     // alltid ser den kod som ligger i rutan just nu.
-    var system = LARARROLL + "\n\n" + KURSEN + "\n\n" + nulage();
+    // I dev-läget är kursöversikten bara brus — där finns inga kapitel.
+    var system = devlage
+      ? lararroll() + "\n\n" + nulage()
+      : lararroll() + "\n\n" + KURSEN + "\n\n" + nulage();
     s.meddelanden.push({ role: "user", content: fraga });
     if (s.meddelanden.length > 12) s.meddelanden = s.meddelanden.slice(-12);
 
@@ -2801,14 +3235,19 @@ window.PYTHONLAB_START = function (SPRAK) {
     }
   }
 
+  function uppdragstext(namn) {
+    var kalla = devlage && SPRAK.uppdrag_dev ? SPRAK.uppdrag_dev : SPRAK.uppdrag;
+    return kalla[namn] || SPRAK.uppdrag[namn];
+  }
+
   var UPPDRAG = {
-    kapitel: function () { return SPRAK.uppdrag.kapitel; },
-    kod: function () { return SPRAK.uppdrag.kod; },
+    kapitel: function () { return uppdragstext("kapitel"); },
+    kod: function () { return uppdragstext("kod"); },
     markering: function () {
-      return markeradKod().trim() ? SPRAK.uppdrag.markering : null;
+      return markeradKod().trim() ? uppdragstext("markering") : null;
     },
-    andra: function () { return SPRAK.uppdrag.andra; },
-    nasta: function () { return SPRAK.uppdrag.nasta; }
+    andra: function () { return uppdragstext("andra"); },
+    nasta: function () { return uppdragstext("nasta"); }
   };
 
 
@@ -3033,10 +3472,10 @@ window.PYTHONLAB_START = function (SPRAK) {
      över skärmen. Kvar går att göra: stoppa, byta flik, svara på input()
      och röra kameran. Ett halvbytt tillstånd mitt i en körning är annars
      nästan omöjligt att förstå — både för användaren och för koden. */
-  var LASTA = ["ny-knapp", "aterstall-kapitel", "oppna-knapp", "spara-knapp",
+  var LASTA = ["aterstall-kapitel", "oppna-knapp", "spara-knapp",
                "spara-som-knapp", "om-knapp", "felsakert-toggle", "ai-toggle",
                "ai-installningar-knapp", "ai-rensa-samtal", "ai-skicka", "ai-fraga",
-               "start-knapp"];
+               "start-knapp", "ny-fil-knapp", "repl", "dev-toggle"];
 
   function lasGranssnitt(las) {
     LASTA.forEach(function (id) {
@@ -3048,9 +3487,8 @@ window.PYTHONLAB_START = function (SPRAK) {
         b.disabled = las;
       });
     Array.prototype.forEach.call(
-      document.querySelectorAll("#lektionslista .lektion"), function (b) {
-        b.disabled = las;
-      });
+      document.querySelectorAll("#lektionslista .lektion, #fillista .filrad"),
+      function (b) { b.disabled = las; });
     var app = document.getElementById("app-root");
     if (app) app.classList.toggle("kor-lage", las);
     if (!las) {
@@ -3089,7 +3527,12 @@ window.PYTHONLAB_START = function (SPRAK) {
       statusText.textContent = SPRAK.status.redo;
     }
 
-    if (/matplotlib|pyplot/.test(kodruta.value)) {
+    // Paketet laddas av loadPackagesFromImports, som bara ser riktiga
+    // import-satser. En kommentar som nämner matplotlib räknas inte —
+    // därför frågar vi vad som faktiskt laddades, inte vad texten säger.
+    var harMatplotlib = pyodide.loadedPackages &&
+                        pyodide.loadedPackages.matplotlib;
+    if (harMatplotlib) {
       try {
         await pyodide.runPythonAsync(`
 import matplotlib
@@ -3147,6 +3590,18 @@ _plt.show = _labb_visa
         }
       }
 
+      // Användarens egna filer läggs ut så att import fungerar.
+      if (skrivArbetsfiler) {
+        // Hela arbetsytan läggs ut, så att allt går att importera.
+        sparaAktiv();
+        var poster = Object.keys(arbetsyta).map(function (n) {
+          return [n, arbetsyta[n].kod];
+        });
+        if (poster.length) {
+          try { skrivArbetsfiler(pyodide.toPy(poster)); }
+          catch (e) { skriv(SPRAK.msg.filfel + ((e && e.message) || e) + "\n", "fel"); }
+        }
+      }
       if (vakt && nollstallVakt) {
         try { nollstallVakt(45.0); } catch (e) { /* ingen vakt */ }
       }
@@ -3200,6 +3655,111 @@ _plt.show = _labb_visa
     if (e.key === "Escape" && !omOverlagring.hidden) omOverlagring.hidden = true;
   });
 
+  /* ================= dev-läge =================
+     Ett vyfilter. Samma buffertar, samma arbetsyta, samma persistens —
+     kapitlen döljs bara, och AI-assistenten byter roll. */
+  var devlage = false;
+  var devToggle = document.getElementById("dev-toggle");
+  var DEV_HUVUD = "main.py";
+  var DEV_DEMO = "scene_demo.py";
+  var devfilerSkapade = false;
+
+  /* Första gången utvecklarläget öppnas läggs två filer in: en tom att
+     börja i, och en som beskriver scene-modulen. Skapas bara en gång —
+     tar man bort dem kommer de inte tillbaka. */
+  function forberedUtvecklarfiler() {
+    sakerstallFil(DEV_HUVUD, "", null, true).varld = "dev";
+    if (!devfilerSkapade) {
+      devfilerSkapade = true;
+      if (!arbetsyta[DEV_DEMO]) {
+        sakerstallFil(DEV_DEMO, SPRAK.ui.scene_demo, null, true).varld = "dev";
+      }
+      sparaSnart();
+    }
+  }
+
+  function sattDevlage(pa, spara) {
+    devlage = !!pa;
+    devToggle.checked = devlage;
+    document.getElementById("app-root").classList.toggle("dev-lage", devlage);
+
+    // Står man i ett kapitel när kursen döljs behövs en ny vy.
+    if (devlage) {
+      forberedUtvecklarfiler();
+      if (varldFor(post(aktivFil)) !== "dev") oppna(DEV_HUVUD);
+    } else if (varldFor(post(aktivFil)) !== "kurs") {
+      // Står man i en utvecklarfil när kursen tas fram hör den inte hit.
+      visaStartsida();
+    }
+    ritaFiler();
+    if (devlage && flikAr("lektion")) visaFlik("utskrift");
+    if (devlage) {
+      // Startsidans kurstext hör inte hemma i utvecklarläget.
+      lektionstext.innerHTML = "";
+      markeraVald(-1);
+    } else if (!lektionstext.innerHTML.trim()) {
+      lektionstext.innerHTML = STARTSIDA;
+      lektionstext.className = "lektionstext start";
+    }
+
+    aterstallKapitelKnapp.textContent = devlage ? SPRAK.ui.tom_fil : SPRAK.ui.aterstall;
+    ritaChipar();
+    if (spara !== false) sparaSnart();
+  }
+
+  function flikAr(namn) {
+    var f = document.getElementById("flik-" + namn);
+    return f && f.classList.contains("vald");
+  }
+
+  /* Snabbknapparna byter både text och uppdrag med läget. */
+  function ritaChipar() {
+    var kalla = devlage && SPRAK.chip_dev ? SPRAK.chip_dev : SPRAK.chip;
+    Array.prototype.forEach.call(
+      document.querySelectorAll("#ai-snabb [data-uppdrag]"), function (b) {
+        var n = b.getAttribute("data-uppdrag");
+        if (kalla[n]) b.textContent = kalla[n];
+      });
+  }
+
+  devToggle.addEventListener("change", function () { sattDevlage(devToggle.checked); });
+
+  /* ---- REPL: en rad mot samma namnrymd som programmet ---- */
+  var replfalt = document.getElementById("repl");
+  var replrad = document.getElementById("replrad");
+  var replhistorik = [];
+  var replplats = -1;
+
+  async function korRepl(rad) {
+    skriv(">>> " + rad + "\n", "svar");
+    try {
+      var svar = await replKor(rad);
+      if (svar !== null && svar !== undefined) skriv(svar + "\n", "ut");
+    } catch (e) {
+      skriv(((e && e.message) || String(e)).trim() + "\n", "fel");
+    }
+    konsol.scrollTop = konsol.scrollHeight;
+  }
+
+  replfalt.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      var rad = replfalt.value.trim();
+      if (!rad || !replKor) return;
+      replhistorik.push(rad);
+      replplats = replhistorik.length;
+      replfalt.value = "";
+      korRepl(rad);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (replplats > 0) replfalt.value = replhistorik[--replplats];
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (replplats < replhistorik.length - 1) replfalt.value = replhistorik[++replplats];
+      else { replplats = replhistorik.length; replfalt.value = ""; }
+    }
+  });
+
+  document.getElementById("ny-fil-knapp").addEventListener("click", nyFil);
   document.getElementById("kor-knapp").addEventListener("click", kor);
   stoppaKnapp.addEventListener("click", function () {
     window._labbStopp = true;
@@ -3216,21 +3776,6 @@ _plt.show = _labb_visa
   document.getElementById("oppna-knapp").addEventListener("click", oppnaFil);
   document.getElementById("spara-knapp").addEventListener("click", function () { sparaFil(false); });
   document.getElementById("spara-som-knapp").addEventListener("click", function () { sparaFil(true); });
-  document.getElementById("ny-knapp").addEventListener("click", function () {
-    if (kodruta.value.trim() &&
-        !confirm(SPRAK.fraga.toma.replace("{plats}", kapitelnamn()))) return;
-    var b = aktivtBuffert();
-    b.kod = STARTKOD;
-    b.filnamn = SPRAK.ui.nytt_filnamn;
-    b.filhandtag = null;
-    b.andrad = false;
-    b.markor = 0;
-    b.rullning = 0;
-    laddaBuffert(buffertnyckel(), STARTKOD, SPRAK.ui.nytt_filnamn);
-    rensaKonsol();
-    byteAvSamtal();
-    kodruta.focus();
-  });
 
   /* =======================================================
      Starta Python
@@ -3351,10 +3896,23 @@ _plt.show = _labb_visa
   }
 
   (async function init() {
-    kodruta.value = STARTKOD;
+    var sparat = await laddaArbetsyta();
+    sakerstallFil(huvudfil(), STARTKOD, null, true).kurs = true;
+    // Appen startar i kursläget, så en sparad utvecklarfil öppnas inte.
+    var start = (sparat && sparat.aktiv && arbetsyta[sparat.aktiv] &&
+                 varldFor(arbetsyta[sparat.aktiv]) === "kurs")
+      ? sparat.aktiv : huvudfil();
+    oppna(start);
     visaFilnamn();
     ritaRadnummer();
     ritaLektioner();
+    ritaFiler();
+    // ?mode=dev vinner över det sparade läget, så en delad länk visar
+    // samma sak för alla.
+    // Undervisningsläget är alltid startläget. ?mode=dev kan styra om
+    // det, men ett sparat läge gör det inte — annars kan någon hamna i
+    // utvecklarläget utan att minnas varför.
+    sattDevlage(/[?&]mode=dev\b/i.test(location.search), false);
     visaFlik("utskrift");
 
     var ok = await startaPython();
@@ -3486,6 +4044,53 @@ def _labb_syntax(kallkod):
         return None
     except SyntaxError as fel:
         return (fel.lineno or 1, fel.offset or 1, fel.msg)
+
+
+ARBETSMAPP = '/home/pyodide/arbetsyta'
+
+
+def _labb_arbetsfiler(poster):
+    """Skriver användarens egna filer till Pythons filsystem.
+
+    Mappen läggs först i sys.path, så att "import verktyg" hittar
+    verktyg.py. Modulerna plockas bort ur cachen, annars skulle en
+    ändrad fil inte märkas förrän sidan laddades om.
+    """
+    import importlib
+    import os
+    if not os.path.isdir(ARBETSMAPP):
+        os.makedirs(ARBETSMAPP, exist_ok=True)
+    if ARBETSMAPP not in _sys.path:
+        _sys.path.insert(0, ARBETSMAPP)
+    for namn, innehall in poster:
+        with open(os.path.join(ARBETSMAPP, str(namn)), 'w') as f:
+            f.write(str(innehall))
+        modul = str(namn)[:-3] if str(namn).endswith('.py') else str(namn)
+        _sys.modules.pop(modul, None)
+    importlib.invalidate_caches()
+    return len(poster)
+
+
+async def _labb_repl(rad):
+    """Kör en rad mot samma namnrymd som programmet.
+
+    Först som uttryck, så att "x + 1" visar sitt värde. Går det inte
+    körs raden som en sats i stället, så att tilldelningar fungerar.
+    """
+    import inspect
+    rad = str(rad)
+    try:
+        kod = compile(rad, '<repl>', 'eval', flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+    except SyntaxError:
+        kod = compile(rad, '<repl>', 'exec', flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+        svar = eval(kod, globals())
+        if inspect.isawaitable(svar):
+            await svar
+        return None
+    svar = eval(kod, globals())
+    if inspect.isawaitable(svar):
+        svar = await svar
+    return None if svar is None else repr(svar)
 
 
 async def _labb_kor(kallkod, vakt=True):
@@ -4117,10 +4722,13 @@ _sys.modules['data'] = _data_modul
     syntaxkoll = pyodide.globals.get("_labb_syntax");
     korProgram = pyodide.globals.get("_labb_kor");
     raknaVakter = pyodide.globals.get("_labb_antal_vakter");
+    skrivArbetsfiler = pyodide.globals.get("_labb_arbetsfiler");
+    replKor = pyodide.globals.get("_labb_repl");
 
     statusEl.className = "status klar";
     statusText.textContent = SPRAK.status.redo;
     korKnapp.disabled = false;
+    replrad.hidden = false;
     rensaKonsol();
     skriv(SPRAK.msg.redo + "\n", "system");
     visaFlik("lektion");

@@ -9,13 +9,28 @@ window.PYTHONLAB_SPRAK.sv = {
   titel: "Pytho",
   beskrivning: "Pytho är en interaktiv kurs i Python som körs direkt i webbläsaren. 29 kapitel från din första utskrift till 3D-grafik, maskininlärning och transformers.",
   ui: {
+    "devfiler": "Utvecklarfiler ({antal})",
+    "scene_demo": "# scene_demo.py — modulen scene, som bara finns i Pytho.\n#\n# Kör den här filen och dra sedan med musen i fliken 3D-scen.\n# Allt nedan är körbart; kommentera bort det du inte vill se.\n\nimport scene\nimport math\n\n# ===== 1. Starta =====\nscene.start()                       # skapar scenen, alltid först\nscene.background(\"#0e1c33\")\nscene.ground(size=30, color=\"#1b3255\")\nscene.camera(0, 6, 16)              # var kameran står\nscene.look_at(0, 1, 0)              # vad den tittar på\n\n# ===== 2. Grundformer =====\n# Alla returnerar ett objekt du kan styra.\nkub = scene.cube(-6, 1, 0, size=1.4, color=\"#ffc94a\")\nklot = scene.sphere(-3, 1, 0, radius=0.7, color=\"#6ee7b7\")\nlada = scene.box(0, 1, 0, width=2, height=1, depth=1, color=\"#8fb4ff\")\nrulle = scene.cylinder(3, 1, 0, radius=0.5, height=2, color=\"#dfe8fa\")\nstrut = scene.cone(6, 1, 0, radius=0.7, height=2, color=\"#ff7d6b\")\n\n# ===== 3. Metoder på ett objekt =====\nkub.spin(0.004, 0.008, 0)           # hur mycket det snurrar per bildruta\nklot.move(-3, 2, 0)                 # ny position\nlada.rotate(0, 0.4, 0)              # vrid till en vinkel, i radianer\nrulle.scale(1.3)\nstrut.color(\"#e04b4b\")\n\n# ===== 4. Färdiga modeller =====\n# Samma argument för alla: x, y, z, color, size\nbil = scene.car(-8, 0, 6, color=\"#ff7d6b\")\nlastbil = scene.truck(-4, 0, 6)\nflygplan = scene.plane(0, 8, 6)\nraket = scene.rocket(4, 0, 6)\nhund = scene.dog(8, 0, 6, size=0.8)\nfagel = scene.bird(-8, 5, -6)\nfisk = scene.fish(-4, 1, -6)\nhus = scene.house(0, 0, -8)\nskyskrapa = scene.skyscraper(5, 0, -8)\ntorn = scene.tower(9, 0, -8)\ntrad = scene.tree(-11, 0, -3, size=1.2)\n\n# De rörliga modellerna har en egen metod som startar rörelsen.\nbil.drive(6)                        # hjulen snurrar, bilen rullar framåt\nlastbil.drive(3)\nflygplan.fly(9)                     # propellern går\nhund.walk(2)                        # benen rör sig\nfagel.flap(3)\nfisk.swim(2)\nraket.ignite(4)                     # lågan tänds\n\n# Framåt betyder alltid dit modellen pekar. Vill du ha en cirkelbana,\n# vrid modellen lite varje bildruta — se avsnitt 7.\n\n# ===== 5. Data i rummet =====\nstapel = scene.bar(-10, -10, height=3, color=\"#6ee7b7\", width=0.5)\nstapel.set_height(5)                # ändra i efterhand\n\nmarkor = scene.marker(0, 3, 0, color=\"#ffc94a\", size=1)\nlinje = scene.line(-5, 0.1, -5, 5, 0.1, -5, color=\"#8fb4ff\", thickness=0.05)\n\nsol = scene.sun(0, 14, -10, radius=1.2)\nmoln = scene.cloud(-6, 9, -4, size=1.5)\n\n# En kontur ur en lista med (x, z)-punkter\npunkter = [(-2, -2), (2, -2), (2, 2), (-2, 2)]\nscene.outline(punkter, color=\"#8fb4ff\", thickness=0.08, y=0.06, closed=True)\n\n# ===== 6. Matplotlib på en yta =====\n# En figur blir en textur på en panel eller en TV-skärm i rummet.\n#\n# import matplotlib.pyplot as plt\n# fig, ax = plt.subplots(figsize=(5, 3))\n# ax.plot([1, 2, 3], [2, 5, 3])\n# scene.chart_panel(0, 3, -12, width=6, height=3.4, figure=fig)\n# scene.chart_screen(0, 6, -14, width=12, height=6.5, figure=fig,\n#                    light=True, tilt=0.0, turn=0)\n\n# ===== 7. Animation =====\n# Funktionen anropas ungefär 60 gånger i sekunden med tiden i sekunder.\ndef uppdatera(t):\n    klot.move(-3, 1 + math.sin(t * 2) * 0.5, 0)\n    bil.rotate(0, t * 0.7, 0)                     # kör i cirkel\n    fagel.rotate(0, -math.pi / 2 - t, 0)          # peka dit den flyger\n    fagel.move(math.cos(t) * 7, 5 + math.sin(t * 2), math.sin(t) * 7)\n\nscene.every_frame(uppdatera)        # skicka funktionen UTAN parentes\n\n# scene.stop()                      # stoppar animationen\n# scene.reset()                     # tillbaka till startvyn\n# scene.fullscreen()                # helskärm, Escape avslutar\n\n# ===== 8. Sveriges kontur =====\n# scene.sweden tar din egen omräkning från grader till scenkoordinater.\n#\n# def till_scen(lat, lon):\n#     return ((lon - 17.5) * 2.2, (lat - 62.5) * -2.2)\n#\n# scene.sweden(till_scen, color=\"#7fa4dd\", thickness=0.11, y=0.08, islands=True)\n# scene.in_sweden(59.3, 18.1)       # True om punkten ligger i landet\n\nprint(\"Klart. Öppna fliken 3D-scen.\")\nprint(\"Dra med musen för att se dig omkring, rulla för att flyga.\")\nprint(\"Piltangenterna flyger som en drönare: framåt dit du tittar.\")\n",
+    "kapitelfiler": "Kapitelfiler ({antal})",
+    "huvudfil": "start.py",
+    "visa_alla": "Visa alla {antal} filer",
+    "visa_farre": "Visa färre",
+    "dev": "Utvecklarläge",
+    "dev_info": "Döljer kapitlen och gör Pytho till en enkel utvecklingsmiljö. Din kod ligger kvar.",
+    "tom_fil": "Rensa fil",
+    "filer_rubrik": "Filer i arbetsytan",
+    "ny_fil": "+ Ny fil",
+    "inga_filer": "Inga filer ännu. Allt du skriver hamnar här och kan importeras.",
+    "ta_bort": "Ta bort",
+    "repl": "Skriv ett uttryck och tryck Enter …",
+    "filmall": "# {namn} — importera med:  import {modul}\\n\\n\\ndef halsa(namn):\\n    return f\"Hej {{namn}}!\"\\n",
+    "filtext": "<h3>Egna filer</h3><p>Den här filen ligger i din arbetsyta och sparas i webbläsaren. Kör ett program i vilket kapitel som helst och skriv <code>import {modul}</code> för att använda den.</p><p>Allt du skriver finns kvar när du laddar om sidan.</p>",
     "felsakert_info": "Loopvakt som gör att programmet kan stoppas och inte kan låsa sidan.",
     "fragefalt": "Ställ en fråga om koden eller kapitlet …",
     "anslutning": "Anslutning",
     "rensa_samtal": "Rensa samtalet",
     "skicka": "Skicka",
     "nytt_filnamn": "nytt_program.py",
-  "ny": "Nytt",
   "aterstall": "Återställ",
   "oppna": "Öppna fil",
   "spara": "Spara",
@@ -50,6 +65,20 @@ window.PYTHONLAB_SPRAK.sv = {
   },
   scen: {
     "tom": "Ingen scen igång. Kör <code>scene.start()</code> i ett program så dyker den upp här.",
+  },
+  "chip_dev": {
+    "kapitel": "Granska filen",
+    "kod": "Förklara koden",
+    "markering": "Förklara markeringen",
+    "andra": "Föreslå en omskrivning",
+    "nasta": "Skriv tester",
+  },
+  "uppdrag_dev": {
+    "kapitel": "Granska den här filen som en kollega hade gjort. Vad är otydligt, vad kan gå sönder, och vad skulle du ändra först?",
+    "kod": "Gå igenom koden och förklara vad varje del gör.",
+    "markering": "Förklara den markerade delen av koden, och säg om något i den kan bli fel.",
+    "andra": "Föreslå en omskrivning av den här koden som blir tydligare eller kortare, utan att beteendet ändras. Visa gärna hur.",
+    "nasta": "Skriv tester för koden med unittest. Täck det normala fallet och minst ett gränsfall.",
   },
   ord: {
   "tips": "Tips: ",
@@ -95,6 +124,8 @@ window.PYTHONLAB_SPRAK.sv = {
   "ladda_om": "Ladda om sidan och försök igen."
 },
   msg: {
+    "filfel": "Kunde inte lägga ut dina filer: ",
+    "arbetsyta_aterstalld": "Din arbetsyta lästes in — {antal} kapitel och {filer} egna filer finns kvar sedan sist.",
     "syntaxfel": "Syntaxfel på rad {rad}, tecken {kolumn}: {text}",
     "hamtning_misslyckades": "kunde inte hämta ",
     "tidsgrans": "tidsgränsen gick ut: ",
@@ -114,7 +145,11 @@ window.PYTHONLAB_SPRAK.sv = {
   "felsakert_av": "Felsäkert läge av. Koden kör i full fart, men kan inte stoppas — en oändlig loop låser sidan och kräver omladdning."
 },
   fraga: {
-  "toma": "Tömma kodrutan? Det du skrivit i {plats} försvinner.",
+    "ersatt_fil": "{namn} finns redan i arbetsytan. Ersätta den?",
+    "ej_importerbar": "{namn} kan inte importeras — ett modulnamn får inte börja med en siffra. Läsa in den ändå?",
+    "tom_fil": "Tömma {namn}? Innehållet försvinner.",
+    "nytt_filnamn": "Vad ska filen heta?",
+    "ogiltigt_namn": "Filnamnet får bara innehålla bokstäver, siffror, punkt och bindestreck.",
   "aterstall": "Lägga tillbaka originalkoden för {plats}? Det du skrivit eller läst in försvinner.",
   "radera_fil": "Ta bort {namn}?",
   "filnamn": "Vad ska filen heta?"
@@ -195,10 +230,11 @@ window.PYTHONLAB_SPRAK.sv = {
   "laste_in": "Läste in {fran} -> {till} ({tecken} tecken)",
   "inga_filer": "Inga filer än. Skapa en med open(..., \"w\")."
 },
+  "ai_roll_dev": "Du är en erfaren Python-utvecklare som sitter bredvid och hjälper till.\n\nTon:\n- Skriv på svenska, kort och konkret. Rakt på sak.\n- Tala som till en kollega. Inga uppmuntrande utrop, ingen beröm.\n- Behöver du matematik: skriv den som LaTeX mellan $ … $ eller $$ … $$.\n\nSå här hjälper du:\n- Ge raka svar. Behövs kod, skriv koden — det här är ingen kurs.\n- Peka på verkliga problem: gränsfall, felhantering, namn som vilseleder.\n- Föreslå det enklaste som fungerar, inte det mest generella.\n- Säg till när något är fel, även om det inte var det som frågades om.\n- Är du osäker, säg det i stället för att gissa.\n\n{fakta}",
   ai_roll: "Du är en kunnig och tålmodig handledare i Python. Användaren kan vara nybörjare,\nerfaren programmerare som är ny i Python, eller något däremellan — och kan vara\ni vilken ålder som helst.\n\nTon och nivå:\n- Skriv på svenska, sakligt och rakt på sak. Högst 150 ord om inget annat behövs.\n- Tilltala användaren som en kapabel vuxen. Inga uppmuntrande utrop, inga smeknamn,\n  ingen översvallande beröm. Skriv som till en kollega.\n- Läs av nivån från frågorna och koden, och anpassa dig löpande. Är frågan\n  grundläggande, förklara från grunden utan att göra det barnsligt. Är frågan\n  avancerad, hoppa över det självklara.\n- Använd korrekta facktermer, men förklara dem första gången de dyker upp.\n- Behöver du matematik: skriv den som LaTeX mellan $ … $ för löpande text\n  eller $$ … $$ för egen rad. Chatten renderar exponenter, index, bråk,\n  rötter, grekiska bokstäver och vanliga operatorer. Håll uttrycken enkla —\n  matriser och flerradiga uppställningar renderas inte.\n- Jämförelser och exempel ska vara begripliga oavsett ålder. Undvik liknelser\n  hämtade från skolvärlden eller barns vardag.\n\nSå här handleder du:\n- Ge förklaringar och ledtrådar, inte färdiga lösningar. Skriv inte hela programmet.\n- Vid buggar: peka på VAR felet finns och FÖRKLARA varför, men låt användaren\n  skriva rättelsen själv.\n- Korta kodexempel på en eller två rader är bra för att visa en princip.\n- Ber användaren uttryckligen om en färdig lösning, förklara kort varför du hellre\n  vägleder — och ge sedan så mycket struktur att de kommer vidare på egen hand.\n- Avsluta gärna med en fråga eller ett förslag som leder vidare.\n\n{fakta}",
   ai_fakta: "Användaren arbetar i Pytho, en interaktiv Python-kurs i webbläsaren.\nKoden körs i Pytho: Python via Pyodide inuti en webbläsare.\nDetta gäller i miljön:\n- open() skriver till ett filsystem i minnet, inte till hårddisken. Filer försvinner vid omladdning.\n- Python kan inte läsa filer från datorn. Man använder data.oppna_fil() eller data.oppna_csv() som visar en filväljare.\n- data.download(filnamn) laddar ner en fil till datorn.\n- Nätverk går bara via data.fetch_json/fetch_text/fetch_csv, och bara mot servrar som tillåter CORS.\n- Inget pip install. Paket som finns: numpy, pandas, matplotlib, scikit-learn, xgboost, nltk, sqlite3 och standardbiblioteket.\n- nltk.download() fungerar INTE (inget nätverk från Python). Snowball-stemmern fungerar utan nedladdning.\n- pygame, tkinter, requests och GPU/CUDA fungerar inte.\n- 3D görs med modulen scene (scene.cube, scene.bar, scene.panel, scene.chart_panel med flera).\n- input() fungerar och frågar i utskriftsrutan.\n- En oändlig loop låser sidan; man måste ladda om.\nFöreslå aldrig något av det som inte fungerar.",
   start: "\n          <p class=\"valkomst\">Välkommen till Pytho</p>\n          <p class=\"startversion\" data-version></p>\n          <p class=\"ingress\">En riktig Python-tolk som kör inuti webbläsaren. Ingen installation, inget konto — koden körs på din egen dator. 29 kapitel tar dig från din första utskrift till hur en språkmodell fungerar inuti.</p>\n\n          <div class=\"snabbstart\">\n            <strong>Kom igång på en minut</strong>\n            <ol>\n              <li>Välj <strong>Kapitel 1</strong> i listan till vänster.</li>\n              <li>Läs förklaringen här nere och koden i rutan ovanför.</li>\n              <li>Tryck <kbd>Kör</kbd> eller <kbd>Ctrl</kbd> + <kbd>Enter</kbd>.</li>\n              <li>Ändra något i koden och kör igen. Det är så man lär sig.</li>\n            </ol>\n          </div>\n\n          <h3>Vad du kommer att bygga</h3>\n          <div class=\"delar\">\n            <div class=\"del-kort\">\n              <h4>Grunderna</h4>\n              <span class=\"spann\">Kapitel 1–5</span>\n              <p>Utskrift, variabler och datatyper, frågor till användaren, villkor och loopar. Allt annat vilar på det här.</p>\n            </div>\n            <div class=\"del-kort\">\n              <h4>Samlingar</h4>\n              <span class=\"spann\">Kapitel 6–9</span>\n              <p>Listor, text, dictionaries — och till sist filer, CSV och en riktig databas med sqlite3.</p>\n            </div>\n            <div class=\"del-kort\">\n              <h4>Bygga struktur</h4>\n              <span class=\"spann\">Kapitel 10–13</span>\n              <p>Egna funktioner, felhantering som inte kraschar, färdiga moduler, och klasser som håller ihop data och beteende.</p>\n            </div>\n            <div class=\"del-kort\">\n              <h4>Algoritmer</h4>\n              <span class=\"spann\">Kapitel 14–17</span>\n              <p>Sortering, binärsökning och rekursion. Du mäter också varför ett smart recept slår ett rakt igenom-recept tusenfalt.</p>\n            </div>\n            <div class=\"del-kort\">\n              <h4>Projekt</h4>\n              <span class=\"spann\">Kapitel 18–21</span>\n              <p>Ett gissningsspel, och sedan 3D-grafik: snurrande kuber, fordon och djur, en hel liten värld — och en Minecraft-artad voxelvärld av nio tusen kuber.</p>\n            </div>\n            <div class=\"del-kort\">\n              <h4>Maskininlärning</h4>\n              <span class=\"spann\">Kapitel 22–25</span>\n              <p>Träna en modell som lär sig regler själv, göra text till siffror, bygga egna embeddings och hämta öppna data från nätet.</p>\n            </div>\n            <div class=\"del-kort\">\n              <h4>Slutprojekt</h4>\n              <span class=\"spann\">Kapitel 26–29</span>\n              <p>Sveriges väder i 3D med riktig SMHI-data, modeller du kan se, en egen språkmodell — och mekanismen bakom transformers.</p>\n            </div>\n          </div>\n\n          <div class=\"tva\">\n            <div>\n              <h3>Spara ditt arbete</h3>\n              <p><kbd>Spara</kbd> skriver koden till en riktig <code>.py</code>-fil på datorn och <kbd>Öppna fil</kbd> hämtar tillbaka den. Du kan också dra in en fil direkt i kodrutan.</p>\n              <p>I Chrome och Edge sparas den tillbaka till samma ställe varje gång. I Firefox och Safari hamnar den i Hämtade filer — samma resultat, ett extra steg.</p>\n              <h3>AI-hjälp</h3>\n              <p>Strömbrytaren uppe till höger kopplar in en språkmodell som förklarar kod och felmeddelanden, och som du kan chatta med om kapitlet du arbetar i. Den ger ledtrådar och förklaringar snarare än färdiga lösningar — så att du behåller greppet om koden. Ollama och LM Studio fungerar lokalt utan nyckel.</p>\n            </div>\n            <div>\n              <h3>Bra att veta</h3>\n              <p>Filerna du skapar med <code>open()</code> ligger inuti webbläsaren och försvinner när du laddar om sidan. Vill du ut på riktigt använder du <code>data.download()</code>.</p>\n              <p>En loop som snurrar för evigt låser sidan, eftersom Python och webbsidan delar på samma motor. Ladda om om det händer — och spara innan du kör något med <code>while</code> i.</p>\n              <p>Vissa kapitel hämtar paket eller data från nätet första gången. Då syns nedladdningen i Utskrift.</p>\n            </div>\n          </div>\n\n          <h3>När du vuxit ur Pytho</h3>\n          <p>Nästan allt här fungerar oförändrat i ett vanligt Python på datorn. Ladda ner från python.org och skriv i Thonny eller VS Code — då får du riktiga filer, en stoppknapp som fungerar, och alla bibliotek som finns. Det är tio minuters installation, och kapitel 12 berättar vad som inte följer med.</p>\n        </div>",
-  om: "\n    <h2 class=\"dialog-rubrik\" id=\"om-rubrik\">Om Pytho</h2>\n    <p class=\"dialog-ingress\" data-version></p>\n    <p class=\"om-text\">Pytho är utvecklat av Gabriel Westman.</p>\n    <p class=\"om-text\">Om du är intresserad av att använda applikationen för\n      utbildning eller undervisning — ta kontakt via\n      <a href=\"https://www.linkedin.com/in/gabriel-westman-08a708206/\"\n         target=\"_blank\" rel=\"noopener\">LinkedIn</a>.</p>\n    <p class=\"om-copyright\">Copyright Gabriel Westman 2026</p>\n    <div class=\"dialog-fot\">\n      <span class=\"ai-status\">Python körs lokalt i din webbläsare</span>\n      <button class=\"knapp kor\" id=\"om-stang\">Stäng</button>\n    </div>",
+  om: "\n    <h2 class=\"dialog-rubrik\" id=\"om-rubrik\">Om Pytho</h2>\n    <p class=\"dialog-ingress\" data-version></p>\n    <p class=\"om-text\">Pytho är utvecklat av Gabriel Westman.</p>\n    <p class=\"om-text\">Om du är intresserad av att använda applikationen för\n      utbildning eller undervisning — ta kontakt via\n      <a href=\"https://www.linkedin.com/in/gabriel-westman-08a708206/\"\n         target=\"_blank\" rel=\"noopener\">LinkedIn</a>.</p>\n    <p class=\"om-copyright\">Copyright Gabriel Westman 2026</p>\n    <div class=\"dialog-fot\">\n      <span class=\"ai-status\">Pytho körs lokalt i din webbläsare</span>\n      <button class=\"knapp kor\" id=\"om-stang\">Stäng</button>\n    </div>",
   ai_dialog: "\n    <h2 class=\"dialog-rubrik\" id=\"ai-dialog-rubrik\">Koppla in AI-hjälpen</h2>\n    <p class=\"dialog-ingress\">Välj en språkmodell att arbeta mot. Anslutningen måste\n      fungera innan hjälpen aktiveras.</p>\n\n    <div class=\"ai-rad\">\n      <label for=\"ai-leverantor\">Tjänst</label>\n      <select id=\"ai-leverantor\">\n        <option value=\"ollama\">Ollama (lokalt på din dator)</option>\n        <option value=\"lmstudio\">LM Studio (lokalt)</option>\n        <option value=\"mistral\">Mistral (Frankrike)</option>\n        <option value=\"openai-kompatibel\">Annan OpenAI-kompatibel</option>\n        <option value=\"anthropic\">Anthropic</option>\n        <option value=\"openai\">OpenAI</option>\n      </select>\n    </div>\n    <div class=\"ai-rad\">\n      <label for=\"ai-url\">Adress</label>\n      <input type=\"text\" id=\"ai-url\" spellcheck=\"false\">\n    </div>\n    <div class=\"ai-rad\">\n      <label for=\"ai-modell\">Modell</label>\n      <input type=\"text\" id=\"ai-modell\" spellcheck=\"false\">\n    </div>\n    <div class=\"ai-rad\" id=\"ai-nyckel-rad\">\n      <label for=\"ai-nyckel\">API-nyckel</label>\n      <input type=\"password\" id=\"ai-nyckel\" spellcheck=\"false\" autocomplete=\"off\"\n             placeholder=\"lagras bara i minnet, aldrig på disk\">\n    </div>\n\n    <p class=\"ai-not\">Nyckeln sparas aldrig — skriv in den igen om du laddar om sidan.\n      Ollama och LM Studio kör lokalt och behöver ingen nyckel.</p>\n\n    <p class=\"dialog-fel\" id=\"ai-dialog-fel\" hidden></p>\n\n    <div class=\"dialog-fot\">\n      <span class=\"ai-status\" id=\"ai-status\">Inte ansluten</span>\n      <button class=\"knapp\" id=\"ai-avbryt\">Avbryt</button>\n      <button class=\"knapp kor\" id=\"ai-testa\">Anslut</button>\n    </div>",
   startkod: [
   "# Välkommen till Pytho!",
@@ -209,7 +245,7 @@ window.PYTHONLAB_SPRAK.sv = {
 ],
   kapitel: [
   {
-    del: "Grunderna", titel: "Skriva ut", fil: "01_skriva_ut.py",
+    del: "Grunderna", titel: "Skriva ut", fil: "kap01_skriva_ut.py",
     kod: [
       "# Allt efter ett #-tecken är en kommentar.",
       "# Python läser den inte — den är till för människor.",
@@ -239,7 +275,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> skriv fyra rader som presenterar dig — namn, ålder, favoritsak och en hälsning. Byt sedan plats på två rader och kör igen. Utskriften byter plats: ordningen i koden <em>är</em> programmet.</div>`
   },
   {
-    del: "Grunderna", titel: "Variabler och datatyper", fil: "02_variabler.py",
+    del: "Grunderna", titel: "Variabler och datatyper", fil: "kap02_variabler.py",
     kod: [
       "# En variabel är en låda med en etikett på.",
       "namn = \"Alex\"          # str   — text",
@@ -277,7 +313,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> skapa variabler för en films titel, längd i minuter och ditt betyg (1–5). Skriv ut en snygg rad med en f-sträng. Räkna sedan ut längden i timmar med <code>minuter / 60</code> — vilken typ blir svaret?</div>`
   },
   {
-    del: "Grunderna", titel: "Fråga användaren", fil: "03_input.py",
+    del: "Grunderna", titel: "Fråga användaren", fil: "kap03_input.py",
     kod: [
       "# input() pausar programmet och väntar på ett svar.",
       "namn = input(\"Vad heter du? \")",
@@ -311,7 +347,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> bygg en räknare som frågar efter två tal och skriver ut summa, differens och produkt. Testa sedan med bokstäver i stället för siffror och läs felmeddelandet noga.</div>`
   },
   {
-    del: "Grunderna", titel: "Villkor", fil: "04_villkor.py",
+    del: "Grunderna", titel: "Villkor", fil: "kap04_villkor.py",
     kod: [
       "temperatur = 17",
       "",
@@ -350,7 +386,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> gör ett betygsprogram som frågar efter poäng (0–100) och svarar A, C eller F. Lägg sedan till en gräns för E och kontrollera att villkoren står i rätt ordning.</div>`
   },
   {
-    del: "Grunderna", titel: "Loopar", fil: "05_loopar.py",
+    del: "Grunderna", titel: "Loopar", fil: "kap05_loopar.py",
     kod: [
       "# for: när du vet hur många varv",
       "for i in range(5):",
@@ -399,7 +435,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> skriv ut sjuans tabell med en for-loop. Gör sedan en while-loop som fortsätter fråga efter tal tills användaren skriver 0.</div>`
   },
   {
-    del: "Samlingar", titel: "Listor", fil: "06_listor.py",
+    del: "Samlingar", titel: "Listor", fil: "kap06_listor.py",
     kod: [
       "vanner = [\"Sam\", \"Noor\", \"Elis\"]",
       "",
@@ -437,7 +473,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> gör en lista med tio slumptal (<code>random.randint</code>), skriv ut medelvärdet, och bygg sedan en ny lista som bara innehåller de tal som är över medelvärdet.</div>`
   },
   {
-    del: "Samlingar", titel: "Strängar", fil: "07_strangar.py",
+    del: "Samlingar", titel: "Strängar", fil: "kap07_strangar.py",
     kod: [
       "text = \"Python är kul\"",
       "",
@@ -479,7 +515,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> skriv ett program som frågar efter en mening och rapporterar antal tecken, antal ord och meningen baklänges. Baklänges får du med utsnittet <code>text[::-1]</code> — steget −1 betyder "gå åt andra hållet".</div>`
   },
   {
-    del: "Samlingar", titel: "Dictionary", fil: "08_dictionary.py",
+    del: "Samlingar", titel: "Dictionary", fil: "kap08_dictionary.py",
     kod: [
       "# En dictionary parar ihop nyckel och värde.",
       "elev = {",
@@ -522,7 +558,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> bygg en telefonbok där man kan lägga till namn och nummer, slå upp ett namn, och lista alla poster. Använd en <code>while</code>-loop med en meny.</div>`
   },
   {
-    del: "Samlingar", titel: "Filer och databaser", fil: "09_filer.py",
+    del: "Samlingar", titel: "Filer och databaser", fil: "kap09_filer.py",
     kod: [
       "import csv",
       "import json",
@@ -674,7 +710,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> bygg en dagbok i sqlite3. En funktion lägger till datum och text, en annan hämtar alla poster, och en tredje söker efter ett ord med <code>WHERE text LIKE ?</code> och mönstret <code>"%sökord%"</code>. Exportera sedan hela dagboken till CSV och ladda ner den — och nästa gång du öppnar Pytho, läs tillbaka den med <code>data.open_csv()</code> och fyll databasen igen. Då har du en dagbok som faktiskt överlever.</div>`
   },
   {
-    del: "Bygga struktur", titel: "Funktioner", fil: "10_funktioner.py",
+    del: "Bygga struktur", titel: "Funktioner", fil: "kap10_funktioner.py",
     kod: [
       "def halsa(namn):",
       "    return f\"Tjena {namn}!\"",
@@ -717,7 +753,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> gör om ditt primtalstest till en funktion <code>ar_primtal(tal)</code> som returnerar <code>True</code> eller <code>False</code>. Använd den sedan i en loop för att lista alla primtal under 100.</div>`
   },
   {
-    del: "Bygga struktur", titel: "Fånga fel", fil: "11_felhantering.py",
+    del: "Bygga struktur", titel: "Fånga fel", fil: "kap11_felhantering.py",
     kod: [
       "# Utan skydd kraschar programmet på fel inmatning.",
       "try:",
@@ -770,7 +806,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> skriv funktionen <code>fraga_tal(text, minsta, storsta)</code> som frågar tills svaret är ett heltal inom intervallet, och returnerar det. Använd den sedan i gissningsspelet.</div>`
   },
   {
-    del: "Bygga struktur", titel: "Moduler", fil: "12_moduler.py",
+    del: "Bygga struktur", titel: "Moduler", fil: "kap12_moduler.py",
     kod: [
       "import random",
       "import math",
@@ -812,7 +848,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> bygg sten–sax–påse mot datorn. Använd <code>random.choice</code>, håll poäng i variabler, och spela bäst av fem.</div>`
   },
   {
-    del: "Bygga struktur", titel: "Klasser", fil: "13_klasser.py",
+    del: "Bygga struktur", titel: "Klasser", fil: "kap13_klasser.py",
     kod: [
       "class Hund:",
       "    def __init__(self, namn, alder):",
@@ -853,7 +889,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> skriv en klass <code>Konto</code> med metoderna <code>satt_in</code>, <code>ta_ut</code> och <code>saldo</code>. Låt <code>ta_ut</code> vägra om pengarna inte räcker. Skapa två konton och kontrollera att de inte påverkar varandra.</div>`
   },
   {
-    del: "Algoritmer", titel: "Sortera och söka", fil: "14_sortera_soka.py",
+    del: "Algoritmer", titel: "Sortera och söka", fil: "kap14_sortera_soka.py",
     kod: [
       "# Bubbelsortering — enkel att förstå, långsam i praktiken",
       "def bubbelsortera(lista):",
@@ -906,7 +942,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> lägg en räknare i båda sökfunktionerna som räknar antal jämförelser. Sök efter samma tal i en lista med 10 000 element och jämför siffrorna.</div>`
   },
   {
-    del: "Algoritmer", titel: "Rekursion", fil: "15_rekursion.py",
+    del: "Algoritmer", titel: "Rekursion", fil: "kap15_rekursion.py",
     kod: [
       "# En funktion som anropar sig själv",
       "def fakultet(n):",
@@ -962,7 +998,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> skriv en rekursiv funktion som vänder en sträng baklänges, och en som räknar hur många gånger ett tecken finns i en text. Använd inga loopar.</div>`
   },
   {
-    del: "Algoritmer", titel: "Snabba algoritmer", fil: "16_snabba_algoritmer.py",
+    del: "Algoritmer", titel: "Snabba algoritmer", fil: "kap16_snabba_algoritmer.py",
     kod: [
       "import time",
       "import math",
@@ -1015,7 +1051,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> kör mätningen med gränsen 5000, 20000 och 100000. Skriv upp kvoten varje gång. Vad händer med den när gränsen växer?</div>`
   },
   {
-    del: "Algoritmer", titel: "Listuttryck", fil: "17_listuttryck.py",
+    del: "Algoritmer", titel: "Listuttryck", fil: "kap17_listuttryck.py",
     kod: [
       "tal = [4, 17, 2, 9, 30, 11]",
       "",
@@ -1067,7 +1103,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> skriv om ditt primtalstest med <code>all(...)</code> i stället för loop med flagga. Sortera sedan en lista med namn efter längd i stället för bokstavsordning.</div>`
   },
   {
-    del: "Projekt", titel: "Bygg ett spel", fil: "18_projekt.py",
+    del: "Projekt", titel: "Bygg ett spel", fil: "kap18_projekt.py",
     kod: [
       "import random",
       "",
@@ -1124,7 +1160,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> lägg till svårighetsgrader — lätt är 1–50 med 8 gissningar, svår är 1–500 med 9. Låt spelaren välja i en meny, och spara bästa resultatet per nivå i en dictionary.</div>`
   },
   {
-    del: "Projekt", titel: "3D-grafik", fil: "19_tre_dimensioner.py",
+    del: "Projekt", titel: "3D-grafik", fil: "kap19_tre_dimensioner.py",
     kod: [
       "import scene",
       "import math",
@@ -1185,7 +1221,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> bygg ett solsystem. En stor gul sol i mitten, tre planeter i olika avstånd, och låt de yttre gå långsammare än de inre — dela vinkelhastigheten med avståndet. Lägg sedan en måne som cirklar runt en av planeterna.</div>`
   },
   {
-    del: "Projekt", titel: "Bygg en värld", fil: "20_varlden.py",
+    del: "Projekt", titel: "Bygg en värld", fil: "kap20_varlden.py",
     kod: [
       "import scene",
       "import math",
@@ -1268,7 +1304,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> bygg din egen stad. En rad med skyskrapor längs ena kanten, hus på andra, och trafik emellan. Låt sedan två bilar köra i cirklar med olika radie — och se om du kan få dem att mötas i mitten utan att krocka.</div>`
   },
   {
-    del: "Projekt", titel: "Allt är kuber", fil: "21_allt_ar_kuber.py",
+    del: "Projekt", titel: "Allt är kuber", fil: "kap21_allt_ar_kuber.py",
     kod: [
       "import scene",
       "",
@@ -1760,7 +1796,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> börja smått — flytta en stuga genom att ändra ett talpar i <code>OBJEKT</code>, och gräv sedan en damm genom att byta några siffror i <code>MARK</code> mot <code>2</code>. Rita därefter ett eget objekt: lägg till en post i <code>RITNINGAR</code> med några koordinater, sätt ut den i <code>OBJEKT</code>, och kör. Vill du utmana dig — ändra <code>star_i_skugga</code> så att solen står i sydost i stället.</div>`
   },
   {
-    del: "Maskininlärning", titel: "Träna en modell", fil: "22_maskininlarning.py",
+    del: "Maskininlärning", titel: "Träna en modell", fil: "kap22_maskininlarning.py",
     kod: [
       "# Första gången tar det en stund — paketen laddas ner.",
       "import numpy as np",
@@ -1877,7 +1913,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> ändra <code>hund_vikt</code> till <code>slump.normal(8, 7, ANTAL_HUNDAR)</code> så att hundarna väger nästan lika mycket som katterna. Titta först på histogrammet: färgerna överlappar nu nästan helt. Kör sedan träningen — hur mycket faller träffsäkerheten, och vilken egenskap tar över som viktigast? Testa också att ta bort <code>hund_ljud</code> och <code>katt_ljud</code> helt.</div>`
   },
   {
-    del: "Maskininlärning", titel: "Språkbehandling", fil: "23_sprak.py",
+    del: "Maskininlärning", titel: "Språkbehandling", fil: "kap23_sprak.py",
     kod: [
       "import nltk",
       "from nltk.tokenize import RegexpTokenizer",
@@ -1938,7 +1974,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> klistra in en längre text — en nyhetsartikel eller några sidor ur en bok — och kör samma pipeline. Vilka sex stammar toppar listan? Bygg sedan ihop kapitel 22 och 23: räkna hur ofta positiva och negativa ord förekommer i filmrecensioner och låt XGBoost gissa betyget.</div>`
   },
   {
-    del: "Maskininlärning", titel: "Ord som siffror", fil: "24_ord_som_siffror.py",
+    del: "Maskininlärning", titel: "Ord som siffror", fil: "kap24_ord_som_siffror.py",
     kod: [
       "import numpy as np",
       "import matplotlib.pyplot as plt",
@@ -2052,7 +2088,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> skriv tjugo egna meningar om två tydligt skilda ämnen — säg fotboll och matlagning — och kör om. Hamnar orden i två grupper på kartan? Testa sedan att ändra <code>FONSTER</code> från 2 till 1 och till 5, och se hur mycket fönsterstorleken påverkar resultatet.</div>`
   },
   {
-    del: "Maskininlärning", titel: "Hämta data från nätet", fil: "25_oppna_data.py",
+    del: "Maskininlärning", titel: "Hämta data från nätet", fil: "kap25_oppna_data.py",
     kod: [
       "import data",
       "import numpy as np",
@@ -2159,7 +2195,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> byt parameter i adressen till 7 (nederbörd) eller 4 (vind) och kör om — vilken storhet varierar mest över landet? Slå sedan ihop två hämtningar: läs både temperatur och vind, para ihop stationerna på namn, och undersök om det är kallare där det blåser mer.</div>`
   },
   {
-    del: "Slutprojekt", titel: "Väderkarta i 3D", fil: "26_vaderkarta.py",
+    del: "Slutprojekt", titel: "Väderkarta i 3D", fil: "kap26_vaderkarta.py",
     kod: [
       "import data",
       "import scene",
@@ -2286,7 +2322,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> byt parameter 1 mot 4 (vindhastighet) eller 6 (luftfuktighet) och se hur kartan ändrar karaktär. Bygg sedan om så att <em>höjden</em> visar temperatur och <em>färgen</em> vind — två storheter i samma bild.</div>`
   },
   {
-    del: "Slutprojekt", titel: "Modellen i rummet", fil: "27_modell_i_rummet.py",
+    del: "Slutprojekt", titel: "Modellen i rummet", fil: "kap27_modell_i_rummet.py",
     kod: [
       "import data",
       "import scene",
@@ -2499,7 +2535,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> lägg till longitud i diagrammet — ser du att kusten avviker? Byt sedan den gula ytan till trädmodellens gissningar i stället för den linjära. Följer den de gröna staplarna bättre? Och lägg till en tredje egenskap, till exempel stationens höjd över havet om du hittar den i SMHI:s data.</div>`
   },
   {
-    del: "Slutprojekt", titel: "En liten språkmodell", fil: "28_spraakmodell.py",
+    del: "Slutprojekt", titel: "En liten språkmodell", fil: "kap28_spraakmodell.py",
     kod: [
       "import data",
       "import random",
@@ -2709,7 +2745,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <div class="uppgift"><strong>Uppgift:</strong> byt tillbaka till bigram genom att använda bara ett ord som nyckel, och jämför både språkkvaliteten och hur stor andel som blir nytt. Bygg sedan ut korpusen — hämta fler exempelvarningar eller klistra in en egen text — och se om modellen blir bättre av mer data.</div>`
   },
   {
-    del: "Slutprojekt", titel: "Transformers", fil: "29_attention.py",
+    del: "Slutprojekt", titel: "Transformers", fil: "kap29_attention.py",
     kod: [
       "import data",
       "import numpy as np",

@@ -13,13 +13,28 @@ window.PYTHONLAB_SPRAK.en = {
   beskrivning: "Pytho is an interactive Python course that runs entirely in your browser. 29 chapters, from your first print statement to 3D graphics, machine learning and transformers.",
 
   ui: {
+    devfiler: "Developer files ({antal})",
+    scene_demo: "# scene_demo.py — the scene module, which only exists in Pytho.\n#\n# Run this file, then drag with the mouse in the 3D scene tab.\n# Everything below runs; comment out what you do not want to see.\n\nimport scene\nimport math\n\n# ===== 1. Start =====\nscene.start()                       # creates the scene, always first\nscene.background(\"#0e1c33\")\nscene.ground(size=30, color=\"#1b3255\")\nscene.camera(0, 6, 16)              # where the camera stands\nscene.look_at(0, 1, 0)              # what it looks at\n\n# ===== 2. Basic shapes =====\n# Each one returns an object you can control.\ncube = scene.cube(-6, 1, 0, size=1.4, color=\"#ffc94a\")\nball = scene.sphere(-3, 1, 0, radius=0.7, color=\"#6ee7b7\")\ncrate = scene.box(0, 1, 0, width=2, height=1, depth=1, color=\"#8fb4ff\")\nroll = scene.cylinder(3, 1, 0, radius=0.5, height=2, color=\"#dfe8fa\")\nspike = scene.cone(6, 1, 0, radius=0.7, height=2, color=\"#ff7d6b\")\n\n# ===== 3. Methods on an object =====\ncube.spin(0.004, 0.008, 0)          # how much it turns per frame\nball.move(-3, 2, 0)                 # a new position\ncrate.rotate(0, 0.4, 0)             # turn to an angle, in radians\nroll.scale(1.3)\nspike.color(\"#e04b4b\")\n\n# ===== 4. Ready-made models =====\n# Same arguments for all of them: x, y, z, color, size\ncar = scene.car(-8, 0, 6, color=\"#ff7d6b\")\ntruck = scene.truck(-4, 0, 6)\nplane = scene.plane(0, 8, 6)\nrocket = scene.rocket(4, 0, 6)\ndog = scene.dog(8, 0, 6, size=0.8)\nbird = scene.bird(-8, 5, -6)\nfish = scene.fish(-4, 1, -6)\nhouse = scene.house(0, 0, -8)\nskyscraper = scene.skyscraper(5, 0, -8)\ntower = scene.tower(9, 0, -8)\ntree = scene.tree(-11, 0, -3, size=1.2)\n\n# The moving models each have a method that starts the motion.\ncar.drive(6)                        # the wheels turn, the car rolls forward\ntruck.drive(3)\nplane.fly(9)                        # the propeller spins\ndog.walk(2)                         # the legs move\nbird.flap(3)\nfish.swim(2)\nrocket.ignite(4)                    # the flame lights\n\n# Forward always means where the model is facing. For a circular path,\n# turn the model a little every frame — see section 7.\n\n# ===== 5. Data in the room =====\nbar = scene.bar(-10, -10, height=3, color=\"#6ee7b7\", width=0.5)\nbar.set_height(5)                   # change it afterwards\n\nmarker = scene.marker(0, 3, 0, color=\"#ffc94a\", size=1)\nline = scene.line(-5, 0.1, -5, 5, 0.1, -5, color=\"#8fb4ff\", thickness=0.05)\n\nsun = scene.sun(0, 14, -10, radius=1.2)\ncloud = scene.cloud(-6, 9, -4, size=1.5)\n\n# An outline from a list of (x, z) points\npoints = [(-2, -2), (2, -2), (2, 2), (-2, 2)]\nscene.outline(points, color=\"#8fb4ff\", thickness=0.08, y=0.06, closed=True)\n\n# ===== 6. Matplotlib on a surface =====\n# A figure becomes a texture on a panel or a screen in the room.\n#\n# import matplotlib.pyplot as plt\n# fig, ax = plt.subplots(figsize=(5, 3))\n# ax.plot([1, 2, 3], [2, 5, 3])\n# scene.chart_panel(0, 3, -12, width=6, height=3.4, figure=fig)\n# scene.chart_screen(0, 6, -14, width=12, height=6.5, figure=fig,\n#                    light=True, tilt=0.0, turn=0)\n\n# ===== 7. Animation =====\n# The function is called about 60 times a second with the time in seconds.\ndef update(t):\n    ball.move(-3, 1 + math.sin(t * 2) * 0.5, 0)\n    car.rotate(0, t * 0.7, 0)                     # drives in a circle\n    bird.rotate(0, -math.pi / 2 - t, 0)           # face where it is flying\n    bird.move(math.cos(t) * 7, 5 + math.sin(t * 2), math.sin(t) * 7)\n\nscene.every_frame(update)           # pass the function WITHOUT parentheses\n\n# scene.stop()                      # stops the animation\n# scene.reset()                     # back to the starting view\n# scene.fullscreen()                # fullscreen, Escape leaves it\n\n# ===== 8. The outline of Sweden =====\n# scene.sweden takes your own conversion from degrees to scene coordinates.\n#\n# def to_scene(lat, lon):\n#     return ((lon - 17.5) * 2.2, (lat - 62.5) * -2.2)\n#\n# scene.sweden(to_scene, color=\"#7fa4dd\", thickness=0.11, y=0.08, islands=True)\n# scene.in_sweden(59.3, 18.1)       # True if the point is inside the country\n\nprint(\"Done. Open the 3D scene tab.\")\nprint(\"Drag with the mouse to look around, scroll to fly.\")\nprint(\"The arrow keys fly like a drone: forward is wherever you are looking.\")\n",
+    kapitelfiler: "Chapter files ({antal})",
+    huvudfil: "start.py",
+    visa_alla: "Show all {antal} files",
+    visa_farre: "Show fewer",
+    dev: "Developer mode",
+    dev_info: "Hides the chapters and turns Pytho into a small development environment. Your code stays put.",
+    tom_fil: "Clear file",
+    filer_rubrik: "Files in your workspace",
+    ny_fil: "+ New file",
+    inga_filer: "No files yet. Everything you write lands here and can be imported.",
+    ta_bort: "Delete",
+    repl: "Type an expression and press Enter …",
+    filmall: "# {namn} — import it with:  import {modul}\\n\\n\\ndef greet(name):\\n    return f\"Hi {{name}}!\"\\n",
+    filtext: "<h3>Your files</h3><p>This file lives in your workspace and is saved in the browser. Run a program in any chapter and write <code>import {modul}</code> to use it.</p><p>Everything you write here survives a reload.</p>",
     felsakert_info: "A loop guard that lets the program be stopped and keeps it from freezing the page.",
     fragefalt: "Ask a question about the code or the chapter …",
     anslutning: "Connection",
     rensa_samtal: "Clear the chat",
     skicka: "Send",
     nytt_filnamn: "new_program.py",
-    ny: "New",
     aterstall: "Reset",
     oppna: "Open file",
     spara: "Save",
@@ -56,6 +71,20 @@ window.PYTHONLAB_SPRAK.en = {
   },
   scen: {
     tom: "No scene running. Call <code>scene.start()</code> in a program and it will appear here.",
+  },
+  chip_dev: {
+    kapitel: "Review this file",
+    kod: "Explain the code",
+    markering: "Explain the selection",
+    andra: "Suggest a rewrite",
+    nasta: "Write tests",
+  },
+  uppdrag_dev: {
+    kapitel: "Review this file the way a colleague would. What is unclear, what could break, and what would you change first?",
+    kod: "Go through the code and explain what each part does.",
+    markering: "Explain the selected part of the code, and say whether anything in it could go wrong.",
+    andra: "Suggest a rewrite of this code that is clearer or shorter without changing the behaviour. Show it.",
+    nasta: "Write tests for this code using unittest. Cover the normal case and at least one edge case.",
   },
   ord: {
     tips: "Hint: ",
@@ -104,6 +133,8 @@ window.PYTHONLAB_SPRAK.en = {
   },
 
   msg: {
+    filfel: "Could not write out your files: ",
+    arbetsyta_aterstalld: "Your workspace was restored — {antal} chapters and {filer} files of your own are still here.",
     syntaxfel: "Syntax error on line {rad}, character {kolumn}: {text}",
     hamtning_misslyckades: "could not fetch ",
     tidsgrans: "timed out: ",
@@ -124,16 +155,20 @@ window.PYTHONLAB_SPRAK.en = {
   },
 
   fraga: {
-    toma: "Clear the editor? Whatever you wrote in {plats} will be lost.",
+    ersatt_fil: "{namn} is already in your workspace. Replace it?",
+    ej_importerbar: "{namn} cannot be imported — a module name may not start with a digit. Load it anyway?",
+    tom_fil: "Clear {namn}? The contents will be lost.",
+    nytt_filnamn: "What should the file be called?",
+    ogiltigt_namn: "File names may only contain letters, digits, dots and hyphens.",
     aterstall: "Restore the original code for {plats}? Anything you wrote or loaded will be lost.",
     radera_fil: "Delete {namn}?",
     filnamn: "What should the file be called?"
   },
 
   chatt: {
+    ny: "New chat. Ask a question about the code you have open.",
     nadde_inte: "Could not reach {url}. Are you running a local model? Ollama has to be started with OLLAMA_ORIGINS=\"*\" to let web pages in. A service on the internet may block calls from browsers (CORS).",
     ny_kapitel: "New chat for {plats}. Ask a question, or use the buttons above.",
-    ny: "New chat. Ask a question about the code you have open.",
     ingen_markering_rubrik: "Nothing selected",
     ingen_markering: "Select a piece of code in the editor above and that part will be explained.",
     tanker: "Thinking …",
@@ -212,6 +247,7 @@ window.PYTHONLAB_SPRAK.en = {
     inga_filer: "No files yet. Create one with open(..., \"w\")."
   },
 
+  ai_roll_dev: "You are an experienced Python developer sitting alongside and helping out.\n\nTone:\n- Write in English, briefly and concretely. Straight to the point.\n- Talk as you would to a colleague. No cheering, no praise.\n- If you need mathematics, write it as LaTeX between $ … $ or $$ … $$.\n\nHow you help:\n- Give direct answers. If code is needed, write the code — this is not a course.\n- Point out real problems: edge cases, error handling, names that mislead.\n- Suggest the simplest thing that works, not the most general.\n- Say when something is wrong, even if that was not what was asked.\n- If you are unsure, say so rather than guessing.\n\n{fakta}",
   ai_roll: "You are a knowledgeable and patient Python tutor. The user may be a complete beginner, an experienced programmer who is new to Python, or somewhere in between — and may be any age.\n\nTone and level:\n- Write in English, plainly and to the point. No more than 150 words unless more is needed.\n- Address the user as a capable adult. No cheering, no pet names, no lavish praise. Write as you would to a colleague.\n- Read the level from the questions and the code, and adjust as you go. If the question is basic, explain from the ground up without being childish. If it is advanced, skip the obvious.\n- Use correct technical terms, but explain them the first time they appear.\n- If you need mathematics: write it as LaTeX between $ … $ inline or $$ … $$ on its own line. The chat renders exponents, subscripts, fractions, roots, Greek letters and common operators. Keep expressions simple — matrices and multi-line layouts are not rendered.\n- Comparisons and examples should make sense at any age. Avoid analogies drawn from school or from a child's daily life.\n\nHow you tutor:\n- Give explanations and hints, not finished solutions. Do not write the whole program.\n- When there is a bug: point out WHERE the fault is and EXPLAIN why, but let the user write the correction.\n- Short code examples of one or two lines are good for showing a principle.\n- If the user explicitly asks for a finished solution, briefly explain why you would rather guide them — then give enough structure that they can get there themselves.\n- Feel free to end with a question or a suggestion that leads onwards.\n\n{fakta}",
 
   ai_fakta: "The user is working in Pytho, an interactive Python course in the browser.\nThe code runs in Pytho: Python via Pyodide inside a web browser.\nThis is what applies in this environment:\n- open() writes to an in-memory file system, not to the hard drive. Files disappear on reload.\n- Python cannot read files from the computer. Use data.open_file() or data.open_csv(), which show a file picker.\n- data.download(filename) downloads a file to the computer.\n- Networking only works through data.fetch_json/fetch_text/fetch_csv, and only against servers that allow CORS.\n- No pip install. Available packages: numpy, pandas, matplotlib, scikit-learn, xgboost, nltk, sqlite3 and the standard library.\n- nltk.download() does NOT work (no network from Python). The Snowball stemmer works without downloads.\n- pygame, tkinter, requests and GPU/CUDA do not work.\n- 3D is done with the scene module (scene.cube, scene.bar, scene.panel, scene.chart_panel and others).\n- input() works and asks in the output pane.\n- An infinite loop freezes the page; you have to reload.\nNever suggest anything from the list of things that do not work.",
@@ -308,7 +344,7 @@ window.PYTHONLAB_SPRAK.en.om = `
          target="_blank" rel="noopener">LinkedIn</a>.</p>
     <p class="om-copyright">Copyright Gabriel Westman 2026</p>
     <div class="dialog-fot">
-      <span class="ai-status">Python runs locally in your browser</span>
+      <span class="ai-status">Pytho runs locally in your browser</span>
       <button class="knapp kor" id="om-stang">Close</button>
     </div>
 `;
@@ -357,7 +393,7 @@ window.PYTHONLAB_SPRAK.en.ai_dialog = `
 /* Engelska kapitel 1-4. */
 window.PYTHONLAB_SPRAK.en.kapitel = [
   {
-    del: "Foundations", titel: "Printing", fil: "01_printing.py",
+    del: "Foundations", titel: "Printing", fil: "ch01_printing.py",
     kod: [
       "# Everything after a # is a comment.",
       "# Python does not read it — it is there for humans.",
@@ -387,7 +423,7 @@ window.PYTHONLAB_SPRAK.en.kapitel = [
       <div class="uppgift"><strong>Exercise:</strong> write four lines introducing yourself — name, age, favourite thing and a greeting. Then swap two lines around and run it again. The output swaps too: the order in the code <em>is</em> the program.</div>`
   },
   {
-    del: "Foundations", titel: "Variables and data types", fil: "02_variables.py",
+    del: "Foundations", titel: "Variables and data types", fil: "ch02_variables.py",
     kod: [
       "# A variable is a box with a label on it.",
       "name = \"Alex\"          # str   — text",
@@ -425,7 +461,7 @@ window.PYTHONLAB_SPRAK.en.kapitel = [
       <div class="uppgift"><strong>Exercise:</strong> create variables for a film's title, length in minutes and your rating (1–5). Print a tidy line with an f-string. Then work out the length in hours with <code>minutes / 60</code> — what type is the answer?</div>`
   },
   {
-    del: "Foundations", titel: "Asking the user", fil: "03_input.py",
+    del: "Foundations", titel: "Asking the user", fil: "ch03_input.py",
     kod: [
       "# input() pauses the program and waits for an answer.",
       "name = input(\"What is your name? \")",
@@ -459,7 +495,7 @@ window.PYTHONLAB_SPRAK.en.kapitel = [
       <div class="uppgift"><strong>Exercise:</strong> build a calculator that asks for two numbers and prints the sum, difference and product. Then try it with letters instead of digits and read the error message carefully.</div>`
   },
   {
-    del: "Foundations", titel: "Conditions", fil: "04_conditions.py",
+    del: "Foundations", titel: "Conditions", fil: "ch04_conditions.py",
     kod: [
       "temperature = 17",
       "",
@@ -502,7 +538,7 @@ window.PYTHONLAB_SPRAK.en.kapitel = [
 /* Engelska kapitel 5-8. */
 window.PYTHONLAB_SPRAK.en.kapitel.push(
   {
-    del: "Foundations", titel: "Loops", fil: "05_loops.py",
+    del: "Foundations", titel: "Loops", fil: "ch05_loops.py",
     kod: [
       "# for: when you know how many rounds",
       "for i in range(5):",
@@ -551,7 +587,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> print the seven times table with a for loop. Then write a while loop that keeps asking for numbers until the user types 0.</div>`
   },
   {
-    del: "Collections", titel: "Lists", fil: "06_lists.py",
+    del: "Collections", titel: "Lists", fil: "ch06_lists.py",
     kod: [
       "friends = [\"Sam\", \"Noor\", \"Elis\"]",
       "",
@@ -589,7 +625,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> make a list of ten random numbers (<code>random.randint</code>), print the average, then build a new list containing only the numbers above that average.</div>`
   },
   {
-    del: "Collections", titel: "Strings", fil: "07_strings.py",
+    del: "Collections", titel: "Strings", fil: "ch07_strings.py",
     kod: [
       "text = \"Python is fun\"",
       "",
@@ -631,7 +667,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> write a program that asks for a sentence and reports the number of characters, the number of words, and the sentence backwards. You get backwards with the slice <code>text[::-1]</code> — the step of −1 means "go the other way".</div>`
   },
   {
-    del: "Collections", titel: "Dictionary", fil: "08_dictionary.py",
+    del: "Collections", titel: "Dictionary", fil: "ch08_dictionary.py",
     kod: [
       "# A dictionary pairs a key with a value.",
       "student = {",
@@ -678,7 +714,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
 /* Engelska kapitel 9-12. */
 window.PYTHONLAB_SPRAK.en.kapitel.push(
   {
-    del: "Collections", titel: "Files and databases", fil: "09_files.py",
+    del: "Collections", titel: "Files and databases", fil: "ch09_files.py",
     kod: [
       "import csv",
       "import json",
@@ -830,7 +866,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> build a diary in sqlite3. One function adds a date and a piece of text, another fetches every entry, and a third searches for a word with <code>WHERE text LIKE ?</code> and the pattern <code>"%word%"</code>. Then export the whole diary to CSV and download it — and next time you open Pytho, read it back with <code>data.open_csv()</code> and refill the database. Then you have a diary that actually survives.</div>`
   },
   {
-    del: "Building structure", titel: "Functions", fil: "10_functions.py",
+    del: "Building structure", titel: "Functions", fil: "ch10_functions.py",
     kod: [
       "def greet(name):",
       "    return f\"Hey {name}!\"",
@@ -873,7 +909,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> turn your prime test into a function <code>is_prime(number)</code> that returns <code>True</code> or <code>False</code>. Then use it in a loop to list every prime below 100.</div>`
   },
   {
-    del: "Building structure", titel: "Catching errors", fil: "11_errors.py",
+    del: "Building structure", titel: "Catching errors", fil: "ch11_errors.py",
     kod: [
       "# Without protection the program crashes on bad input.",
       "try:",
@@ -926,7 +962,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> write the function <code>ask_number(text, lowest, highest)</code> that keeps asking until the answer is a whole number inside the range, and returns it. Then use it in the guessing game.</div>`
   },
   {
-    del: "Building structure", titel: "Modules", fil: "12_modules.py",
+    del: "Building structure", titel: "Modules", fil: "ch12_modules.py",
     kod: [
       "import random",
       "import math",
@@ -972,7 +1008,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
 /* Engelska kapitel 13-16. */
 window.PYTHONLAB_SPRAK.en.kapitel.push(
   {
-    del: "Building structure", titel: "Classes", fil: "13_classes.py",
+    del: "Building structure", titel: "Classes", fil: "ch13_classes.py",
     kod: [
       "class Dog:",
       "    def __init__(self, name, age):",
@@ -1013,7 +1049,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> write a class <code>Account</code> with the methods <code>deposit</code>, <code>withdraw</code> and <code>balance</code>. Make <code>withdraw</code> refuse if there is not enough money. Create two accounts and check that they do not affect each other.</div>`
   },
   {
-    del: "Algorithms", titel: "Sorting and searching", fil: "14_sort_search.py",
+    del: "Algorithms", titel: "Sorting and searching", fil: "ch14_sort_search.py",
     kod: [
       "# Bubble sort — easy to understand, slow in practice",
       "def bubble_sort(values):",
@@ -1066,7 +1102,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> put a counter in both search functions that counts the comparisons. Search for the same number in a list of 10,000 elements and compare the figures.</div>`
   },
   {
-    del: "Algorithms", titel: "Recursion", fil: "15_recursion.py",
+    del: "Algorithms", titel: "Recursion", fil: "ch15_recursion.py",
     kod: [
       "# A function that calls itself",
       "def factorial(n):",
@@ -1122,7 +1158,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> write a recursive function that reverses a string, and one that counts how many times a character appears in a text. Use no loops.</div>`
   },
   {
-    del: "Algorithms", titel: "Fast algorithms", fil: "16_fast_algorithms.py",
+    del: "Algorithms", titel: "Fast algorithms", fil: "ch16_fast_algorithms.py",
     kod: [
       "import time",
       "import math",
@@ -1179,7 +1215,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
 /* Engelska kapitel 17-19. */
 window.PYTHONLAB_SPRAK.en.kapitel.push(
   {
-    del: "Algorithms", titel: "List comprehensions", fil: "17_comprehensions.py",
+    del: "Algorithms", titel: "List comprehensions", fil: "ch17_comprehensions.py",
     kod: [
       "numbers = [4, 17, 2, 9, 30, 11]",
       "",
@@ -1231,7 +1267,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> rewrite your prime test using <code>all(...)</code> instead of a loop with a flag. Then sort a list of names by length rather than alphabetically.</div>`
   },
   {
-    del: "Projects", titel: "Build a game", fil: "18_game.py",
+    del: "Projects", titel: "Build a game", fil: "ch18_game.py",
     kod: [
       "import random",
       "",
@@ -1288,7 +1324,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> add difficulty levels — easy is 1–50 with 8 guesses, hard is 1–500 with 9. Let the player choose from a menu, and store the best result per level in a dictionary.</div>`
   },
   {
-    del: "Projects", titel: "3D graphics", fil: "19_three_dimensions.py",
+    del: "Projects", titel: "3D graphics", fil: "ch19_three_dimensions.py",
     kod: [
       "import scene",
       "import math",
@@ -1353,7 +1389,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
 /* Engelska kapitel 20-21. */
 window.PYTHONLAB_SPRAK.en.kapitel.push(
   {
-    del: "Projects", titel: "Build a world", fil: "20_world.py",
+    del: "Projects", titel: "Build a world", fil: "ch20_world.py",
     kod: [
       "import scene",
       "import math",
@@ -1436,7 +1472,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> build your own city. A row of skyscrapers along one edge, houses along the other, and traffic in between. Then make two cars drive in circles of different radius — and see if you can get them to meet in the middle without colliding.</div>`
   },
   {
-    del: "Projects", titel: "Everything is cubes", fil: "21_everything_is_cubes.py",
+    del: "Projects", titel: "Everything is cubes", fil: "ch21_everything_is_cubes.py",
     kod: [
       "import scene",
       "",
@@ -1932,7 +1968,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
 /* Engelska kapitel 22-23. */
 window.PYTHONLAB_SPRAK.en.kapitel.push(
   {
-    del: "Machine learning", titel: "Train a model", fil: "22_machine_learning.py",
+    del: "Machine learning", titel: "Train a model", fil: "ch22_machine_learning.py",
     kod: [
       "# The first time takes a moment — the packages are downloaded.",
       "import numpy as np",
@@ -2049,7 +2085,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> change <code>dog_weight</code> to <code>rng.normal(8, 7, NUMBER_OF_DOGS)</code> so the dogs weigh almost as much as the cats. Look at the histogram first: the colours now overlap almost completely. Then run the training — how far does the accuracy fall, and which feature takes over as the most important? Also try removing <code>dog_sounds</code> and <code>cat_sounds</code> entirely.</div>`
   },
   {
-    del: "Machine learning", titel: "Language processing", fil: "23_language.py",
+    del: "Machine learning", titel: "Language processing", fil: "ch23_language.py",
     kod: [
       "import nltk",
       "from nltk.tokenize import RegexpTokenizer",
@@ -2114,7 +2150,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
 /* Engelska kapitel 24-25. */
 window.PYTHONLAB_SPRAK.en.kapitel.push(
   {
-    del: "Machine learning", titel: "Words as numbers", fil: "24_words_as_numbers.py",
+    del: "Machine learning", titel: "Words as numbers", fil: "ch24_words_as_numbers.py",
     kod: [
       "import numpy as np",
       "import matplotlib.pyplot as plt",
@@ -2228,7 +2264,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> write twenty sentences of your own about two clearly separate topics — say football and cooking — and run it again. Do the words fall into two groups on the map? Then try changing <code>WINDOW</code> from 2 to 1 and to 5, and see how much the window size affects the result.</div>`
   },
   {
-    del: "Machine learning", titel: "Fetching data from the web", fil: "25_open_data.py",
+    del: "Machine learning", titel: "Fetching data from the web", fil: "ch25_open_data.py",
     kod: [
       "import data",
       "import numpy as np",
@@ -2339,7 +2375,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
 /* Engelska kapitel 26-29. */
 window.PYTHONLAB_SPRAK.en.kapitel.push(
   {
-    del: "Final project", titel: "A weather map in 3D", fil: "26_weather_map.py",
+    del: "Final project", titel: "A weather map in 3D", fil: "ch26_weather_map.py",
     kod: [
       "import data",
       "import scene",
@@ -2466,7 +2502,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> swap parameter 1 for 4 (wind speed) or 6 (humidity) and watch the map change character. Then rebuild it so that <em>height</em> shows temperature and <em>colour</em> shows wind — two quantities in one picture.</div>`
   },
   {
-    del: "Final project", titel: "The model in the room", fil: "27_model_in_the_room.py",
+    del: "Final project", titel: "The model in the room", fil: "ch27_model_in_the_room.py",
     kod: [
       "import data",
       "import scene",
@@ -2679,7 +2715,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> add longitude to the chart — can you see the coast deviating? Then swap the yellow surface for the tree model's guesses instead of the linear ones. Does it follow the green bars better? And add a third feature, such as the station's height above sea level if you can find it in SMHI's data.</div>`
   },
   {
-    del: "Final project", titel: "A small language model", fil: "28_language_model.py",
+    del: "Final project", titel: "A small language model", fil: "ch28_language_model.py",
     kod: [
       "import data",
       "import random",
@@ -2889,7 +2925,7 @@ window.PYTHONLAB_SPRAK.en.kapitel.push(
       <div class="uppgift"><strong>Exercise:</strong> switch back to bigrams by using just one word as the key, and compare both the language quality and the proportion that comes out new. Then expand the corpus — fetch more example warnings or paste in a text of your own — and see whether the model improves with more data.</div>`
   },
   {
-    del: "Final project", titel: "Transformers", fil: "29_attention.py",
+    del: "Final project", titel: "Transformers", fil: "ch29_attention.py",
     kod: [
       "import data",
       "import numpy as np",
