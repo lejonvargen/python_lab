@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.54";
+  window.PYTHONLABBET_VERSION = "1.58";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -334,6 +334,8 @@
   }
   #app-root .filrad:hover { background: var(--panel-2); color: var(--chalk); }
   #app-root .filrad.vald { background: var(--panel-2); color: var(--amber); }
+  #app-root .filrad .dop-om { margin-left: auto; font-size: 12px; }
+  #app-root .filrad .dop-om + .bort { margin-left: 2px; }
   #app-root .filrad .bort {
     margin-left: auto; opacity: 0; border: 0; background: none;
     color: var(--chalk-dim); cursor: pointer; font-size: 14px; padding: 0 3px;
@@ -2162,6 +2164,16 @@ window.PYTHONLAB_START = function (SPRAK) {
     etikett.textContent = namn + (f.andrad ? " •" : "");
     rad.appendChild(etikett);
     if (!horTillKursen(f)) {
+      var byt = document.createElement("button");
+      byt.className = "bort dop-om";
+      byt.textContent = "✎";
+      byt.title = SPRAK.ui.dop_om;
+      byt.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var nytt = fragaOmNamn(namn);
+        if (nytt) dopOm(namn, nytt);
+      });
+      rad.appendChild(byt);
       var bort = document.createElement("button");
       bort.className = "bort";
       bort.textContent = "×";
@@ -2180,25 +2192,65 @@ window.PYTHONLAB_START = function (SPRAK) {
     return rad;
   }
 
-  function nyttFilnamn(forslag) {
-    var namn = prompt(SPRAK.fraga.nytt_filnamn, forslag);
-    if (!namn) return null;
-    namn = namn.trim();
+  /* Dialogen öppnas tom, som i VS Code och PyCharm. Ett förifyllt namn
+     inbjuder till att bara trycka Enter, och då blir varje fil hetande
+     samma sak. Lämnar man tomt får filen ett neutralt untitled-namn. */
+  function ledigtNamn(stam) {
+    var namn = stam + ".py";
+    var n = 1;
+    while (arbetsyta[namn]) { namn = stam + n + ".py"; n++; }
+    return namn;
+  }
+
+  /* Byter en fils namn i arbetsytan. Nyckeln ÄR namnet, så posten
+     flyttas — och samtalet med AI-hjälpen följer med, eftersom det
+     nycklas på samma sätt. Rör aldrig hårddisken. */
+  function dopOm(gammalt, nytt) {
+    if (!arbetsyta[gammalt] || gammalt === nytt) return false;
+    var f = arbetsyta[gammalt];
+    delete arbetsyta[gammalt];
+    f.namn = nytt;
+    arbetsyta[nytt] = f;
+    if (samtalen[gammalt]) {
+      samtalen[nytt] = samtalen[gammalt];
+      delete samtalen[gammalt];
+    }
+    if (aktivFil === gammalt) {
+      aktivFil = nytt;
+      filnamn = nytt;
+      visaFilnamn();
+    }
+    ritaFiler();
+    sparaSnart();
+    return true;
+  }
+
+  /* Frågar efter ett nytt namn och kontrollerar att det går att importera. */
+  function fragaOmNamn(nuvarande) {
+    var svar = prompt(SPRAK.fraga.dop_om, nuvarande);
+    if (svar === null) return null;
+    var namn = svar.trim();
+    if (!namn || namn === nuvarande) return null;
     if (!/\.py$/.test(namn)) namn += ".py";
     if (!gangbartNamn(namn)) { alert(SPRAK.fraga.ogiltigt_namn); return null; }
+    if (arbetsyta[namn]) { alert(SPRAK.fraga.namnet_upptaget.replace("{namn}", namn)); return null; }
     return namn;
   }
 
   function nyFil() {
-    var forslag = "verktyg.py";
-    var n = 2;
-    while (arbetsyta[forslag]) { forslag = "verktyg" + n + ".py"; n++; }
-    var namn = nyttFilnamn(forslag);
-    if (!namn) return;
-    if (arbetsyta[namn]) { oppna(namn); return; }
-    var modul = namn.replace(/\.py$/, "");
-    sakerstallFil(namn, SPRAK.ui.filmall.replace(/\{namn\}/g, namn)
-                                        .replace(/\{modul\}/g, modul), null, true);
+    var svar = prompt(SPRAK.fraga.nytt_filnamn, "");
+    if (svar === null) return;                    // avbrutet
+    var namn = svar.trim();
+    if (!namn) {
+      namn = ledigtNamn("untitled");
+    } else {
+      if (!/\.py$/.test(namn)) namn += ".py";
+      if (!gangbartNamn(namn)) { alert(SPRAK.fraga.ogiltigt_namn); return; }
+      if (arbetsyta[namn]) { oppna(namn); return; }
+    }
+    // Tom fil. En mall med exempelkod är alltid fel för någon, och det
+    // första man gör är att radera den.
+    sakerstallFil(namn, "", null, true);
     oppna(namn);
     sparaSnart();
   }
@@ -2277,7 +2329,13 @@ window.PYTHONLAB_START = function (SPRAK) {
         await strom.write(kodruta.value);
         await strom.close();
         filhandtag = handtag;
+        // Filen finns nu på disken under det här namnet, så den ska
+        // heta samma sak i arbetsytan.
+        if (aktivFil && handtag.name !== aktivFil && !arbetsyta[handtag.name]) {
+          dopOm(aktivFil, handtag.name);
+        }
         filnamn = handtag.name;
+        if (arbetsyta[aktivFil]) arbetsyta[aktivFil].filhandtag = handtag;
         markeraSparad();
         visaFlik("utskrift");
         skriv(SPRAK.msg.sparad_till.replace("{namn}", filnamn) + "\n", "system");
@@ -2289,8 +2347,10 @@ window.PYTHONLAB_START = function (SPRAK) {
     if (sparaSom || !filnamn) {
       var nytt = prompt(SPRAK.fraga.filnamn, filnamn);
       if (!nytt) return;
-      filnamn = nytt.trim();
-      if (filnamn.slice(-3) !== ".py") filnamn += ".py";
+      var onskat = nytt.trim();
+      if (onskat.slice(-3) !== ".py") onskat += ".py";
+      if (aktivFil && onskat !== aktivFil && !arbetsyta[onskat]) dopOm(aktivFil, onskat);
+      filnamn = onskat;
     }
     laddaNer();
   }
@@ -2921,7 +2981,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     if (!url) throw new Error("Ingen adress angiven.");
     if (!modell) throw new Error("Ingen modell angiven.");
 
-    var system = systemtext || LARARROLL;
+    var system = systemtext || lararroll();
     var huvud = { "Content-Type": "application/json" };
     var kropp;
 

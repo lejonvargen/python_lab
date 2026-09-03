@@ -9,6 +9,7 @@ window.PYTHONLAB_SPRAK.sv = {
   titel: "Pytho",
   beskrivning: "Pytho är en interaktiv kurs i Python som körs direkt i webbläsaren. 29 kapitel från din första utskrift till 3D-grafik, maskininlärning och transformers.",
   ui: {
+    "dop_om": "Byt namn",
     "devfiler": "Utvecklarfiler ({antal})",
     "scene_demo": "# scene_demo.py — modulen scene, som bara finns i Pytho.\n#\n# Kör den här filen och dra sedan med musen i fliken 3D-scen.\n# Allt nedan är körbart; kommentera bort det du inte vill se.\n\nimport scene\nimport math\n\n# ===== 1. Starta =====\nscene.start()                       # skapar scenen, alltid först\nscene.background(\"#0e1c33\")\nscene.ground(size=30, color=\"#1b3255\")\nscene.camera(0, 6, 16)              # var kameran står\nscene.look_at(0, 1, 0)              # vad den tittar på\n\n# ===== 2. Grundformer =====\n# Alla returnerar ett objekt du kan styra.\nkub = scene.cube(-6, 1, 0, size=1.4, color=\"#ffc94a\")\nklot = scene.sphere(-3, 1, 0, radius=0.7, color=\"#6ee7b7\")\nlada = scene.box(0, 1, 0, width=2, height=1, depth=1, color=\"#8fb4ff\")\nrulle = scene.cylinder(3, 1, 0, radius=0.5, height=2, color=\"#dfe8fa\")\nstrut = scene.cone(6, 1, 0, radius=0.7, height=2, color=\"#ff7d6b\")\n\n# ===== 3. Metoder på ett objekt =====\nkub.spin(0.004, 0.008, 0)           # hur mycket det snurrar per bildruta\nklot.move(-3, 2, 0)                 # ny position\nlada.rotate(0, 0.4, 0)              # vrid till en vinkel, i radianer\nrulle.scale(1.3)\nstrut.color(\"#e04b4b\")\n\n# ===== 4. Färdiga modeller =====\n# Samma argument för alla: x, y, z, color, size\nbil = scene.car(-8, 0, 6, color=\"#ff7d6b\")\nlastbil = scene.truck(-4, 0, 6)\nflygplan = scene.plane(0, 8, 6)\nraket = scene.rocket(4, 0, 6)\nhund = scene.dog(8, 0, 6, size=0.8)\nfagel = scene.bird(-8, 5, -6)\nfisk = scene.fish(-4, 1, -6)\nhus = scene.house(0, 0, -8)\nskyskrapa = scene.skyscraper(5, 0, -8)\ntorn = scene.tower(9, 0, -8)\ntrad = scene.tree(-11, 0, -3, size=1.2)\n\n# De rörliga modellerna har en egen metod som startar rörelsen.\nbil.drive(6)                        # hjulen snurrar, bilen rullar framåt\nlastbil.drive(3)\nflygplan.fly(9)                     # propellern går\nhund.walk(2)                        # benen rör sig\nfagel.flap(3)\nfisk.swim(2)\nraket.ignite(4)                     # lågan tänds\n\n# Framåt betyder alltid dit modellen pekar. Vill du ha en cirkelbana,\n# vrid modellen lite varje bildruta — se avsnitt 7.\n\n# ===== 5. Data i rummet =====\nstapel = scene.bar(-10, -10, height=3, color=\"#6ee7b7\", width=0.5)\nstapel.set_height(5)                # ändra i efterhand\n\nmarkor = scene.marker(0, 3, 0, color=\"#ffc94a\", size=1)\nlinje = scene.line(-5, 0.1, -5, 5, 0.1, -5, color=\"#8fb4ff\", thickness=0.05)\n\nsol = scene.sun(0, 14, -10, radius=1.2)\nmoln = scene.cloud(-6, 9, -4, size=1.5)\n\n# En kontur ur en lista med (x, z)-punkter\npunkter = [(-2, -2), (2, -2), (2, 2), (-2, 2)]\nscene.outline(punkter, color=\"#8fb4ff\", thickness=0.08, y=0.06, closed=True)\n\n# ===== 6. Matplotlib på en yta =====\n# En figur blir en textur på en panel eller en TV-skärm i rummet.\n#\n# import matplotlib.pyplot as plt\n# fig, ax = plt.subplots(figsize=(5, 3))\n# ax.plot([1, 2, 3], [2, 5, 3])\n# scene.chart_panel(0, 3, -12, width=6, height=3.4, figure=fig)\n# scene.chart_screen(0, 6, -14, width=12, height=6.5, figure=fig,\n#                    light=True, tilt=0.0, turn=0)\n\n# ===== 7. Animation =====\n# Funktionen anropas ungefär 60 gånger i sekunden med tiden i sekunder.\ndef uppdatera(t):\n    klot.move(-3, 1 + math.sin(t * 2) * 0.5, 0)\n    bil.rotate(0, t * 0.7, 0)                     # kör i cirkel\n    fagel.rotate(0, -math.pi / 2 - t, 0)          # peka dit den flyger\n    fagel.move(math.cos(t) * 7, 5 + math.sin(t * 2), math.sin(t) * 7)\n\nscene.every_frame(uppdatera)        # skicka funktionen UTAN parentes\n\n# scene.stop()                      # stoppar animationen\n# scene.reset()                     # tillbaka till startvyn\n# scene.fullscreen()                # helskärm, Escape avslutar\n\n# ===== 8. Sveriges kontur =====\n# scene.sweden tar din egen omräkning från grader till scenkoordinater.\n#\n# def till_scen(lat, lon):\n#     return ((lon - 17.5) * 2.2, (lat - 62.5) * -2.2)\n#\n# scene.sweden(till_scen, color=\"#7fa4dd\", thickness=0.11, y=0.08, islands=True)\n# scene.in_sweden(59.3, 18.1)       # True om punkten ligger i landet\n\nprint(\"Klart. Öppna fliken 3D-scen.\")\nprint(\"Dra med musen för att se dig omkring, rulla för att flyga.\")\nprint(\"Piltangenterna flyger som en drönare: framåt dit du tittar.\")\n",
     "kapitelfiler": "Kapitelfiler ({antal})",
@@ -23,14 +24,13 @@ window.PYTHONLAB_SPRAK.sv = {
     "inga_filer": "Inga filer ännu. Allt du skriver hamnar här och kan importeras.",
     "ta_bort": "Ta bort",
     "repl": "Skriv ett uttryck och tryck Enter …",
-    "filmall": "# {namn} — importera med:  import {modul}\\n\\n\\ndef halsa(namn):\\n    return f\"Hej {{namn}}!\"\\n",
     "filtext": "<h3>Egna filer</h3><p>Den här filen ligger i din arbetsyta och sparas i webbläsaren. Kör ett program i vilket kapitel som helst och skriv <code>import {modul}</code> för att använda den.</p><p>Allt du skriver finns kvar när du laddar om sidan.</p>",
     "felsakert_info": "Loopvakt som gör att programmet kan stoppas och inte kan låsa sidan.",
     "fragefalt": "Ställ en fråga om koden eller kapitlet …",
     "anslutning": "Anslutning",
     "rensa_samtal": "Rensa samtalet",
     "skicka": "Skicka",
-    "nytt_filnamn": "nytt_program.py",
+    "nytt_filnamn": "Filens namn — lämna tomt för ett untitled-namn. Ändelsen .py läggs till, och du importerar filen med import följt av namnet utan ändelse.",
   "aterstall": "Återställ",
   "oppna": "Öppna fil",
   "spara": "Spara",
@@ -145,6 +145,8 @@ window.PYTHONLAB_SPRAK.sv = {
   "felsakert_av": "Felsäkert läge av. Koden kör i full fart, men kan inte stoppas — en oändlig loop låser sidan och kräver omladdning."
 },
   fraga: {
+    "dop_om": "Nytt namn på filen. Ändelsen .py läggs till, och du importerar den sedan med det nya namnet.",
+    "namnet_upptaget": "Det finns redan en fil som heter {namn}.",
     "ersatt_fil": "{namn} finns redan i arbetsytan. Ersätta den?",
     "ej_importerbar": "{namn} kan inte importeras — ett modulnamn får inte börja med en siffra. Läsa in den ändå?",
     "tom_fil": "Tömma {namn}? Innehållet försvinner.",
