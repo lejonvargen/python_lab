@@ -13,6 +13,14 @@ window.PYTHONLAB_SPRAK.en = {
   beskrivning: "Pytho is an interactive Python course that runs entirely in your browser. 29 chapters, from your first print statement to 3D graphics, machine learning and transformers.",
 
   ui: {
+    sok_knapp: "Find",
+    sok_tips: "Find and replace (Ctrl + F)",
+    oppna_tips: "Open a file (Ctrl + O)",
+    spara_tips: "Save (Ctrl + S)",
+    spara_som_tips: "Save as (Ctrl + Shift + S)",
+    kor_tips: "Run the program (Ctrl + Enter)",
+    stoppa_tips: "Stop the program",
+    aterstall_tips: "Restore the original code",
     ga_till_raden: "Go to this line",
     sok: "Find",
     ersatt: "Replace with",
@@ -355,6 +363,8 @@ window.PYTHONLAB_SPRAK.en.om = `
       <a href="https://www.linkedin.com/in/gabriel-westman-08a708206/"
          target="_blank" rel="noopener">LinkedIn</a>.</p>
     <p class="om-copyright">Copyright Gabriel Westman 2026</p>
+    <h3 class="om-rubrik">Keyboard shortcuts</h3>
+    <table class="kortkommandon"><tr><td><kbd>Ctrl + Enter</kbd></td><td>Run the program</td></tr><tr><td><kbd>Ctrl + Enter</kbd></td><td>Run the selection in the same namespace</td></tr><tr><td><kbd>Tab / Shift + Tab</kbd></td><td>Indent or remove indentation</td></tr><tr><td><kbd>Ctrl + F</kbd></td><td>Find in the file</td></tr><tr><td><kbd>Ctrl + H</kbd></td><td>Find and replace</td></tr><tr><td><kbd>Ctrl + G</kbd></td><td>Go to line</td></tr><tr><td><kbd>Ctrl + S</kbd></td><td>Save to disk</td></tr><tr><td><kbd>Ctrl + Shift + S</kbd></td><td>Save as</td></tr><tr><td><kbd>Ctrl + O</kbd></td><td>Open a file</td></tr><tr><td><kbd>R</kbd></td><td>Reset the 3D view</td></tr><tr><td><kbd>Escape</kbd></td><td>Close the dialog or cancel input</td></tr></table>
     <div class="dialog-fot">
       <span class="ai-status">Pytho runs locally in your browser</span>
       <button class="knapp kor" id="om-stang">Close</button>
@@ -535,7 +545,7 @@ window.PYTHONLAB_SPRAK.en.kapitel = [
     forklaring: `
       <h3>Indentation is syntax</h3>
       <p>In most languages curly braces show what belongs together. Python uses <strong>indentation</strong>, and it is not a matter of style but part of the language. Four spaces in means "this only happens if the line above was true".</p>
-      <p>The line that opens a block always ends with a colon. That goes for <code>if</code>, <code>elif</code>, <code>else</code>, <code>for</code>, <code>while</code>, <code>def</code>, <code>try</code> and <code>class</code>.</p>
+      <p>The line that opens a block always ends with a colon. That goes for <code>if</code>, <code>elif</code>, <code>else</code>, <code>for</code>, <code>while</code>, <code>def</code>, <code>try</code> and <code>class</code>.</p><p>Four spaces is the Python standard. You do not have to press the space bar four times — <kbd>Tab</kbd> makes the indent for you, and <kbd>Shift + Tab</kbd> removes it again. Select several lines first and they all move together.</p>
       <h3>if, elif and else</h3>
       <p>This is the most important distinction in the whole chapter: <strong><code>if</code> starts a new question, <code>elif</code> hangs on to the previous one.</strong></p>
       <p>In a chain of <code>if / elif / else</code>, Python tests from the top down and stops at the <em>first</em> true condition. The rest are skipped, even if they would also have been true. Write two separate <code>if</code> statements and both questions get asked, and both can fire.</p>

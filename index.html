@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.63";
+  window.PYTHONLABBET_VERSION = "1.67";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -348,6 +348,7 @@
   }
 
   #app-root .skrivyta { position: relative; flex: 1 1 auto; min-width: 0; }
+  #app-root .traffar,
   #app-root .kodfarg,
   #app-root .skrivyta textarea {
     position: absolute; inset: 0; margin: 0;
@@ -359,6 +360,23 @@
   #app-root .kodfarg {
     pointer-events: none; color: var(--chalk-dim);
     overflow: hidden; background: transparent;
+  }
+  /* Träfflagret målar bara bakgrunder. Texten är osynlig, färgerna
+     ligger ovanpå, och textrutan högst upp. */
+  #app-root .traffar {
+    pointer-events: none; color: transparent;
+    overflow: hidden; background: transparent;
+  }
+  /* Konturer, inte fyllning. En ifylld markering ljusnar bakgrunden och
+     äter upp kontrasten för de dämpade färgerna — kommentarer ligger
+     redan lågt och blir oläsliga. En kontur syns lika bra och lämnar
+     textens läsbarhet exakt som den var. */
+  #app-root .traffar .traff {
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px rgba(143, 180, 255, .75);
+  }
+  #app-root .traffar .traff.aktiv {
+    box-shadow: inset 0 0 0 2px var(--amber), 0 0 6px rgba(255, 201, 74, .45);
   }
   #app-root .skrivyta textarea {
     color: transparent; caret-color: var(--chalk);
@@ -578,6 +596,22 @@
   #app-root .ai-status.fel { color: var(--coral); }
   #app-root .om-text { font-size: 14px; line-height: 1.6; margin: 0 0 12px; }
   #app-root .om-text a { color: var(--amber); }
+  #app-root .om-rubrik {
+    font-size: 13.5px; color: var(--amber); font-weight: 600;
+    margin: 20px 0 8px; letter-spacing: .01em;
+  }
+  #app-root .kortkommandon {
+    width: 100%; border-collapse: collapse; font-size: 12.5px;
+  }
+  #app-root .kortkommandon td {
+    padding: 3px 0; vertical-align: top; color: var(--chalk-dim);
+  }
+  #app-root .kortkommandon td:first-child { width: 40%; padding-right: 12px; }
+  #app-root .kortkommandon kbd {
+    font-family: var(--mono); font-size: 11.5px; color: var(--chalk);
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 5px; padding: 1px 6px; white-space: nowrap;
+  }
   #app-root .om-copyright {
     font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em;
     color: var(--chalk-dim); margin: 18px 0 0;
@@ -835,12 +869,15 @@
     <div class="redigerare" id="redigerare">
       <div class="verktyg">
         <span class="filnamn" id="filnamn"></span>
-        <button class="knapp" id="aterstall-kapitel" data-i18n="ui.aterstall"></button>
-        <button class="knapp" id="oppna-knapp" data-i18n="ui.oppna"></button>
-        <button class="knapp" id="spara-knapp" data-i18n="ui.spara"></button>
-        <button class="knapp" id="spara-som-knapp" data-i18n="ui.spara_som"></button>
-        <button class="knapp kor" id="kor-knapp" disabled data-i18n="ui.kor"></button>
-        <button class="knapp stoppa" id="stoppa-knapp" hidden data-i18n="ui.stoppa"></button>
+        <button class="knapp" id="aterstall-kapitel" data-i18n="ui.aterstall" data-i18n-title="ui.aterstall_tips"></button>
+        <button class="knapp" id="sok-knapp" data-i18n="ui.sok_knapp"
+                data-i18n-title="ui.sok_tips"></button>
+        <button class="knapp" id="oppna-knapp" data-i18n="ui.oppna"
+                data-i18n-title="ui.oppna_tips"></button>
+        <button class="knapp" id="spara-knapp" data-i18n="ui.spara" data-i18n-title="ui.spara_tips"></button>
+        <button class="knapp" id="spara-som-knapp" data-i18n="ui.spara_som" data-i18n-title="ui.spara_som_tips"></button>
+        <button class="knapp kor" id="kor-knapp" disabled data-i18n="ui.kor" data-i18n-title="ui.kor_tips"></button>
+        <button class="knapp stoppa" id="stoppa-knapp" hidden data-i18n="ui.stoppa" data-i18n-title="ui.stoppa_tips"></button>
       </div>
       <details class="uppgiftsrad" id="uppgiftsrad" hidden>
         <summary id="uppgiftsrubrik"></summary>
@@ -859,6 +896,7 @@
       <div class="kodyta">
         <div class="radnummer" id="radnummer" aria-hidden="true"></div>
         <div class="skrivyta">
+          <pre class="traffar" id="traffar" aria-hidden="true"></pre>
           <pre class="kodfarg" id="kodfarg" aria-hidden="true"></pre>
           <textarea id="kod" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
         </div>
@@ -989,7 +1027,7 @@ window.PYTHONLAB_START = function (SPRAK) {
 
   /* ---- versionen skrivs in överallt den efterfrågas ---- */
   var VERSION = window.PYTHONLABBET_VERSION || "?";
-  document.title = (SPRAK.titel || "Pytho") + " (ver " + VERSION + ")";
+  document.title = SPRAK.titel || "Pytho";
   var ogTitel = document.querySelector('meta[property="og:title"]');
   if (ogTitel) ogTitel.setAttribute("content", document.title);
   Array.prototype.forEach.call(document.querySelectorAll("[data-version]"), function (el) {
@@ -2493,6 +2531,7 @@ window.PYTHONLAB_START = function (SPRAK) {
 
   function doljSok() {
     sokraden.hidden = true;
+    ritaTraffar(null);
     kodruta.focus();
   }
 
@@ -2507,10 +2546,38 @@ window.PYTHONLAB_START = function (SPRAK) {
     return platser;
   }
 
+  var traffLager = document.getElementById("traffar");
+
+  /* Målar en bakgrund bakom varje träff, och en starkare bakom den man
+     står på. Ligger i ett eget lager så att syntaxfärgningen ovanpå
+     lämnas orörd. */
+  function ritaTraffar(platser, langd, aktiv) {
+    if (!platser || !platser.length) { traffLager.textContent = ""; return; }
+    var text = kodruta.value;
+    var ut = "";
+    var sist = 0;
+    platser.forEach(function (i) {
+      ut += flyKod(text.slice(sist, i));
+      ut += '<span class="traff' + (i === aktiv ? " aktiv" : "") + '">' +
+            flyKod(text.substr(i, langd)) + "</span>";
+      sist = i + langd;
+    });
+    ut += flyKod(text.slice(sist));
+    traffLager.innerHTML = ut + "\n";
+    traffLager.scrollTop = kodruta.scrollTop;
+    traffLager.scrollLeft = kodruta.scrollLeft;
+  }
+
   function raknaTraffar() {
-    var platser = alla(kodruta.value, sokfalt.value);
-    if (!sokfalt.value) { soktraffar.textContent = ""; return; }
+    var sokt = sokfalt.value;
+    var platser = alla(kodruta.value, sokt);
+    if (!sokt) {
+      soktraffar.textContent = "";
+      ritaTraffar(null);
+      return;
+    }
     var nu = platser.indexOf(kodruta.selectionStart);
+    ritaTraffar(platser, sokt.length, nu >= 0 ? platser[nu] : -1);
     soktraffar.textContent = platser.length
       ? (nu >= 0 ? (nu + 1) + "/" : "") + platser.length
       : SPRAK.ui.ingen_traff;
@@ -2568,6 +2635,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     markeraAndrad();
     ritaRadnummer();
     ritaFarger();
+    if (!sokraden.hidden) raknaTraffar();
   }
 
   function valjOchVisa(start, slut) {
@@ -2578,6 +2646,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     kodruta.scrollTop = Math.max(0, (rad - 1) * radhojd - kodruta.clientHeight / 2);
     radspalt.scrollTop = kodruta.scrollTop;
     kodfarg.scrollTop = kodruta.scrollTop;
+    traffLager.scrollTop = kodruta.scrollTop;
     if (!sokraden.hidden) sokfalt.focus();
   }
 
@@ -2639,11 +2708,14 @@ window.PYTHONLAB_START = function (SPRAK) {
     radspalt.scrollTop = kodruta.scrollTop;
     kodfarg.scrollTop = kodruta.scrollTop;
     kodfarg.scrollLeft = kodruta.scrollLeft;
+    traffLager.scrollTop = kodruta.scrollTop;
+    traffLager.scrollLeft = kodruta.scrollLeft;
   });
   kodruta.addEventListener("input", function () {
     if (felradNu) felradNu = 0;
     ritaRadnummer();
     ritaFarger();
+    if (!sokraden.hidden) raknaTraffar();
   });
 
   function markeraAndrad() {
@@ -3002,6 +3074,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     felradNu = 0;
     ritaRadnummer();
     ritaFarger();
+    ritaTraffar(null);
     markeraVald(f.kapitel === null ? -1 : f.kapitel);
     if (f.kapitel === null) document.getElementById("uppgiftsrad").hidden = true;
     else visaUppgift(LEKTIONER[f.kapitel].forklaring);
@@ -3957,7 +4030,7 @@ window.PYTHONLAB_START = function (SPRAK) {
   var LASTA = ["aterstall-kapitel", "oppna-knapp", "spara-knapp",
                "spara-som-knapp", "om-knapp", "felsakert-toggle", "ai-toggle",
                "ai-installningar-knapp", "ai-rensa-samtal", "ai-skicka", "ai-fraga",
-               "start-knapp", "ny-fil-knapp", "repl", "dev-toggle"];
+               "start-knapp", "ny-fil-knapp", "repl", "dev-toggle", "sok-knapp"];
 
   function lasGranssnitt(las) {
     LASTA.forEach(function (id) {
@@ -4263,6 +4336,9 @@ _plt.show = _labb_visa
   });
 
   document.getElementById("ny-fil-knapp").addEventListener("click", nyFil);
+  document.getElementById("sok-knapp").addEventListener("click", function () {
+    visaSok(sokraden.hidden ? false : !sokraden.classList.contains("med-ersatt"));
+  });
   document.getElementById("kor-knapp").addEventListener("click", kor);
   stoppaKnapp.addEventListener("click", function () {
     window._labbStopp = true;
