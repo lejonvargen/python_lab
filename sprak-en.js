@@ -13,6 +13,13 @@ window.PYTHONLAB_SPRAK.en = {
   beskrivning: "Pytho is an interactive Python course that runs entirely in your browser. 29 chapters, from your first print statement to 3D graphics, machine learning and transformers.",
 
   ui: {
+    ga_till_raden: "Go to this line",
+    sok: "Find",
+    ersatt: "Replace with",
+    ersatt_en: "Replace",
+    ersatt_alla: "All",
+    ingen_traff: "no match",
+    ersatta: "{antal} replaced",
     dop_om: "Rename",
     devfiler: "Developer files ({antal})",
     scene_demo: "# scene_demo.py — the scene module, which only exists in Pytho.\n#\n# Run this file, then drag with the mouse in the 3D scene tab.\n# Everything below runs; comment out what you do not want to see.\n\nimport scene\nimport math\n\n# ===== 1. Start =====\nscene.start()                       # creates the scene, always first\nscene.background(\"#0e1c33\")\nscene.ground(size=30, color=\"#1b3255\")\nscene.camera(0, 6, 16)              # where the camera stands\nscene.look_at(0, 1, 0)              # what it looks at\n\n# ===== 2. Basic shapes =====\n# Each one returns an object you can control.\ncube = scene.cube(-6, 1, 0, size=1.4, color=\"#ffc94a\")\nball = scene.sphere(-3, 1, 0, radius=0.7, color=\"#6ee7b7\")\ncrate = scene.box(0, 1, 0, width=2, height=1, depth=1, color=\"#8fb4ff\")\nroll = scene.cylinder(3, 1, 0, radius=0.5, height=2, color=\"#dfe8fa\")\nspike = scene.cone(6, 1, 0, radius=0.7, height=2, color=\"#ff7d6b\")\n\n# ===== 3. Methods on an object =====\ncube.spin(0.004, 0.008, 0)          # how much it turns per frame\nball.move(-3, 2, 0)                 # a new position\ncrate.rotate(0, 0.4, 0)             # turn to an angle, in radians\nroll.scale(1.3)\nspike.color(\"#e04b4b\")\n\n# ===== 4. Ready-made models =====\n# Same arguments for all of them: x, y, z, color, size\ncar = scene.car(-8, 0, 6, color=\"#ff7d6b\")\ntruck = scene.truck(-4, 0, 6)\nplane = scene.plane(0, 8, 6)\nrocket = scene.rocket(4, 0, 6)\ndog = scene.dog(8, 0, 6, size=0.8)\nbird = scene.bird(-8, 5, -6)\nfish = scene.fish(-4, 1, -6)\nhouse = scene.house(0, 0, -8)\nskyscraper = scene.skyscraper(5, 0, -8)\ntower = scene.tower(9, 0, -8)\ntree = scene.tree(-11, 0, -3, size=1.2)\n\n# The moving models each have a method that starts the motion.\ncar.drive(6)                        # the wheels turn, the car rolls forward\ntruck.drive(3)\nplane.fly(9)                        # the propeller spins\ndog.walk(2)                         # the legs move\nbird.flap(3)\nfish.swim(2)\nrocket.ignite(4)                    # the flame lights\n\n# Forward always means where the model is facing. For a circular path,\n# turn the model a little every frame — see section 7.\n\n# ===== 5. Data in the room =====\nbar = scene.bar(-10, -10, height=3, color=\"#6ee7b7\", width=0.5)\nbar.set_height(5)                   # change it afterwards\n\nmarker = scene.marker(0, 3, 0, color=\"#ffc94a\", size=1)\nline = scene.line(-5, 0.1, -5, 5, 0.1, -5, color=\"#8fb4ff\", thickness=0.05)\n\nsun = scene.sun(0, 14, -10, radius=1.2)\ncloud = scene.cloud(-6, 9, -4, size=1.5)\n\n# An outline from a list of (x, z) points\npoints = [(-2, -2), (2, -2), (2, 2), (-2, 2)]\nscene.outline(points, color=\"#8fb4ff\", thickness=0.08, y=0.06, closed=True)\n\n# ===== 6. Matplotlib on a surface =====\n# A figure becomes a texture on a panel or a screen in the room.\n#\n# import matplotlib.pyplot as plt\n# fig, ax = plt.subplots(figsize=(5, 3))\n# ax.plot([1, 2, 3], [2, 5, 3])\n# scene.chart_panel(0, 3, -12, width=6, height=3.4, figure=fig)\n# scene.chart_screen(0, 6, -14, width=12, height=6.5, figure=fig,\n#                    light=True, tilt=0.0, turn=0)\n\n# ===== 7. Animation =====\n# The function is called about 60 times a second with the time in seconds.\ndef update(t):\n    ball.move(-3, 1 + math.sin(t * 2) * 0.5, 0)\n    car.rotate(0, t * 0.7, 0)                     # drives in a circle\n    bird.rotate(0, -math.pi / 2 - t, 0)           # face where it is flying\n    bird.move(math.cos(t) * 7, 5 + math.sin(t * 2), math.sin(t) * 7)\n\nscene.every_frame(update)           # pass the function WITHOUT parentheses\n\n# scene.stop()                      # stops the animation\n# scene.reset()                     # back to the starting view\n# scene.fullscreen()                # fullscreen, Escape leaves it\n\n# ===== 8. The outline of Sweden =====\n# scene.sweden takes your own conversion from degrees to scene coordinates.\n#\n# def to_scene(lat, lon):\n#     return ((lon - 17.5) * 2.2, (lat - 62.5) * -2.2)\n#\n# scene.sweden(to_scene, color=\"#7fa4dd\", thickness=0.11, y=0.08, islands=True)\n# scene.in_sweden(59.3, 18.1)       # True if the point is inside the country\n\nprint(\"Done. Open the 3D scene tab.\")\nprint(\"Drag with the mouse to look around, scroll to fly.\")\nprint(\"The arrow keys fly like a drone: forward is wherever you are looking.\")\n",
@@ -133,6 +140,8 @@ window.PYTHONLAB_SPRAK.en = {
   },
 
   msg: {
+    kor_markering: "Running the selection ({rader} lines) in the same namespace as the program.",
+    ingen_webgl: "The 3D view cannot be shown: the browser gave no WebGL surface. This usually means hardware acceleration is switched off in the settings, or the graphics card is too old. The program keeps running and prints its result — only the picture is missing.",
     filfel: "Could not write out your files: ",
     arbetsyta_aterstalld: "Your workspace was restored — {antal} chapters and {filer} files of your own are still here.",
     syntaxfel: "Syntax error on line {rad}, character {kolumn}: {text}",
@@ -155,6 +164,7 @@ window.PYTHONLAB_SPRAK.en = {
   },
 
   fraga: {
+    ga_till_rad: "Go to line (1–{antal}):",
     dop_om: "New name for the file. The .py extension is added, and you import it with the new name.",
     namnet_upptaget: "There is already a file called {namn}.",
     ersatt_fil: "{namn} is already in your workspace. Replace it?",
@@ -421,7 +431,7 @@ window.PYTHONLAB_SPRAK.en.kapitel = [
       </ul>
       <h3>Named arguments</h3>
       <p><code>sep=""</code> and <code>end=""</code> are <em>named arguments</em>: extra settings you give with an equals sign. <code>sep</code> is what ends up <em>between</em> the items, <code>end</code> is what comes <em>after</em> everything. Normally <code>end</code> is a line break, which is why each <code>print</code> starts on a new line.</p>
-      <div class="fallgrop"><strong>Pitfall:</strong> forget a quote or a parenthesis and you get <code>SyntaxError</code>. Python then only tells you where it <em>noticed</em> the problem, which is often the line after the one that is actually wrong. Always look one line up as well.</div>
+      <div class="fallgrop"><strong>Pitfall:</strong> forget a quote or a parenthesis and you get <code>SyntaxError</code>. Python then only tells you where it <em>noticed</em> the problem, which is often the line after the one that is actually wrong. Always look one line up as well. The colours help: if you have left a closing quote out, the rest of the program is coloured as text, and that shows you where it began.</div>
       <div class="uppgift"><strong>Exercise:</strong> write four lines introducing yourself — name, age, favourite thing and a greeting. Then swap two lines around and run it again. The output swaps too: the order in the code <em>is</em> the program.</div>`
   },
   {
@@ -460,7 +470,7 @@ window.PYTHONLAB_SPRAK.en.kapitel = [
       <h3>Rules for variable names</h3>
       <p>Letters, digits and underscores, but never a digit first. No spaces: write <code>max_score</code>, not <code>max score</code>. Upper and lower case are different things — <code>Name</code> and <code>name</code> are two separate boxes, and that is a common source of <code>NameError</code>.</p>
       <p>Choose names that say what the thing is. <code>x</code> says nothing, <code>number_of_guesses</code> says everything. You are writing code that your future self has to be able to read.</p>
-      <div class="uppgift"><strong>Exercise:</strong> create variables for a film's title, length in minutes and your rating (1–5). Print a tidy line with an f-string. Then work out the length in hours with <code>minutes / 60</code> — what type is the answer?</div>`
+      <h3>The colours in the editor</h3><p>A development tool colours code by what the parts <em>are</em>, and that is not decoration but help with reading. Here variables, function names, keywords such as <code>if</code> and <code>def</code>, text, numbers and comments each get their own colour.</p><p>You notice the value when something is wrong. Write <code>Print</code> with a capital letter and it does not get the blue colour that built-in functions have, so the mistake shows before you run anything. The colours belong to the tool, not to Python — VS Code and Thonny colour the same code in their own ways, but on the same principles.</p><div class="uppgift"><strong>Exercise:</strong> create variables for a film's title, length in minutes and your rating (1–5). Print a tidy line with an f-string. Then work out the length in hours with <code>minutes / 60</code> — what type is the answer?</div>`
   },
   {
     del: "Foundations", titel: "Asking the user", fil: "ch03_input.py",

@@ -9,6 +9,13 @@ window.PYTHONLAB_SPRAK.sv = {
   titel: "Pytho",
   beskrivning: "Pytho är en interaktiv kurs i Python som körs direkt i webbläsaren. 29 kapitel från din första utskrift till 3D-grafik, maskininlärning och transformers.",
   ui: {
+    "ga_till_raden": "Gå till raden",
+    "sok": "Sök",
+    "ersatt": "Ersätt med",
+    "ersatt_en": "Ersätt",
+    "ersatt_alla": "Alla",
+    "ingen_traff": "ingen träff",
+    "ersatta": "{antal} ersatta",
     "dop_om": "Byt namn",
     "devfiler": "Utvecklarfiler ({antal})",
     "scene_demo": "# scene_demo.py — modulen scene, som bara finns i Pytho.\n#\n# Kör den här filen och dra sedan med musen i fliken 3D-scen.\n# Allt nedan är körbart; kommentera bort det du inte vill se.\n\nimport scene\nimport math\n\n# ===== 1. Starta =====\nscene.start()                       # skapar scenen, alltid först\nscene.background(\"#0e1c33\")\nscene.ground(size=30, color=\"#1b3255\")\nscene.camera(0, 6, 16)              # var kameran står\nscene.look_at(0, 1, 0)              # vad den tittar på\n\n# ===== 2. Grundformer =====\n# Alla returnerar ett objekt du kan styra.\nkub = scene.cube(-6, 1, 0, size=1.4, color=\"#ffc94a\")\nklot = scene.sphere(-3, 1, 0, radius=0.7, color=\"#6ee7b7\")\nlada = scene.box(0, 1, 0, width=2, height=1, depth=1, color=\"#8fb4ff\")\nrulle = scene.cylinder(3, 1, 0, radius=0.5, height=2, color=\"#dfe8fa\")\nstrut = scene.cone(6, 1, 0, radius=0.7, height=2, color=\"#ff7d6b\")\n\n# ===== 3. Metoder på ett objekt =====\nkub.spin(0.004, 0.008, 0)           # hur mycket det snurrar per bildruta\nklot.move(-3, 2, 0)                 # ny position\nlada.rotate(0, 0.4, 0)              # vrid till en vinkel, i radianer\nrulle.scale(1.3)\nstrut.color(\"#e04b4b\")\n\n# ===== 4. Färdiga modeller =====\n# Samma argument för alla: x, y, z, color, size\nbil = scene.car(-8, 0, 6, color=\"#ff7d6b\")\nlastbil = scene.truck(-4, 0, 6)\nflygplan = scene.plane(0, 8, 6)\nraket = scene.rocket(4, 0, 6)\nhund = scene.dog(8, 0, 6, size=0.8)\nfagel = scene.bird(-8, 5, -6)\nfisk = scene.fish(-4, 1, -6)\nhus = scene.house(0, 0, -8)\nskyskrapa = scene.skyscraper(5, 0, -8)\ntorn = scene.tower(9, 0, -8)\ntrad = scene.tree(-11, 0, -3, size=1.2)\n\n# De rörliga modellerna har en egen metod som startar rörelsen.\nbil.drive(6)                        # hjulen snurrar, bilen rullar framåt\nlastbil.drive(3)\nflygplan.fly(9)                     # propellern går\nhund.walk(2)                        # benen rör sig\nfagel.flap(3)\nfisk.swim(2)\nraket.ignite(4)                     # lågan tänds\n\n# Framåt betyder alltid dit modellen pekar. Vill du ha en cirkelbana,\n# vrid modellen lite varje bildruta — se avsnitt 7.\n\n# ===== 5. Data i rummet =====\nstapel = scene.bar(-10, -10, height=3, color=\"#6ee7b7\", width=0.5)\nstapel.set_height(5)                # ändra i efterhand\n\nmarkor = scene.marker(0, 3, 0, color=\"#ffc94a\", size=1)\nlinje = scene.line(-5, 0.1, -5, 5, 0.1, -5, color=\"#8fb4ff\", thickness=0.05)\n\nsol = scene.sun(0, 14, -10, radius=1.2)\nmoln = scene.cloud(-6, 9, -4, size=1.5)\n\n# En kontur ur en lista med (x, z)-punkter\npunkter = [(-2, -2), (2, -2), (2, 2), (-2, 2)]\nscene.outline(punkter, color=\"#8fb4ff\", thickness=0.08, y=0.06, closed=True)\n\n# ===== 6. Matplotlib på en yta =====\n# En figur blir en textur på en panel eller en TV-skärm i rummet.\n#\n# import matplotlib.pyplot as plt\n# fig, ax = plt.subplots(figsize=(5, 3))\n# ax.plot([1, 2, 3], [2, 5, 3])\n# scene.chart_panel(0, 3, -12, width=6, height=3.4, figure=fig)\n# scene.chart_screen(0, 6, -14, width=12, height=6.5, figure=fig,\n#                    light=True, tilt=0.0, turn=0)\n\n# ===== 7. Animation =====\n# Funktionen anropas ungefär 60 gånger i sekunden med tiden i sekunder.\ndef uppdatera(t):\n    klot.move(-3, 1 + math.sin(t * 2) * 0.5, 0)\n    bil.rotate(0, t * 0.7, 0)                     # kör i cirkel\n    fagel.rotate(0, -math.pi / 2 - t, 0)          # peka dit den flyger\n    fagel.move(math.cos(t) * 7, 5 + math.sin(t * 2), math.sin(t) * 7)\n\nscene.every_frame(uppdatera)        # skicka funktionen UTAN parentes\n\n# scene.stop()                      # stoppar animationen\n# scene.reset()                     # tillbaka till startvyn\n# scene.fullscreen()                # helskärm, Escape avslutar\n\n# ===== 8. Sveriges kontur =====\n# scene.sweden tar din egen omräkning från grader till scenkoordinater.\n#\n# def till_scen(lat, lon):\n#     return ((lon - 17.5) * 2.2, (lat - 62.5) * -2.2)\n#\n# scene.sweden(till_scen, color=\"#7fa4dd\", thickness=0.11, y=0.08, islands=True)\n# scene.in_sweden(59.3, 18.1)       # True om punkten ligger i landet\n\nprint(\"Klart. Öppna fliken 3D-scen.\")\nprint(\"Dra med musen för att se dig omkring, rulla för att flyga.\")\nprint(\"Piltangenterna flyger som en drönare: framåt dit du tittar.\")\n",
@@ -124,6 +131,8 @@ window.PYTHONLAB_SPRAK.sv = {
   "ladda_om": "Ladda om sidan och försök igen."
 },
   msg: {
+    "kor_markering": "Kör markeringen ({rader} rader) i samma namnrymd som programmet.",
+    "ingen_webgl": "3D-vyn kan inte visas: webbläsaren gav ingen WebGL-yta. Oftast beror det på att hårdvaruacceleration är avstängd i inställningarna, eller på ett äldre grafikkort. Programmet kör vidare och skriver ut sitt resultat — bara bilden uteblir.",
     "filfel": "Kunde inte lägga ut dina filer: ",
     "arbetsyta_aterstalld": "Din arbetsyta lästes in — {antal} kapitel och {filer} egna filer finns kvar sedan sist.",
     "syntaxfel": "Syntaxfel på rad {rad}, tecken {kolumn}: {text}",
@@ -145,6 +154,7 @@ window.PYTHONLAB_SPRAK.sv = {
   "felsakert_av": "Felsäkert läge av. Koden kör i full fart, men kan inte stoppas — en oändlig loop låser sidan och kräver omladdning."
 },
   fraga: {
+    "ga_till_rad": "Gå till rad (1–{antal}):",
     "dop_om": "Nytt namn på filen. Ändelsen .py läggs till, och du importerar den sedan med det nya namnet.",
     "namnet_upptaget": "Det finns redan en fil som heter {namn}.",
     "ersatt_fil": "{namn} finns redan i arbetsytan. Ersätta den?",
@@ -273,7 +283,7 @@ window.PYTHONLAB_SPRAK.sv = {
       </ul>
       <h3>Namngivna argument</h3>
       <p><code>sep=""</code> och <code>end=""</code> är <em>namngivna argument</em>: extra inställningar som du sätter med ett likhetstecken. <code>sep</code> är vad som hamnar <em>mellan</em> sakerna, <code>end</code> är vad som hamnar <em>efter</em> allt. Normalt är <code>end</code> en radbrytning, och det är därför varje <code>print</code> börjar på en ny rad.</p>
-      <div class="fallgrop"><strong>Fallgrop:</strong> glömmer du ett citattecken eller en parentes blir det <code>SyntaxError</code>. Python säger då bara var den <em>märkte</em> felet, vilket ofta är raden efter den där felet faktiskt finns. Titta alltid en rad uppåt också.</div>
+      <div class="fallgrop"><strong>Fallgrop:</strong> glömmer du ett citattecken eller en parentes får du <code>SyntaxError</code>. Python talar bara om var den <em>märkte</em> problemet, vilket ofta är raden efter den som är fel. Titta alltid en rad upp också. Färgerna hjälper: har du glömt ett avslutande citattecken färgas resten av programmet som text, och då ser du var det började.</div>
       <div class="uppgift"><strong>Uppgift:</strong> skriv fyra rader som presenterar dig — namn, ålder, favoritsak och en hälsning. Byt sedan plats på två rader och kör igen. Utskriften byter plats: ordningen i koden <em>är</em> programmet.</div>`
   },
   {
@@ -312,7 +322,7 @@ window.PYTHONLAB_SPRAK.sv = {
       <h3>Regler för variabelnamn</h3>
       <p>Bokstäver, siffror och understreck, men aldrig en siffra först. Inga mellanslag: skriv <code>max_poang</code>, inte <code>max poang</code>. Stora och små bokstäver är olika saker — <code>Namn</code> och <code>namn</code> är två skilda lådor, och det är en vanlig orsak till <code>NameError</code>.</p>
       <p>Välj namn som säger vad saken är. <code>x</code> säger ingenting, <code>antal_gissningar</code> säger allt. Du skriver kod som ditt framtida jag ska kunna läsa.</p>
-      <div class="uppgift"><strong>Uppgift:</strong> skapa variabler för en films titel, längd i minuter och ditt betyg (1–5). Skriv ut en snygg rad med en f-sträng. Räkna sedan ut längden i timmar med <code>minuter / 60</code> — vilken typ blir svaret?</div>`
+      <h3>Färgerna i redigeraren</h3><p>Ett utvecklingsverktyg färgar koden efter vad delarna <em>är</em>, och det är ingen dekoration utan hjälp med läsningen. Här får variabler, funktionsnamn, nyckelord som <code>if</code> och <code>def</code>, text, tal och kommentarer varsin färg.</p><p>Nyttan märks först när något är fel. Skriver du <code>Print</code> med stor bokstav får det inte den blå färg som inbyggda funktioner har, och då syns felet innan du kört. Färgerna är en egenskap hos verktyget, inte hos Python — VS Code och Thonny färgar samma kod på sina sätt, men efter samma principer.</p><div class="uppgift"><strong>Uppgift:</strong> skapa variabler för en films titel, längd i minuter och ditt betyg (1–5). Skriv ut en snygg rad med en f-sträng. Räkna sedan ut längden i timmar med <code>minuter / 60</code> — vilken typ blir svaret?</div>`
   },
   {
     del: "Grunderna", titel: "Fråga användaren", fil: "kap03_input.py",

@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.58";
+  window.PYTHONLABBET_VERSION = "1.63";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -280,7 +280,100 @@
   #app-root .kodyta {
     flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden;
   }
-  #app-root .kodyta textarea { padding-left: 10px; }
+  /* ---- syntaxfärgning ----
+     Den färgade texten ligger i ett lager under textrutan. Textrutan
+     görs genomskinlig men behåller sin markör och sin markering, så
+     redigeringen fungerar precis som förut. Måtten MÅSTE vara identiska,
+     annars glider lagren isär tecken för tecken. */
+  /* Uppgiften ligger längst ner i kapiteltexten, som inte syns när man
+     kodar. Den här raden håller den framme utan att ta plats. */
+  #app-root .uppgiftsrad {
+    border-bottom: 1px solid var(--line);
+    background: rgba(255, 201, 74, .07);
+    font-size: 13px; line-height: 1.55;
+  }
+  #app-root .uppgiftsrad[hidden] { display: none; }
+  #app-root .uppgiftsrad > summary {
+    cursor: pointer; list-style: none; padding: 7px 14px;
+    color: var(--amber); font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #app-root .uppgiftsrad > summary::-webkit-details-marker { display: none; }
+  #app-root .uppgiftsrad > summary::before { content: "▸ "; }
+  #app-root .uppgiftsrad[open] > summary::before { content: "▾ "; }
+  #app-root #uppgiftstext {
+    padding: 0 14px 12px; color: var(--chalk);
+    max-height: 32vh; overflow-y: auto;
+  }
+  #app-root #uppgiftstext code {
+    font-family: var(--mono); font-size: 12.5px;
+    background: var(--panel-2); border-radius: 4px; padding: 1px 5px;
+  }
+  #app-root.dev-lage .uppgiftsrad { display: none; }
+
+  #app-root .sokrad {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    padding: 7px 12px; border-bottom: 1px solid var(--line);
+    background: var(--panel-2);
+  }
+  #app-root .sokrad[hidden] { display: none; }
+  #app-root .sokrad input {
+    background: var(--blueprint); border: 1px solid var(--line);
+    border-radius: 6px; color: var(--chalk); font-family: var(--mono);
+    font-size: 12.5px; padding: 5px 8px; outline: none; min-width: 0;
+  }
+  #app-root .sokrad input:focus { border-color: var(--amber); }
+  #app-root #sokfalt { flex: 1 1 140px; }
+  #app-root #ersattfalt { flex: 1 1 140px; }
+  #app-root .sokrad:not(.med-ersatt) #ersattfalt,
+  #app-root .sokrad:not(.med-ersatt) #sok-ersatt,
+  #app-root .sokrad:not(.med-ersatt) #sok-ersatt-alla { display: none; }
+  #app-root .minik {
+    background: transparent; border: 1px solid var(--line); border-radius: 6px;
+    color: var(--chalk-dim); font-family: var(--sans); font-size: 12px;
+    padding: 4px 9px; cursor: pointer;
+  }
+  #app-root .minik:hover { color: var(--amber); border-color: var(--amber); }
+  #app-root .minik.stang { margin-left: auto; border: 0; font-size: 15px; }
+  #app-root .radlank {
+    background: none; border: 0; padding: 0; cursor: pointer;
+    color: inherit; font: inherit;
+    text-decoration: underline; text-underline-offset: 2px;
+    text-decoration-style: dotted;
+  }
+  #app-root .radlank:hover { color: var(--amber); text-decoration-style: solid; }
+  #app-root .soktraffar {
+    font-family: var(--mono); font-size: 11.5px; color: var(--chalk-dim);
+    min-width: 46px;
+  }
+
+  #app-root .skrivyta { position: relative; flex: 1 1 auto; min-width: 0; }
+  #app-root .kodfarg,
+  #app-root .skrivyta textarea {
+    position: absolute; inset: 0; margin: 0;
+    font-family: var(--mono); font-size: 14.5px; line-height: 1.65;
+    padding: 14px 16px 14px 10px; tab-size: 4;
+    white-space: pre; overflow: auto; border: 0;
+    letter-spacing: normal; word-spacing: normal;
+  }
+  #app-root .kodfarg {
+    pointer-events: none; color: var(--chalk-dim);
+    overflow: hidden; background: transparent;
+  }
+  #app-root .skrivyta textarea {
+    color: transparent; caret-color: var(--chalk);
+    background: transparent; resize: none; outline: none; width: 100%;
+  }
+  #app-root .skrivyta textarea::selection { background: rgba(255, 201, 74, 0.3); }
+
+  #app-root .kodfarg .nyckel   { color: #ff9ecb; }
+  #app-root .kodfarg .inbyggd  { color: #8fb4ff; }
+  #app-root .kodfarg .strang   { color: #6ee7b7; }
+  #app-root .kodfarg .tal      { color: #ffc94a; }
+  #app-root .kodfarg .komm     { color: #6b7f9e; font-style: italic; }
+  #app-root .kodfarg .namn     { color: #ffd9a0; }   /* funktionsnamn */
+  #app-root .kodfarg .dekor    { color: #c98bff; }
+  #app-root .kodfarg .vanlig   { color: var(--chalk); }  /* variabler */
   /* ---- dev-läge: ett vyfilter, inget annat ----
      Kapitlen finns kvar i minnet och kommer tillbaka orörda när man
      växlar tillbaka. Här döljs bara det som hör kursen till. */
@@ -749,9 +842,26 @@
         <button class="knapp kor" id="kor-knapp" disabled data-i18n="ui.kor"></button>
         <button class="knapp stoppa" id="stoppa-knapp" hidden data-i18n="ui.stoppa"></button>
       </div>
+      <details class="uppgiftsrad" id="uppgiftsrad" hidden>
+        <summary id="uppgiftsrubrik"></summary>
+        <div id="uppgiftstext"></div>
+      </details>
+      <div class="sokrad" id="sokrad" hidden>
+        <input type="text" id="sokfalt" spellcheck="false" data-i18n-placeholder="ui.sok">
+        <button class="minik" id="sok-forra" title="Shift+Enter">↑</button>
+        <button class="minik" id="sok-nasta" title="Enter">↓</button>
+        <span class="soktraffar" id="soktraffar"></span>
+        <input type="text" id="ersattfalt" spellcheck="false" data-i18n-placeholder="ui.ersatt">
+        <button class="minik" id="sok-ersatt" data-i18n="ui.ersatt_en"></button>
+        <button class="minik" id="sok-ersatt-alla" data-i18n="ui.ersatt_alla"></button>
+        <button class="minik stang" id="sok-stang">×</button>
+      </div>
       <div class="kodyta">
         <div class="radnummer" id="radnummer" aria-hidden="true"></div>
-        <textarea id="kod" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+        <div class="skrivyta">
+          <pre class="kodfarg" id="kodfarg" aria-hidden="true"></pre>
+          <textarea id="kod" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+        </div>
       </div>
       <input type="file" id="filvaljare" accept=".py,.txt" hidden>
     </div>
@@ -1159,6 +1269,24 @@ window.PYTHONLAB_START = function (SPRAK) {
     return false;
   }
 
+  /* Finns WebGL i den här webbläsaren? Svaret ändras inte under
+     sessionen, så det räknas ut en gång. Saknas det beror det oftast på
+     avstängd hårdvaruacceleration eller ett gammalt grafikkort — inget
+     som koden kan göra något åt, men det ska sägas begripligt. */
+  var webglSvar = null;
+  function harWebGL() {
+    if (webglSvar !== null) return webglSvar;
+    try {
+      var duk = document.createElement("canvas");
+      webglSvar = !!(window.WebGLRenderingContext &&
+        (duk.getContext("webgl2") || duk.getContext("webgl") ||
+         duk.getContext("experimental-webgl")));
+    } catch (e) {
+      webglSvar = false;
+    }
+    return webglSvar;
+  }
+
   function anpassaStorlek() {
     if (!tre.renderare) return;
     var b = scenruta.clientWidth || 600;
@@ -1355,6 +1483,7 @@ window.PYTHONLAB_START = function (SPRAK) {
   }
 
   function ritaBildruta() {
+    if (!tre.renderare) return;
     tre.bildruta = requestAnimationFrame(ritaBildruta);
     var nu = performance.now();
     var dt = Math.min(0.05, (nu - (tre.forra || nu)) / 1000);
@@ -1387,10 +1516,14 @@ window.PYTHONLAB_START = function (SPRAK) {
     tre.kamera = new T.PerspectiveCamera(60, 16 / 9, 0.05, 20000);
     tre.kamera.position.set(0, 2.5, 7);
     tre.kamera.lookAt(0, 0, 0);
-    if (!tre.renderare) {
-      tre.renderare = new T.WebGLRenderer({ antialias: true, alpha: true });
-      scenruta.appendChild(tre.renderare.domElement);
-      kopplaMus(tre.renderare.domElement);
+    if (!tre.renderare && harWebGL()) {
+      try {
+        tre.renderare = new T.WebGLRenderer({ antialias: true, alpha: true });
+        scenruta.appendChild(tre.renderare.domElement);
+        kopplaMus(tre.renderare.domElement);
+      } catch (e) {
+        tre.renderare = null;
+      }
     }
     var riktat = new T.DirectionalLight(0xffffff, 1.1);
     riktat.position.set(4, 6, 5);
@@ -1403,8 +1536,27 @@ window.PYTHONLAB_START = function (SPRAK) {
     tre.blick = { x: 0, y: 0, z: 0 };            // senast angivna blickpunkt
     sikta({ x: 0, y: 5.5, z: 11 }, tre.blick);
     sparaStartlage();
+
+    // Utan WebGL byggs scenen ändå. Objekten skapas, programmet kör
+    // vidare och skriver ut sitt resultat — bara bilden uteblir.
+    if (!tre.renderare) {
+      if (!tre.utanWebGLSagt) {
+        tre.utanWebGLSagt = true;
+        skriv(SPRAK.msg.ingen_webgl + "\n", "fel");
+      }
+      visaUtanWebGL();
+      return;
+    }
     anpassaStorlek();
     ritaBildruta();
+  }
+
+  function visaUtanWebGL() {
+    scenruta.textContent = "";
+    var text = document.createElement("p");
+    text.className = "tomt";
+    text.textContent = SPRAK.msg.ingen_webgl;
+    scenruta.appendChild(text);
   }
 
   function skapaForm(geometri, x, y, z, farg) {
@@ -2061,7 +2213,7 @@ window.PYTHONLAB_START = function (SPRAK) {
 
   function visaFel(text) {
     visaFlik("utskrift");
-    skriv(text.trim() + "\n", "fel");
+    skrivFelmedLankar(text.trim() + "\n");
     markeraFelrad(radUrFel(text));
     for (var i = 0; i < FELTIPS.length; i++) {
       if (FELTIPS[i].m.test(text)) {
@@ -2255,6 +2407,209 @@ window.PYTHONLAB_START = function (SPRAK) {
     sparaSnart();
   }
 
+  /* ================= syntaxfärgning =================
+     En liten tokeniserare för Python. Ett enda reguljärt uttryck går
+     igenom texten i ordning, så en nyckelordsträff inuti en sträng eller
+     kommentar kan aldrig uppstå — den delen har redan konsumerats. */
+  var kodfarg = document.getElementById("kodfarg");
+
+  var NYCKELORD = ("False None True and as assert async await break class continue " +
+    "def del elif else except finally for from global if import in is lambda " +
+    "nonlocal not or pass raise return try while with yield match case").split(" ");
+  var INBYGGDA = ("abs all any bool bytes callable chr dict dir divmod enumerate " +
+    "eval filter float format frozenset getattr hasattr hash help hex id input int " +
+    "isinstance issubclass iter len list map max min next object oct open ord pow " +
+    "print range repr reversed round set setattr slice sorted str sum tuple type zip " +
+    "self cls super").split(" ");
+
+  var MONSTER = new RegExp([
+    "(#[^\\n]*)",                                       // kommentar
+    '([rbfu]{0,2}"""[\\s\\S]*?(?:"""|$))',              // trippelsträngar
+    "([rbfu]{0,2}'''[\\s\\S]*?(?:'''|$))",
+    '([rbfu]{0,2}"(?:[^"\\\\\\n]|\\\\.)*(?:"|$))',      // vanliga strängar
+    "([rbfu]{0,2}'(?:[^'\\\\\\n]|\\\\.)*(?:'|$))",
+    "(@[A-Za-z_]\\w*)",                                 // dekorator
+    "\\b(\\d[\\w.]*)",                                  // tal
+    "\\b([A-Za-z_]\\w*)"                                // ord
+  ].join("|"), "g");
+
+  function flyKod(text) {
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function fargaKod(kod) {
+    var ut = "";
+    var sist = 0;
+    var m;
+    MONSTER.lastIndex = 0;
+    while ((m = MONSTER.exec(kod)) !== null) {
+      ut += flyKod(kod.slice(sist, m.index));
+      sist = MONSTER.lastIndex;
+      if (m[1]) {
+        ut += '<span class="komm">' + flyKod(m[1]) + "</span>";
+      } else if (m[2] || m[3] || m[4] || m[5]) {
+        ut += '<span class="strang">' + flyKod(m[2] || m[3] || m[4] || m[5]) + "</span>";
+      } else if (m[6]) {
+        ut += '<span class="dekor">' + flyKod(m[6]) + "</span>";
+      } else if (m[7]) {
+        ut += '<span class="tal">' + flyKod(m[7]) + "</span>";
+      } else if (m[8]) {
+        var ord = m[8];
+        var klass = NYCKELORD.indexOf(ord) >= 0 ? "nyckel"
+                  : INBYGGDA.indexOf(ord) >= 0 ? "inbyggd"
+                  : kod.charAt(MONSTER.lastIndex) === "(" ? "namn" : "vanlig";
+        ut += '<span class="' + klass + '">' + flyKod(ord) + "</span>";
+      }
+    }
+    ut += flyKod(kod.slice(sist));
+    return ut;
+  }
+
+  function ritaFarger() {
+    // Den avslutande radbrytningen sväljs annars av webbläsaren, och då
+    // hamnar sista raden fel i förhållande till textrutan.
+    kodfarg.innerHTML = fargaKod(kodruta.value) + "\n";
+    kodfarg.scrollTop = kodruta.scrollTop;
+    kodfarg.scrollLeft = kodruta.scrollLeft;
+  }
+
+  /* ================= sök, ersätt och gå till rad =================
+     Arbetar direkt mot textrutan. Ctrl+F söker, Ctrl+H visar även
+     ersättningsfältet, Ctrl+G hoppar till en rad. Escape stänger. */
+  var sokraden = document.getElementById("sokrad");
+  var sokfalt = document.getElementById("sokfalt");
+  var ersattfalt = document.getElementById("ersattfalt");
+  var soktraffar = document.getElementById("soktraffar");
+
+  function visaSok(medErsatt) {
+    sokraden.hidden = false;
+    sokraden.classList.toggle("med-ersatt", !!medErsatt);
+    var vald = kodruta.value.slice(kodruta.selectionStart, kodruta.selectionEnd);
+    if (vald && vald.indexOf("\n") < 0) sokfalt.value = vald;
+    sokfalt.focus();
+    sokfalt.select();
+    raknaTraffar();
+  }
+
+  function doljSok() {
+    sokraden.hidden = true;
+    kodruta.focus();
+  }
+
+  function alla(text, sokt) {
+    var platser = [];
+    if (!sokt) return platser;
+    var i = text.toLowerCase().indexOf(sokt.toLowerCase());
+    while (i >= 0) {
+      platser.push(i);
+      i = text.toLowerCase().indexOf(sokt.toLowerCase(), i + sokt.length);
+    }
+    return platser;
+  }
+
+  function raknaTraffar() {
+    var platser = alla(kodruta.value, sokfalt.value);
+    if (!sokfalt.value) { soktraffar.textContent = ""; return; }
+    var nu = platser.indexOf(kodruta.selectionStart);
+    soktraffar.textContent = platser.length
+      ? (nu >= 0 ? (nu + 1) + "/" : "") + platser.length
+      : SPRAK.ui.ingen_traff;
+  }
+
+  /* Hoppar till nästa träff efter markören, eller runt till början. */
+  function sokVidare(bakat) {
+    var sokt = sokfalt.value;
+    if (!sokt) return;
+    var platser = alla(kodruta.value, sokt);
+    if (!platser.length) { raknaTraffar(); return; }
+    var fran = kodruta.selectionStart;
+    var mal;
+    if (bakat) {
+      mal = platser.filter(function (i) { return i < fran; }).pop();
+      if (mal === undefined) mal = platser[platser.length - 1];
+    } else {
+      mal = platser.find(function (i) { return i > fran; });
+      if (mal === undefined) mal = platser[0];
+    }
+    valjOchVisa(mal, mal + sokt.length);
+    raknaTraffar();
+  }
+
+  function ersattEn() {
+    var sokt = sokfalt.value;
+    if (!sokt) return;
+    var vald = kodruta.value.slice(kodruta.selectionStart, kodruta.selectionEnd);
+    if (vald.toLowerCase() === sokt.toLowerCase()) {
+      var start = kodruta.selectionStart;
+      satt(kodruta.value.slice(0, start) + ersattfalt.value +
+           kodruta.value.slice(kodruta.selectionEnd));
+      valjOchVisa(start, start + ersattfalt.value.length);
+    }
+    sokVidare(false);
+  }
+
+  function ersattAlla() {
+    var sokt = sokfalt.value;
+    if (!sokt) return;
+    var platser = alla(kodruta.value, sokt);
+    if (!platser.length) return;
+    var text = kodruta.value;
+    for (var i = platser.length - 1; i >= 0; i--) {
+      text = text.slice(0, platser[i]) + ersattfalt.value +
+             text.slice(platser[i] + sokt.length);
+    }
+    satt(text);
+    soktraffar.textContent = SPRAK.ui.ersatta.replace("{antal}", platser.length);
+  }
+
+  /* Skriver ny text och håller allt som hänger på den uppdaterat. */
+  function satt(text) {
+    kodruta.value = text;
+    markeraAndrad();
+    ritaRadnummer();
+    ritaFarger();
+  }
+
+  function valjOchVisa(start, slut) {
+    kodruta.focus();
+    kodruta.setSelectionRange(start, slut);
+    var rad = kodruta.value.slice(0, start).split("\n").length;
+    var radhojd = kodruta.scrollHeight / Math.max(1, kodruta.value.split("\n").length);
+    kodruta.scrollTop = Math.max(0, (rad - 1) * radhojd - kodruta.clientHeight / 2);
+    radspalt.scrollTop = kodruta.scrollTop;
+    kodfarg.scrollTop = kodruta.scrollTop;
+    if (!sokraden.hidden) sokfalt.focus();
+  }
+
+  function gaTillRad() {
+    var rader = kodruta.value.split("\n");
+    var svar = prompt(SPRAK.fraga.ga_till_rad.replace("{antal}", rader.length), "");
+    if (svar === null) return;
+    var nr = parseInt(svar, 10);
+    if (!nr || nr < 1) return;
+    nr = Math.min(nr, rader.length);
+    var start = 0;
+    for (var i = 0; i < nr - 1; i++) start += rader[i].length + 1;
+    valjOchVisa(start, start + rader[nr - 1].length);
+    kodruta.focus();
+    markeraFelrad(0);
+  }
+
+  sokfalt.addEventListener("input", raknaTraffar);
+  sokfalt.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); sokVidare(e.shiftKey); }
+    else if (e.key === "Escape") { e.preventDefault(); doljSok(); }
+  });
+  ersattfalt.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); ersattEn(); }
+    else if (e.key === "Escape") { e.preventDefault(); doljSok(); }
+  });
+  document.getElementById("sok-nasta").addEventListener("click", function () { sokVidare(false); });
+  document.getElementById("sok-forra").addEventListener("click", function () { sokVidare(true); });
+  document.getElementById("sok-ersatt").addEventListener("click", ersattEn);
+  document.getElementById("sok-ersatt-alla").addEventListener("click", ersattAlla);
+  document.getElementById("sok-stang").addEventListener("click", doljSok);
+
   /* ---- radnummer ---- */
   var radspalt = document.getElementById("radnummer");
   var felradNu = 0;
@@ -2282,10 +2637,13 @@ window.PYTHONLAB_START = function (SPRAK) {
 
   kodruta.addEventListener("scroll", function () {
     radspalt.scrollTop = kodruta.scrollTop;
+    kodfarg.scrollTop = kodruta.scrollTop;
+    kodfarg.scrollLeft = kodruta.scrollLeft;
   });
   kodruta.addEventListener("input", function () {
     if (felradNu) felradNu = 0;
     ritaRadnummer();
+    ritaFarger();
   });
 
   function markeraAndrad() {
@@ -2643,7 +3001,10 @@ window.PYTHONLAB_START = function (SPRAK) {
     sistaMarkering = { start: 0, slut: 0 };
     felradNu = 0;
     ritaRadnummer();
+    ritaFarger();
     markeraVald(f.kapitel === null ? -1 : f.kapitel);
+    if (f.kapitel === null) document.getElementById("uppgiftsrad").hidden = true;
+    else visaUppgift(LEKTIONER[f.kapitel].forklaring);
     aterstallKapitelKnapp.textContent = knapptextAterstall();
     ritaFiler();
     byteAvSamtal();
@@ -2694,10 +3055,25 @@ window.PYTHONLAB_START = function (SPRAK) {
     markeraVald(-2);
     lektionstext.innerHTML = STARTSIDA;
     lektionstext.className = "lektionstext start";
+    document.getElementById("uppgiftsrad").hidden = true;
     panelLektion.scrollTop = 0;
     visaFlik("lektion");
   }
   startKnapp.addEventListener("click", visaStartsida);
+
+  /* Plockar ut uppgiften ur kapiteltexten och lägger den överst i
+     redigeraren, så att den syns medan man skriver. */
+  function visaUppgift(forklaring) {
+    var raden = document.getElementById("uppgiftsrad");
+    var burk = document.createElement("div");
+    burk.innerHTML = forklaring || "";
+    var uppgift = burk.querySelector(".uppgift");
+    if (!uppgift) { raden.hidden = true; return; }
+    var text = (uppgift.textContent || "").replace(/\s+/g, " ").trim();
+    document.getElementById("uppgiftsrubrik").textContent = text;
+    document.getElementById("uppgiftstext").innerHTML = uppgift.innerHTML;
+    raden.hidden = false;
+  }
 
   function oppnaLektion(i) {
     var lek = LEKTIONER[i];
@@ -2706,6 +3082,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     lektionstext.innerHTML = "<h3>" + SPRAK.ord.kapitel_rubrik
       .replace("{nr}", i + 1).replace("{titel}", lek.titel) + "</h3>" + lek.forklaring;
     lektionstext.className = "lektionstext";
+    visaUppgift(lek.forklaring);
     panelLektion.scrollTop = 0;
     visaFlik("lektion");
   }
@@ -3338,6 +3715,39 @@ window.PYTHONLAB_START = function (SPRAK) {
     }
   }
 
+  /* Skriver ut en traceback där programmets egna rader går att klicka på. */
+  function skrivFelmedLankar(text) {
+    var ruta = document.createElement("span");
+    ruta.className = "fel";
+    var monster = /File "<program>", line (\d+)/g;
+    var sist = 0, m;
+    while ((m = monster.exec(text)) !== null) {
+      ruta.appendChild(document.createTextNode(text.slice(sist, m.index)));
+      var lank = document.createElement("button");
+      lank.className = "radlank";
+      lank.textContent = m[0];
+      lank.title = SPRAK.ui.ga_till_raden;
+      (function (nr) {
+        lank.addEventListener("click", function () { gaTillRadnummer(nr); });
+      })(parseInt(m[1], 10));
+      ruta.appendChild(lank);
+      sist = monster.lastIndex;
+    }
+    ruta.appendChild(document.createTextNode(text.slice(sist)));
+    konsol.appendChild(ruta);
+    konsol.scrollTop = konsol.scrollHeight;
+  }
+
+  function gaTillRadnummer(nr) {
+    var rader = kodruta.value.split("\n");
+    nr = Math.max(1, Math.min(nr, rader.length));
+    var start = 0;
+    for (var i = 0; i < nr - 1; i++) start += rader[i].length + 1;
+    valjOchVisa(start, start + rader[nr - 1].length);
+    kodruta.focus();
+    markeraFelrad(nr);
+  }
+
   /* Plockar ut radnumret ur en traceback.
 
      Ramar från användarens eget program heter <program>. Vi letar efter
@@ -3489,9 +3899,21 @@ window.PYTHONLAB_START = function (SPRAK) {
   kodruta.addEventListener("input", markeraAndrad);
 
   kodruta.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); kor(); return; }
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      // Markerad kod körs i samma namnrymd som programmet, precis som
+      // en rad i REPL:en. Utan markering körs hela filen.
+      var vald = kodruta.value.slice(kodruta.selectionStart, kodruta.selectionEnd);
+      if (vald.trim() && replKor) korMarkering(vald);
+      else kor();
+      return;
+    }
     if (e.key.toLowerCase() === "s" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sparaFil(e.shiftKey); return; }
     if (e.key.toLowerCase() === "o" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); oppnaFil(); return; }
+    if (e.key.toLowerCase() === "f" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); visaSok(false); return; }
+    if (e.key.toLowerCase() === "h" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); visaSok(true); return; }
+    if (e.key.toLowerCase() === "g" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); gaTillRad(); return; }
+    if (e.key === "Escape" && !sokraden.hidden) { e.preventDefault(); doljSok(); return; }
     if (e.key === "Tab") {
       e.preventDefault();
       var start = kodruta.selectionStart, slut = kodruta.selectionEnd, text = kodruta.value;
@@ -3790,6 +4212,27 @@ _plt.show = _labb_visa
   var replhistorik = [];
   var replplats = -1;
 
+  async function korMarkering(kod) {
+    visaFlik("utskrift");
+    skriv(SPRAK.msg.kor_markering.replace("{rader}", kod.trim().split("\n").length)
+          + "\n", "system");
+    await korRepl(avindentera(kod));
+  }
+
+  /* Markerar man rader inuti en funktion följer indenteringen med.
+     Den gemensamma delen tas bort så att koden går att köra fristående. */
+  function avindentera(kod) {
+    var rader = kod.replace(/\s+$/, "").split("\n");
+    var minsta = null;
+    rader.forEach(function (r) {
+      if (!r.trim()) return;
+      var n = r.length - r.replace(/^\s+/, "").length;
+      if (minsta === null || n < minsta) minsta = n;
+    });
+    if (!minsta) return rader.join("\n");
+    return rader.map(function (r) { return r.slice(minsta); }).join("\n");
+  }
+
   async function korRepl(rad) {
     skriv(">>> " + rad + "\n", "svar");
     try {
@@ -3965,6 +4408,7 @@ _plt.show = _labb_visa
     oppna(start);
     visaFilnamn();
     ritaRadnummer();
+    ritaFarger();
     ritaLektioner();
     ritaFiler();
     // ?mode=dev vinner över det sparade läget, så en delad länk visar
