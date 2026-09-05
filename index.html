@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.67";
+  window.PYTHONLABBET_VERSION = "1.72";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -296,7 +296,6 @@
   #app-root .uppgiftsrad > summary {
     cursor: pointer; list-style: none; padding: 7px 14px;
     color: var(--amber); font-weight: 600;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   #app-root .uppgiftsrad > summary::-webkit-details-marker { display: none; }
   #app-root .uppgiftsrad > summary::before { content: "▸ "; }
@@ -304,11 +303,16 @@
   #app-root #uppgiftstext {
     padding: 0 14px 12px; color: var(--chalk);
     max-height: 32vh; overflow-y: auto;
+    /* Långa kodexempel utan mellanslag skulle annars bredda hela raden. */
+    overflow-wrap: anywhere; word-break: normal;
   }
   #app-root #uppgiftstext code {
     font-family: var(--mono); font-size: 12.5px;
     background: var(--panel-2); border-radius: 4px; padding: 1px 5px;
+    white-space: pre-wrap; overflow-wrap: anywhere;
   }
+  #app-root #uppgiftstext p,
+  #app-root #uppgiftstext strong { max-width: 100%; }
   #app-root.dev-lage .uppgiftsrad { display: none; }
 
   #app-root .sokrad {
@@ -325,9 +329,6 @@
   #app-root .sokrad input:focus { border-color: var(--amber); }
   #app-root #sokfalt { flex: 1 1 140px; }
   #app-root #ersattfalt { flex: 1 1 140px; }
-  #app-root .sokrad:not(.med-ersatt) #ersattfalt,
-  #app-root .sokrad:not(.med-ersatt) #sok-ersatt,
-  #app-root .sokrad:not(.med-ersatt) #sok-ersatt-alla { display: none; }
   #app-root .minik {
     background: transparent; border: 1px solid var(--line); border-radius: 6px;
     color: var(--chalk-dim); font-family: var(--sans); font-size: 12px;
@@ -506,6 +507,7 @@
   #app-root .pil { color: var(--line); font-size: 12px; }
 
   #app-root .nedre { display: flex; flex-direction: column; min-height: 0; }
+  #app-root .endast-mobil { display: none; }
   #app-root .flikar { display: flex; gap: 4px; padding: 8px 14px 0; flex: 0 0 auto; }
   #app-root button.flik {
     font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
@@ -818,12 +820,86 @@
   #app-root .startknapp { border-color: var(--line); }
   #app-root .startknapp.vald { border-color: var(--amber); background: var(--panel-2); }
 
-  @media (max-width: 780px) {
-    #app-root { height: auto; overflow: visible; }
+  /* ================= mobilläge =================
+     Under 720 punkter finns ingen plats för sidomeny och editor sida
+     vid sida — 390 punkter är allt en telefon ger, hur skarp skärmen
+     än är. Därför visas en vy i taget, som i en mobilapp: flikraden
+     nertill väljer vilken. Ingenting i tillståndet ändras; det här är
+     ren presentation, precis som utvecklarläget. */
+  @media (max-width: 720px) {
+    #app-root { height: 100dvh; }
     #app-root .layout { grid-template-columns: 1fr; }
-    #app-root .rail { border-right: 0; border-bottom: 1px solid var(--line); max-height: 220px; }
-    #app-root textarea { min-height: 280px; }
-    #app-root .flikinnehall { min-height: 220px; height: auto; }
+
+    /* topplisten kortas och får rulla i sidled om den inte räcker */
+    #app-root .topbar {
+      gap: 10px; padding: 8px 12px; overflow-x: auto; flex-wrap: nowrap;
+      scrollbar-width: none;
+    }
+    #app-root .topbar::-webkit-scrollbar { display: none; }
+    #app-root .wordmark { font-size: 15px; }
+    #app-root .version { display: none; }
+
+    /* verktygsraden rullar hellre i sidled än bryter */
+    #app-root .verktyg {
+      overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none;
+      padding: 8px 12px;
+    }
+    #app-root .verktyg::-webkit-scrollbar { display: none; }
+    #app-root .verktyg .knapp { flex: 0 0 auto; }
+    #app-root #kor-knapp, #app-root #stoppa-knapp { display: none; }
+
+    #app-root .arbetsyta { grid-template-rows: minmax(0, 1fr); }
+    #app-root #spar { display: none; }
+
+    /* en vy i taget */
+    #app-root .rail,
+    #app-root .redigerare,
+    #app-root .nedre { display: none; }
+    #app-root.vy-kod .redigerare { display: flex; grid-row: 1; }
+    #app-root.vy-filer .rail {
+      display: block; grid-row: 1; border-right: 0; max-height: none;
+      overflow-y: auto;
+    }
+    #app-root.vy-lektion .nedre,
+    #app-root.vy-utskrift .nedre,
+    #app-root.vy-scen .nedre,
+    #app-root.vy-ai .nedre { display: flex; grid-row: 1; }
+
+    /* flikraden flyttas till underkanten, där tummen når */
+    #app-root .nedre { position: relative; }
+    #app-root .flikar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+      background: var(--panel); border-top: 1px solid var(--line);
+      overflow-x: auto; scrollbar-width: none; padding: 0 6px;
+    }
+    #app-root .flikar::-webkit-scrollbar { display: none; }
+    #app-root .flik { flex: 0 0 auto; font-size: 12.5px; padding: 11px 12px; }
+    #app-root .flikinnehall { padding-bottom: 62px; }
+    #app-root .replrad { margin-bottom: 48px; }
+
+    #app-root .endast-mobil { display: inline-block; }
+
+    /* körknappen svävar över koden */
+    #app-root .flytknapp {
+      position: fixed; right: 16px; bottom: 68px; z-index: 40;
+      border: 0; border-radius: 999px; padding: 13px 22px;
+      background: var(--amber); color: #1b1405;
+      font-family: var(--sans); font-size: 15px; font-weight: 650;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .45); cursor: pointer;
+    }
+    #app-root .flytknapp.stoppar { background: var(--coral); color: #2a0a05; }
+    #app-root .flytknapp[hidden] { display: none; }
+
+    /* sökraden bryts till två rader */
+    #app-root .sokrad { flex-wrap: wrap; }
+    #app-root #sokfalt, #app-root #ersattfalt { flex: 1 1 100%; }
+
+    #app-root .uppgiftsrad > summary { padding: 9px 12px; }
+  }
+
+  /* På riktigt smala skärmar tar radnumren för mycket av bredden. */
+  @media (max-width: 480px) {
+    #app-root .radnummer { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
     #app-root .dot { animation: none; }
@@ -911,12 +987,16 @@
       <span class="steg" data-steg="3" data-i18n="steg.resultat"></span>
     </div>
 
+    <button class="flytknapp" id="flyt-kor" data-i18n="ui.kor" hidden></button>
+
     <div class="nedre">
       <div class="flikar">
+        <button class="flik endast-mobil" id="flik-kod" data-i18n="ui.flik_kod"></button>
         <button class="flik vald" id="flik-lektion" data-i18n="ui.flik_kapitel"></button>
         <button class="flik" id="flik-utskrift" data-i18n="ui.flik_utskrift"></button>
         <button class="flik" id="flik-scen" data-i18n="ui.flik_scen"></button>
         <button class="flik" id="flik-ai" data-i18n="ui.flik_ai"></button>
+        <button class="flik endast-mobil" id="flik-filer" data-i18n="ui.flik_filer"></button>
         <button class="knapp" id="aterstall-knapp" hidden data-i18n="ord.aterstall_vy" style="margin-left:auto; font-size:12px; padding:4px 10px;"></button>
         <button class="knapp" id="helskarm-knapp" hidden data-i18n="ord.helskarm" style="font-size:12px; padding:4px 10px;"></button>
         <button class="knapp" id="rensa-knapp" data-i18n="ord.rensa" style="margin-left:auto; font-size:12px; padding:4px 10px;"></button>
@@ -1236,7 +1316,54 @@ window.PYTHONLAB_START = function (SPRAK) {
     konsol.scrollTop = konsol.scrollHeight;
   };
 
+  /* Sant när skärmen är för smal för två spalter. Följer bredden
+     automatiskt — webbläsaren vet redan svaret, så det ska inte vara
+     ett val användaren behöver göra. ?mobil=1 tvingar fram läget. */
+  var flikKod = document.getElementById("flik-kod");
+  var flikFiler = document.getElementById("flik-filer");
+  var flytKor = document.getElementById("flyt-kor");
+  var nuvarandeVy = "lektion";
+
+  function sattVy(namn) {
+    nuvarandeVy = namn;
+    var rot = document.getElementById("app-root");
+    ["kod", "filer", "lektion", "utskrift", "scen", "ai"].forEach(function (n) {
+      rot.classList.toggle("vy-" + n, n === namn);
+    });
+    uppdateraFlytknapp();
+  }
+
+  /* Körknappen svävar över kodvyn, eftersom Ctrl+Enter inte finns på
+     en telefon och verktygsraden kan ha rullat ur bild. */
+  function uppdateraFlytknapp() {
+    if (!flytKor) return;
+    var visa = arMobil() && nuvarandeVy === "kod";
+    flytKor.hidden = !visa;
+    if (!visa) return;
+    var kor = korning.igang && !stoppaKnapp.hidden;
+    flytKor.textContent = kor ? SPRAK.ui.stoppa : SPRAK.ui.kor;
+    flytKor.classList.toggle("stoppar", kor);
+    flytKor.disabled = kor ? stoppaKnapp.disabled : korKnapp.disabled;
+  }
+
+  var mobilfraga = window.matchMedia ? window.matchMedia("(max-width: 720px)") : null;
+  var tvingaMobil = /[?&]mobil=1\b/.test(location.search);
+  function arMobil() { return tvingaMobil || (mobilfraga && mobilfraga.matches); }
+
   function visaFlik(vilken) {
+    // Kod och Filer är egna vyer på mobil, inte paneler.
+    if (vilken === "kod" || vilken === "filer") {
+      if (!arMobil()) return;
+      [flikLektion, flikUtskrift, flikScen, flikAi, flikKod, flikFiler]
+        .forEach(function (f) { if (f) f.classList.remove("vald"); });
+      (vilken === "kod" ? flikKod : flikFiler).classList.add("vald");
+      [panelLektion, panelUtskrift, panelScen, panelAi]
+        .forEach(function (pan) { pan.hidden = true; });
+      sattVy(vilken);
+      sattKnappsynlighet(false);
+      if (vilken === "kod") kodruta.focus();
+      return;
+    }
     var paneler = {
       lektion: [panelLektion, flikLektion],
       utskrift: [panelUtskrift, flikUtskrift],
@@ -1247,6 +1374,9 @@ window.PYTHONLAB_START = function (SPRAK) {
       paneler[namn][0].hidden = namn !== vilken;
       paneler[namn][1].classList.toggle("vald", namn === vilken);
     });
+    if (flikKod) flikKod.classList.remove("vald");
+    if (flikFiler) flikFiler.classList.remove("vald");
+    sattVy(vilken);
     // Knapparnas synlighet sätts FÖRE allt som kan misslyckas.
     sattKnappsynlighet(vilken === "scen");
     if (vilken === "scen") {
@@ -1264,6 +1394,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     var kanStoppas = (korning.igang && korning.vakter > 0) || vantar;
     stoppaKnapp.hidden = !(korning.igang || vantar);
     stoppaKnapp.disabled = !kanStoppas || window._labbStopp;
+    uppdateraFlytknapp();
     if (!window._labbStopp) {
       stoppaKnapp.textContent = SPRAK.ui.stoppa;
       stoppaKnapp.title = kanStoppas
@@ -2519,9 +2650,10 @@ window.PYTHONLAB_START = function (SPRAK) {
   var ersattfalt = document.getElementById("ersattfalt");
   var soktraffar = document.getElementById("soktraffar");
 
-  function visaSok(medErsatt) {
+  /* Ett enda läge. Ett rent sökfält tillför ingenting när ersättfältet
+     ändå bara står tomt tills man använder det. */
+  function visaSok() {
     sokraden.hidden = false;
-    sokraden.classList.toggle("med-ersatt", !!medErsatt);
     var vald = kodruta.value.slice(kodruta.selectionStart, kodruta.selectionEnd);
     if (vald && vald.indexOf("\n") < 0) sokfalt.value = vald;
     sokfalt.focus();
@@ -3142,8 +3274,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     burk.innerHTML = forklaring || "";
     var uppgift = burk.querySelector(".uppgift");
     if (!uppgift) { raden.hidden = true; return; }
-    var text = (uppgift.textContent || "").replace(/\s+/g, " ").trim();
-    document.getElementById("uppgiftsrubrik").textContent = text;
+    document.getElementById("uppgiftsrubrik").textContent = SPRAK.ui.visa_uppgift;
     document.getElementById("uppgiftstext").innerHTML = uppgift.innerHTML;
     raden.hidden = false;
   }
@@ -3983,8 +4114,8 @@ window.PYTHONLAB_START = function (SPRAK) {
     }
     if (e.key.toLowerCase() === "s" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sparaFil(e.shiftKey); return; }
     if (e.key.toLowerCase() === "o" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); oppnaFil(); return; }
-    if (e.key.toLowerCase() === "f" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); visaSok(false); return; }
-    if (e.key.toLowerCase() === "h" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); visaSok(true); return; }
+    if (e.key.toLowerCase() === "f" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); visaSok(); return; }
+    if (e.key.toLowerCase() === "h" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); visaSok(); return; }
     if (e.key.toLowerCase() === "g" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); gaTillRad(); return; }
     if (e.key === "Escape" && !sokraden.hidden) { e.preventDefault(); doljSok(); return; }
     if (e.key === "Tab") {
@@ -4046,6 +4177,7 @@ window.PYTHONLAB_START = function (SPRAK) {
       function (b) { b.disabled = las; });
     var app = document.getElementById("app-root");
     if (app) app.classList.toggle("kor-lage", las);
+    uppdateraFlytknapp();
     if (!las) {
       // återta det som styrs av annan logik
       if (skickaKnapp) skickaKnapp.disabled = arbetar;
@@ -4337,8 +4469,23 @@ _plt.show = _labb_visa
 
   document.getElementById("ny-fil-knapp").addEventListener("click", nyFil);
   document.getElementById("sok-knapp").addEventListener("click", function () {
-    visaSok(sokraden.hidden ? false : !sokraden.classList.contains("med-ersatt"));
+    if (sokraden.hidden) visaSok(); else doljSok();
   });
+  if (flikKod) flikKod.addEventListener("click", function () { visaFlik("kod"); });
+  if (flikFiler) flikFiler.addEventListener("click", function () { visaFlik("filer"); });
+  flytKor.addEventListener("click", function () {
+    if (korning.igang && !stoppaKnapp.hidden) stoppaKnapp.click();
+    else kor();
+  });
+  if (mobilfraga && mobilfraga.addEventListener) {
+    mobilfraga.addEventListener("change", function () {
+      // Byter man orientering eller storlek ska vyn stämma igen.
+      if (!arMobil() && (nuvarandeVy === "kod" || nuvarandeVy === "filer")) {
+        visaFlik("utskrift");
+      }
+      uppdateraFlytknapp();
+    });
+  }
   document.getElementById("kor-knapp").addEventListener("click", kor);
   stoppaKnapp.addEventListener("click", function () {
     window._labbStopp = true;
@@ -4493,7 +4640,7 @@ _plt.show = _labb_visa
     // det, men ett sparat läge gör det inte — annars kan någon hamna i
     // utvecklarläget utan att minnas varför.
     sattDevlage(/[?&]mode=dev\b/i.test(location.search), false);
-    visaFlik("utskrift");
+    visaFlik(arMobil() ? "kod" : "utskrift");
 
     var ok = await startaPython();
     if (!ok) {
@@ -5311,7 +5458,9 @@ _sys.modules['data'] = _data_modul
     replrad.hidden = false;
     rensaKonsol();
     skriv(SPRAK.msg.redo + "\n", "system");
-    visaFlik("lektion");
+    // På en telefon vill man se koden, inte kapiteltexten — den ligger
+    // en flik bort och är lätt att nå.
+    visaFlik(arMobil() ? "kod" : "lektion");
 
     ladd(100, SPRAK.ladd.klart, SPRAK.ladd.redo);
     await andas();

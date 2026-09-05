@@ -13,7 +13,10 @@ window.PYTHONLAB_SPRAK.en = {
   beskrivning: "Pytho is an interactive Python course that runs entirely in your browser. 29 chapters, from your first print statement to 3D graphics, machine learning and transformers.",
 
   ui: {
-    sok_knapp: "Find",
+    flik_kod: "Code",
+    flik_filer: "Files",
+    visa_uppgift: "Show the exercise",
+    sok_knapp: "Find/Replace",
     sok_tips: "Find and replace (Ctrl + F)",
     oppna_tips: "Open a file (Ctrl + O)",
     spara_tips: "Save (Ctrl + S)",
@@ -364,7 +367,7 @@ window.PYTHONLAB_SPRAK.en.om = `
          target="_blank" rel="noopener">LinkedIn</a>.</p>
     <p class="om-copyright">Copyright Gabriel Westman 2026</p>
     <h3 class="om-rubrik">Keyboard shortcuts</h3>
-    <table class="kortkommandon"><tr><td><kbd>Ctrl + Enter</kbd></td><td>Run the program</td></tr><tr><td><kbd>Ctrl + Enter</kbd></td><td>Run the selection in the same namespace</td></tr><tr><td><kbd>Tab / Shift + Tab</kbd></td><td>Indent or remove indentation</td></tr><tr><td><kbd>Ctrl + F</kbd></td><td>Find in the file</td></tr><tr><td><kbd>Ctrl + H</kbd></td><td>Find and replace</td></tr><tr><td><kbd>Ctrl + G</kbd></td><td>Go to line</td></tr><tr><td><kbd>Ctrl + S</kbd></td><td>Save to disk</td></tr><tr><td><kbd>Ctrl + Shift + S</kbd></td><td>Save as</td></tr><tr><td><kbd>Ctrl + O</kbd></td><td>Open a file</td></tr><tr><td><kbd>R</kbd></td><td>Reset the 3D view</td></tr><tr><td><kbd>Escape</kbd></td><td>Close the dialog or cancel input</td></tr></table>
+    <table class="kortkommandon"><tr><td><kbd>Ctrl + Enter</kbd></td><td>Run the program</td></tr><tr><td><kbd>Ctrl + Enter</kbd></td><td>Run the selection in the same namespace</td></tr><tr><td><kbd>Tab / Shift + Tab</kbd></td><td>Indent or remove indentation</td></tr><tr><td><kbd>Ctrl + F</kbd> / <kbd>Ctrl + H</kbd></td><td>Find and replace</td></tr><tr><td><kbd>Ctrl + G</kbd></td><td>Go to line</td></tr><tr><td><kbd>Ctrl + S</kbd></td><td>Save to disk</td></tr><tr><td><kbd>Ctrl + Shift + S</kbd></td><td>Save as</td></tr><tr><td><kbd>Ctrl + O</kbd></td><td>Open a file</td></tr><tr><td><kbd>R</kbd></td><td>Reset the 3D view</td></tr><tr><td><kbd>Escape</kbd></td><td>Close the dialog or cancel input</td></tr></table>
     <div class="dialog-fot">
       <span class="ai-status">Pytho runs locally in your browser</span>
       <button class="knapp kor" id="om-stang">Close</button>
