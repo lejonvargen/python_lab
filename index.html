@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.77";
+  window.PYTHONLABBET_VERSION = "1.78";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -1537,22 +1537,75 @@ window.PYTHONLAB_START = function (SPRAK) {
     return false;
   }
 
-  /* Finns WebGL i den här webbläsaren? Svaret ändras inte under
-     sessionen, så det räknas ut en gång. Saknas det beror det oftast på
-     avstängd hårdvaruacceleration eller ett gammalt grafikkort — inget
-     som koden kan göra något åt, men det ska sägas begripligt. */
-  var webglSvar = null;
-  function harWebGL() {
-    if (webglSvar !== null) return webglSvar;
-    try {
-      var duk = document.createElement("canvas");
-      webglSvar = !!(window.WebGLRenderingContext &&
-        (duk.getContext("webgl2") || duk.getContext("webgl") ||
-         duk.getContext("experimental-webgl")));
-    } catch (e) {
-      webglSvar = false;
+  /* ---- WebGL-ytan ----
+     Förr provades WebGL en gång med en extra yta, och ett nej sparades för
+     hela sessionen. Det var fel på två sätt: provytan släpptes aldrig (och
+     webbläsare har ett tak för hur många WebGL-ytor en sida får hålla), och
+     ett tillfälligt nej — grafikprocessen startar om, för många ytor öppna
+     — gjorde att 3D-vyn aldrig kom tillbaka förrän sidan laddades om.
+     Nu görs ett riktigt försök varje gång en scen startar, och webbläsarens
+     egen förklaring fångas upp om det misslyckas. */
+  function skapaRenderare() {
+    var T = window.THREE;
+    tre.webglOrsak = "";
+    if (!window.WebGLRenderingContext && !window.WebGL2RenderingContext) {
+      tre.webglOrsak = "WebGL is not supported";
+      return null;
     }
-    return webglSvar;
+    var forsok = [
+      { antialias: true, alpha: true },
+      // Andra försöket: det enklaste som går, för svaga eller svartlistade kort.
+      { antialias: false, alpha: true, powerPreference: "low-power" }
+    ];
+    for (var i = 0; i < forsok.length; i++) {
+      var duk = document.createElement("canvas");
+      var orsak = "";
+      var lyssna = function (e) { if (e && e.statusMessage) orsak = e.statusMessage; };
+      duk.addEventListener("webglcontextcreationerror", lyssna);
+      try {
+        var r = new T.WebGLRenderer(Object.assign({ canvas: duk }, forsok[i]));
+        duk.removeEventListener("webglcontextcreationerror", lyssna);
+        kopplaForlust(r);
+        return r;
+      } catch (e) {
+        tre.webglOrsak = orsak || (e && e.message) || String(e);
+      }
+    }
+    return null;
+  }
+
+  /* Ytan kan tas ifrån sidan medan den används (grafikprocessen startar
+     om, eller webbläsaren behöver ytan till en annan flik). Då stoppas
+     ritandet, och kommer ytan tillbaka ritas scenen igen. */
+  function kopplaForlust(r) {
+    var duk = r.domElement;
+    duk.addEventListener("webglcontextlost", function (e) {
+      e.preventDefault();                       // gör återställning möjlig
+      if (tre.renderare === r && tre.bildruta) {
+        cancelAnimationFrame(tre.bildruta);
+        tre.bildruta = null;
+      }
+    });
+    duk.addEventListener("webglcontextrestored", function () {
+      if (tre.renderare === r && tre.scen && !tre.bildruta) {
+        anpassaStorlek();
+        ritaBildruta();
+      }
+    });
+  }
+
+  function ytanForlorad(r) {
+    try { return r.getContext().isContextLost(); } catch (e) { return true; }
+  }
+
+  /* Lämnar tillbaka WebGL-ytan till webbläsaren. */
+  function slappRenderare() {
+    if (tre.bildruta) { cancelAnimationFrame(tre.bildruta); tre.bildruta = null; }
+    if (!tre.renderare) return;
+    var r = tre.renderare;
+    tre.renderare = null;
+    try { r.dispose(); r.forceContextLoss(); } catch (e) { /* redan borta */ }
+    if (r.domElement && r.domElement.parentNode) r.domElement.parentNode.removeChild(r.domElement);
   }
 
   function anpassaStorlek() {
@@ -1784,13 +1837,16 @@ window.PYTHONLAB_START = function (SPRAK) {
     tre.kamera = new T.PerspectiveCamera(60, 16 / 9, 0.05, 20000);
     tre.kamera.position.set(0, 2.5, 7);
     tre.kamera.lookAt(0, 0, 0);
-    if (!tre.renderare && harWebGL()) {
-      try {
-        tre.renderare = new T.WebGLRenderer({ antialias: true, alpha: true });
+    // En yta som webbläsaren tagit tillbaka går inte att rita på — ny.
+    if (tre.renderare && ytanForlorad(tre.renderare)) slappRenderare();
+    if (!tre.renderare) {
+      tre.renderare = skapaRenderare();
+      if (tre.renderare) {
+        // Ett tidigare "ingen WebGL"-besked ska bort när det väl fungerar.
+        Array.prototype.forEach.call(scenruta.querySelectorAll("p.tomt"),
+          function (el) { el.parentNode.removeChild(el); });
         scenruta.appendChild(tre.renderare.domElement);
         kopplaMus(tre.renderare.domElement);
-      } catch (e) {
-        tre.renderare = null;
       }
     }
     var riktat = new T.DirectionalLight(0xffffff, 1.1);
@@ -1808,10 +1864,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     // Utan WebGL byggs scenen ändå. Objekten skapas, programmet kör
     // vidare och skriver ut sitt resultat — bara bilden uteblir.
     if (!tre.renderare) {
-      if (!tre.utanWebGLSagt) {
-        tre.utanWebGLSagt = true;
-        skriv(SPRAK.msg.ingen_webgl + "\n", "fel");
-      }
+      skriv(SPRAK.msg.ingen_webgl + webglForklaring() + "\n", "fel");
       visaUtanWebGL();
       return;
     }
@@ -1819,11 +1872,16 @@ window.PYTHONLAB_START = function (SPRAK) {
     ritaBildruta();
   }
 
+  function webglForklaring() {
+    return tre.webglOrsak
+      ? "\n\n" + (SPRAK.msg.webgl_orsak || "") + tre.webglOrsak : "";
+  }
+
   function visaUtanWebGL() {
     scenruta.textContent = "";
     var text = document.createElement("p");
     text.className = "tomt";
-    text.textContent = SPRAK.msg.ingen_webgl;
+    text.textContent = SPRAK.msg.ingen_webgl + webglForklaring();
     scenruta.appendChild(text);
   }
 
@@ -4918,6 +4976,8 @@ _plt.show = _labb_visa
     if (hinnerSpara) { clearTimeout(sparklocka); await sparaArbetsyta(); }
     FLIK.aktiv = false;
     clearTimeout(sparklocka);
+    // Den låsta fliken ska inte hålla grafikresurser som den aktiva behöver.
+    try { stoppaScen(); slappRenderare(); } catch (e) { /* ingen scen */ }
     if (FLIK.slapp) { FLIK.slapp(); FLIK.slapp = null; }
     visaFlikruta("forlorad", function () {
       // Den här flikens arbetsyta är gammal nu — börja om från det sparade.

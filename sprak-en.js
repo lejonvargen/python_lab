@@ -154,6 +154,7 @@ window.PYTHONLAB_SPRAK.en = {
   msg: {
     kor_markering: "Running the selection ({rader} lines) in the same namespace as the program.",
     ingen_webgl: "The 3D view cannot be shown: the browser gave no WebGL surface. This usually means hardware acceleration is switched off in the settings, or the graphics card is too old. The program keeps running and prints its result — only the picture is missing.",
+    webgl_orsak: "The browser's explanation: ",
     filfel: "Could not write out your files: ",
     arbetsyta_aterstalld: "Your workspace was restored — {antal} chapters and {filer} files of your own are still here.",
     syntaxfel: "Syntax error on line {rad}, character {kolumn}: {text}",

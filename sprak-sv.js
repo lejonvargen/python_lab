@@ -145,6 +145,7 @@ window.PYTHONLAB_SPRAK.sv = {
   msg: {
     "kor_markering": "Kör markeringen ({rader} rader) i samma namnrymd som programmet.",
     "ingen_webgl": "3D-vyn kan inte visas: webbläsaren gav ingen WebGL-yta. Oftast beror det på att hårdvaruacceleration är avstängd i inställningarna, eller på ett äldre grafikkort. Programmet kör vidare och skriver ut sitt resultat — bara bilden uteblir.",
+    "webgl_orsak": "Webbläsarens förklaring: ",
     "filfel": "Kunde inte lägga ut dina filer: ",
     "arbetsyta_aterstalld": "Din arbetsyta lästes in — {antal} kapitel och {filer} egna filer finns kvar sedan sist.",
     "syntaxfel": "Syntaxfel på rad {rad}, tecken {kolumn}: {text}",
