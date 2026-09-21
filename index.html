@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.74";
+  window.PYTHONLABBET_VERSION = "1.75";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -26,7 +26,7 @@
     return p;
   })();
 </script>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Pytho</title>
 <meta name="description" content="An interactive Python course that runs in your browser.">
 <meta name="author" content="Gabriel Westman">
@@ -831,11 +831,12 @@
      nertill väljer vilken. Ingenting i tillståndet ändras; det här är
      ren presentation, precis som utvecklarläget. */
   @media (max-width: 720px) {
+    /* Allt i topplisten ska synas: det som inte får plats bryts till en
+       ny rad i stället för att gömmas utanför skärmens högerkant. */
     #app-root .topbar {
-      gap: 10px; padding: 8px 12px; overflow-x: auto; flex-wrap: nowrap;
-      scrollbar-width: none;
+      flex-wrap: wrap; gap: 6px 14px; padding: 8px 12px;
     }
-    #app-root .topbar::-webkit-scrollbar { display: none; }
+    #app-root { height: var(--synlig-hojd, 100svh); }
     #app-root .wordmark { font-size: 15px; flex: 0 0 auto; }
     #app-root .version { display: none; }
     /* Etiketterna får inte bryta till två rader — då blir topplisten
@@ -914,7 +915,10 @@
     /* Körknappen svävar över koden, ovanför flikraden. */
     #app-root .flytknapp {
       position: fixed; right: 16px; z-index: 40;
-      bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+      /* Räknas från den synliga ytans överkant, inte skärmens underkant —
+         annars hamnar knappen bakom tangentbordet när det är uppe. */
+      bottom: auto;
+      top: calc(var(--synlig-hojd, 100svh) - 112px - env(safe-area-inset-bottom, 0px));
       border: 0; border-radius: 999px; padding: 13px 22px;
       background: var(--amber); color: #1b1405;
       font-family: var(--sans); font-size: 15px; font-weight: 650;
@@ -928,13 +932,10 @@
     #app-root .uppgiftsrad > summary { padding: 9px 12px; }
     #app-root .dialog { max-height: 82svh; }
 
-    /* iOS zoomar in på alla fält med text under 16 px när de får fokus,
-       och zoomar inte ut igen — hela sidan hamnar då snett. Alla fyra
-       lagren i editorn måste ändras tillsammans, annars glider de isär. */
-    #app-root .traffar,
-    #app-root .kodfarg,
-    #app-root .skrivyta textarea,
-    #app-root .radnummer,
+    /* iOS zoomar in på fält med text under 16 px. maximum-scale=1 i
+       viewport stoppar det, men fälten får 16 px ändå som extra skydd.
+       Editorn behåller 14.5 px — dess fyra lager måste vara lika stora,
+       och mindre text ger fler tecken per rad. */
     #app-root #repl,
     #app-root #ai-fraga,
     #app-root .sokrad input,
@@ -1045,8 +1046,8 @@
 
     <div class="nedre">
       <div class="flikar">
-        <button class="flik endast-mobil" id="flik-kod" data-i18n="ui.flik_kod"></button>
         <button class="flik vald" id="flik-lektion" data-i18n="ui.flik_kapitel"></button>
+        <button class="flik endast-mobil" id="flik-kod" data-i18n="ui.flik_kod"></button>
         <button class="flik" id="flik-utskrift" data-i18n="ui.flik_utskrift"></button>
         <button class="flik" id="flik-scen" data-i18n="ui.flik_scen"></button>
         <button class="flik" id="flik-ai" data-i18n="ui.flik_ai"></button>
@@ -1403,6 +1404,27 @@ window.PYTHONLAB_START = function (SPRAK) {
   }
 
   var mobilfraga = window.matchMedia ? window.matchMedia("(max-width: 720px)") : null;
+
+  /* Tangentbordet på en telefon täcker nederdelen av skärmen. Appens höjd
+     sätts till den yta som faktiskt syns, och sidan hålls överst, så att
+     flikraden ligger kvar ovanför tangentbordet i stället för att skjutas
+     ut ur bild. */
+  (function foljSynligYta() {
+    var vv = window.visualViewport;
+    if (!vv) return;
+    var rot = document.getElementById("app-root");
+    function anpassa() {
+      if (mobilfraga && mobilfraga.matches) {
+        rot.style.setProperty("--synlig-hojd", Math.round(vv.height) + "px");
+        if (window.scrollY) window.scrollTo(0, 0);
+      } else {
+        rot.style.removeProperty("--synlig-hojd");
+      }
+    }
+    vv.addEventListener("resize", anpassa);
+    vv.addEventListener("scroll", anpassa);
+    anpassa();
+  })();
   var tvingaMobil = /[?&]mobil=1\b/.test(location.search);
   function arMobil() { return tvingaMobil || (mobilfraga && mobilfraga.matches); }
 
@@ -1417,7 +1439,9 @@ window.PYTHONLAB_START = function (SPRAK) {
         .forEach(function (pan) { pan.hidden = true; });
       sattVy(vilken);
       sattKnappsynlighet(false);
-      if (vilken === "kod") kodruta.focus();
+      // Ingen focus() här: på en telefon öppnar den tangentbordet direkt,
+      // och webbläsaren zoomar/skrollar så att flikraden försvinner.
+      // Man trycker i koden när man vill skriva.
       return;
     }
     var paneler = {
