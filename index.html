@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.73";
+  window.PYTHONLABBET_VERSION = "1.74";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -516,6 +516,9 @@
     color: var(--chalk-dim); padding: 6px 10px; cursor: pointer;
   }
   #app-root button.flik.vald { color: var(--amber); border-bottom-color: var(--amber); }
+  #app-root button.flik[hidden] { display: none; }
+  #app-root .flikverktyg { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+  #app-root .flikverktyg .knapp { font-size: 12px; padding: 4px 10px; }
   #app-root .flikinnehall {
     flex: 1 1 auto; overflow-y: auto; padding: 8px 16px 18px;
     min-height: 0; height: 0;      /* höjden kommer från raden, inte innehållet */
@@ -833,8 +836,14 @@
       scrollbar-width: none;
     }
     #app-root .topbar::-webkit-scrollbar { display: none; }
-    #app-root .wordmark { font-size: 15px; }
+    #app-root .wordmark { font-size: 15px; flex: 0 0 auto; }
     #app-root .version { display: none; }
+    /* Etiketterna får inte bryta till två rader — då blir topplisten
+       dubbelt så hög och äter skärmyta som koden behöver. */
+    #app-root .strombrytare { flex: 0 0 auto; margin-left: 0; }
+    #app-root .toggle-text { white-space: nowrap; letter-spacing: 0.08em; }
+    #app-root .omlank { flex: 0 0 auto; white-space: nowrap; margin-left: 0; }
+    #app-root .status { flex: 0 0 auto; white-space: nowrap; }
 
     #app-root .verktyg {
       overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none;
@@ -854,7 +863,13 @@
     }
     #app-root.vy-filer .rail { display: block; flex: 1 1 auto; min-height: 0; }
 
-    #app-root .arbetsyta { display: flex; flex-direction: column; min-height: 0; }
+    /* Arbetsytan måste själv växa i .layout — annars får den bara sitt
+       innehålls höjd, och panelerna (height: 0; flex: 1) kollapsar till
+       ingenting. Det var därför flikraden hamnade mitt på skärmen. */
+    #app-root .arbetsyta {
+      display: flex; flex-direction: column;
+      flex: 1 1 auto; min-height: 0;
+    }
     #app-root.vy-filer .arbetsyta { flex: 0 0 auto; }
     #app-root #spar { display: none; }
 
@@ -863,19 +878,38 @@
 
     /* Flikraden bor i .nedre, som därför aldrig får döljas — bara
        tömmas på paneler. */
-    #app-root .nedre { display: flex; flex: 1 1 auto; min-height: 0; }
+    #app-root .nedre { display: flex; flex: 1 1 auto; min-height: 0; position: relative; }
     #app-root.vy-kod .nedre,
     #app-root.vy-filer .nedre { flex: 0 0 auto; }
+
+    /* Flikraden är en navigeringsrad i underkant: alla flikar delar
+       bredden lika, så ingen hamnar utanför skärmen. */
     #app-root .flikar {
       order: 9; border-top: 1px solid var(--line); border-bottom: 0;
-      overflow-x: auto; scrollbar-width: none; padding: 0 6px;
+      gap: 0; padding: 0 4px;
       padding-bottom: env(safe-area-inset-bottom, 0px);
       background: var(--panel);
     }
-    #app-root .flikar::-webkit-scrollbar { display: none; }
-    #app-root .flik { flex: 0 0 auto; font-size: 12.5px; padding: 11px 12px; }
+    #app-root button.flik {
+      flex: 1 1 auto; min-width: 0;     /* bredd efter etikett, resten delas lika */
+      font-size: 11px; letter-spacing: 0.05em; padding: 14px 3px 13px;
+      text-align: center; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+      border: 0; border-top: 2px solid transparent;
+    }
+    #app-root button.flik.vald { border-top-color: var(--amber); }
 
-    #app-root .endast-mobil { display: inline-block; }
+    /* Rensa / Återställ vy / Helskärm: flyttas ut ur flikraden och upp i
+       panelens hörn, och visas bara där de gör något. */
+    #app-root .flikverktyg {
+      position: absolute; top: 8px; right: 12px; z-index: 5;
+      margin: 0; gap: 6px;
+    }
+    #app-root:not(.vy-utskrift):not(.vy-scen) .flikverktyg { display: none; }
+    #app-root.vy-utskrift #panel-utskrift,
+    #app-root.vy-scen #panel-scen { padding-top: 46px; }
+
+    #app-root .endast-mobil { display: block; }
 
     /* Körknappen svävar över koden, ovanför flikraden. */
     #app-root .flytknapp {
@@ -893,12 +927,33 @@
     #app-root #sokfalt, #app-root #ersattfalt { flex: 1 1 100%; }
     #app-root .uppgiftsrad > summary { padding: 9px 12px; }
     #app-root .dialog { max-height: 82svh; }
+
+    /* iOS zoomar in på alla fält med text under 16 px när de får fokus,
+       och zoomar inte ut igen — hela sidan hamnar då snett. Alla fyra
+       lagren i editorn måste ändras tillsammans, annars glider de isär. */
+    #app-root .traffar,
+    #app-root .kodfarg,
+    #app-root .skrivyta textarea,
+    #app-root .radnummer,
+    #app-root #repl,
+    #app-root #ai-fraga,
+    #app-root .sokrad input,
+    #app-root .konsol .svarsfalt,
+    #app-root .ai-rad input,
+    #app-root .ai-rad select { font-size: 16px; }
+    #app-root .ai-skrivrad { flex-wrap: wrap; }
+    #app-root #ai-fraga { flex-basis: 100%; }
+    #app-root .ai-rad { flex-wrap: wrap; gap: 4px 10px; }
+    #app-root .ai-rad label { flex-basis: 100%; }
   }
 
 
   /* På riktigt smala skärmar tar radnumren för mycket av bredden. */
   @media (max-width: 480px) {
     #app-root .radnummer { display: none; }
+  }
+  @media (max-width: 400px) {
+    #app-root button.flik { letter-spacing: 0; font-size: 10.5px; }
   }
   @media (prefers-reduced-motion: reduce) {
     #app-root .dot { animation: none; }
@@ -996,9 +1051,11 @@
         <button class="flik" id="flik-scen" data-i18n="ui.flik_scen"></button>
         <button class="flik" id="flik-ai" data-i18n="ui.flik_ai"></button>
         <button class="flik endast-mobil" id="flik-filer" data-i18n="ui.flik_filer"></button>
-        <button class="knapp" id="aterstall-knapp" hidden data-i18n="ord.aterstall_vy" style="margin-left:auto; font-size:12px; padding:4px 10px;"></button>
-        <button class="knapp" id="helskarm-knapp" hidden data-i18n="ord.helskarm" style="font-size:12px; padding:4px 10px;"></button>
-        <button class="knapp" id="rensa-knapp" data-i18n="ord.rensa" style="margin-left:auto; font-size:12px; padding:4px 10px;"></button>
+        <span class="flikverktyg">
+          <button class="knapp" id="aterstall-knapp" hidden data-i18n="ord.aterstall_vy"></button>
+          <button class="knapp" id="helskarm-knapp" hidden data-i18n="ord.helskarm"></button>
+          <button class="knapp" id="rensa-knapp" data-i18n="ord.rensa"></button>
+        </span>
       </div>
       <div class="flikinnehall" id="panel-lektion">
         <div class="lektionstext start" id="lektionstext"></div>
@@ -4117,36 +4174,106 @@ window.PYTHONLAB_START = function (SPRAK) {
     if (e.key.toLowerCase() === "h" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); visaSok(); return; }
     if (e.key.toLowerCase() === "g" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); gaTillRad(); return; }
     if (e.key === "Escape" && !sokraden.hidden) { e.preventDefault(); doljSok(); return; }
-    if (e.key === "Tab") {
+    if (e.key === "Tab" && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();
-      var start = kodruta.selectionStart, slut = kodruta.selectionEnd, text = kodruta.value;
-      if (e.shiftKey) {
-        var radstart = text.lastIndexOf("\n", start - 1) + 1;
-        if (text.substr(radstart, 4) === "    ") {
-          kodruta.value = text.slice(0, radstart) + text.slice(radstart + 4);
-          kodruta.selectionStart = kodruta.selectionEnd = Math.max(radstart, start - 4);
-        }
-      } else {
-        kodruta.value = text.slice(0, start) + "    " + text.slice(slut);
-        kodruta.selectionStart = kodruta.selectionEnd = start + 4;
-      }
-      markeraAndrad();
+      dragIn(e.shiftKey);
       return;
     }
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey && !e.altKey) {
       var pos = kodruta.selectionStart;
       var innan = kodruta.value.slice(0, pos);
       var rad = innan.slice(innan.lastIndexOf("\n") + 1);
-      var indrag = (rad.match(/^\s*/) || [""])[0];
-      if (/:\s*$/.test(rad)) indrag += "    ";
+      var indrag = (rad.match(/^[ \t]*/) || [""])[0];
+      if (/:\s*$/.test(rad)) indrag += INDRAG;
       if (indrag) {
         e.preventDefault();
-        kodruta.value = innan + "\n" + indrag + kodruta.value.slice(kodruta.selectionEnd);
-        kodruta.selectionStart = kodruta.selectionEnd = pos + 1 + indrag.length;
-        markeraAndrad();
+        var ny = pos + 1 + indrag.length;
+        redigera(pos, kodruta.selectionEnd, "\n" + indrag, ny, ny);
       }
     }
   });
+
+  /* ---- indrag ----
+     All redigering från tangentbordet går genom redigera(). Den gör två
+     saker som en tilldelning till kodruta.value inte gör:
+       1. Skickar ett input-event. Det är det som ritar om färglagret —
+          textrutan själv är genomskinlig, så utan omritning syns ingen
+          ändring alls (bara markören flyttar sig).
+       2. Går via webbläsarens egen ångra-historik, så Ctrl+Z fungerar. */
+  var INDRAG = "    ";
+
+  function redigera(fran, till, text, nyStart, nySlut) {
+    kodruta.focus();
+    kodruta.setSelectionRange(fran, till);
+    var ok = false;
+    try { ok = document.execCommand("insertText", false, text); } catch (e) { ok = false; }
+    // execCommand vägrar ersätta med tom sträng i vissa webbläsare.
+    if (!ok || kodruta.value.slice(fran, fran + text.length) !== text) {
+      kodruta.setRangeText(text, fran, till, "end");
+      kodruta.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    kodruta.setSelectionRange(nyStart, nySlut);
+  }
+
+  /* Tab utan markering: fyll ut till nästa tabbstopp vid markören.
+     Tab med markering (en eller flera rader): dra in varje berörd rad.
+     Shift+Tab: dra ut varje berörd rad, markeringen eller inte. */
+  function dragIn(ut) {
+    var text = kodruta.value;
+    var start = kodruta.selectionStart, slut = kodruta.selectionEnd;
+
+    if (!ut && start === slut) {
+      var kolumn = start - (text.lastIndexOf("\n", start - 1) + 1);
+      var fyll = INDRAG.slice(kolumn % INDRAG.length);
+      redigera(start, slut, fyll, start + fyll.length, start + fyll.length);
+      return;
+    }
+
+    // Raderna som markeringen berör. Slutar markeringen precis i början
+    // av en rad (vanligt när man markerar hela rader) räknas den inte.
+    var blockStart = text.lastIndexOf("\n", start - 1) + 1;
+    var sistaTecken = (slut > start && text[slut - 1] === "\n") ? slut - 1 : slut;
+    var blockSlut = text.indexOf("\n", sistaTecken);
+    if (blockSlut < 0) blockSlut = text.length;
+
+    var rader = text.slice(blockStart, blockSlut).split("\n");
+    var andringar = [];         // tecken tillagda (+) eller borttagna (−) per rad
+    var nya = rader.map(function (r) {
+      if (!ut) {
+        // Tomma rader i en markering lämnas tomma — inga svansande blanksteg.
+        if (rader.length > 1 && r.trim() === "") { andringar.push(0); return r; }
+        andringar.push(INDRAG.length);
+        return INDRAG + r;
+      }
+      var bort = r.charAt(0) === "\t" ? 1 : (r.match(/^ {1,4}/) || [""])[0].length;
+      andringar.push(-bort);
+      return r.slice(bort);
+    });
+    if (andringar.every(function (d) { return d === 0; })) return;
+
+    // Flytta markeringens ändar lika mycket som texten framför dem flyttats.
+    function flytta(pos) {
+      var radStart = blockStart, fore = 0;   // fore = förskjutning från raderna ovanför
+      for (var i = 0; i < rader.length; i++) {
+        var radSlut = radStart + rader[i].length;
+        if (pos <= radSlut || i === rader.length - 1) {
+          var d = andringar[i], iRaden = pos - radStart;
+          // Utdrag: en markör inne i indraget hamnar vid radens nya början.
+          return pos + fore + (d < 0 ? -Math.min(-d, iRaden) : d);
+        }
+        fore += andringar[i];
+        radStart = radSlut + 1;
+      }
+      return pos + fore;
+    }
+    var nyStart = flytta(start), nySlut = start === slut ? null : flytta(slut);
+    // Börjar markeringen i radens början ska den fortsätta täcka hela
+    // raden, det nya indraget inräknat.
+    if (!ut && start === blockStart && start !== slut) nyStart = blockStart;
+    // Slutade markeringen i början av nästa rad rörs den raden inte.
+    if (nySlut !== null && slut > sistaTecken) nySlut = flytta(sistaTecken) + 1;
+    redigera(blockStart, blockSlut, nya.join("\n"), nyStart, nySlut === null ? nyStart : nySlut);
+  }
 
   /* =======================================================
      Körning
