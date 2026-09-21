@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.75";
+  window.PYTHONLABBET_VERSION = "1.76";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -418,6 +418,12 @@
      Det behovet finns i utvecklarläget, inte mitt i en kurs där allt
      redan sparas automatiskt. Spara pekar utåt och behövs i båda. */
   #app-root:not(.dev-lage) #oppna-knapp { display: none; }
+
+  /* Undervisningsläget har en anteckningsbok per kapitel och inga egna
+     filer. Fillistan, dess rubrik och Ny fil hör till utvecklarläget. */
+  #app-root:not(.dev-lage) #filer-rubrik,
+  #app-root:not(.dev-lage) #fillista,
+  #app-root:not(.dev-lage) #ny-fil-knapp { display: none; }
 
   #app-root .replrad {
     display: flex; align-items: center; gap: 8px;
@@ -991,7 +997,7 @@
     <p class="rubrik" id="kapitel-rubrik" style="margin-top:14px" data-i18n="ui.kapitel_rubrik"></p>
     <div id="lektionslista"></div>
 
-    <p class="rubrik" style="margin-top:18px" data-i18n="ui.filer_rubrik"></p>
+    <p class="rubrik" id="filer-rubrik" style="margin-top:18px" data-i18n="ui.filer_rubrik"></p>
     <div id="fillista"></div>
     <button class="knapp minifil" id="ny-fil-knapp" data-i18n="ui.ny_fil"></button>
   </aside>
@@ -1046,12 +1052,12 @@
 
     <div class="nedre">
       <div class="flikar">
+        <button class="flik endast-mobil" id="flik-filer" data-i18n="ui.flik_kapitellista"></button>
         <button class="flik vald" id="flik-lektion" data-i18n="ui.flik_kapitel"></button>
         <button class="flik endast-mobil" id="flik-kod" data-i18n="ui.flik_kod"></button>
         <button class="flik" id="flik-utskrift" data-i18n="ui.flik_utskrift"></button>
         <button class="flik" id="flik-scen" data-i18n="ui.flik_scen"></button>
         <button class="flik" id="flik-ai" data-i18n="ui.flik_ai"></button>
-        <button class="flik endast-mobil" id="flik-filer" data-i18n="ui.flik_filer"></button>
         <span class="flikverktyg">
           <button class="knapp" id="aterstall-knapp" hidden data-i18n="ord.aterstall_vy"></button>
           <button class="knapp" id="helskarm-knapp" hidden data-i18n="ord.helskarm"></button>
@@ -2945,19 +2951,20 @@ window.PYTHONLAB_START = function (SPRAK) {
     return typeof window.showSaveFilePicker === "function";
   }
 
-  function laddaNer() {
+  function laddaNer(namnPaDisken) {
+    var namnet = namnPaDisken || filnamn;
     var blob = new Blob([kodruta.value], { type: "text/x-python;charset=utf-8" });
     var url = URL.createObjectURL(blob);
     var lank = document.createElement("a");
     lank.href = url;
-    lank.download = filnamn;
+    lank.download = namnet;
     document.body.appendChild(lank);
     lank.click();
     document.body.removeChild(lank);
     setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
     markeraSparad();
     visaFlik("utskrift");
-    skriv(SPRAK.msg.sparad_hamtade.replace("{namn}", filnamn) + "\n", "system");
+    skriv(SPRAK.msg.sparad_hamtade.replace("{namn}", namnet) + "\n", "system");
   }
 
   async function sparaFil(sparaSom) {
@@ -2973,14 +2980,14 @@ window.PYTHONLAB_START = function (SPRAK) {
         filhandtag = handtag;
         // Filen finns nu på disken under det här namnet, så den ska
         // heta samma sak i arbetsytan.
-        if (aktivFil && handtag.name !== aktivFil && !arbetsyta[handtag.name]) {
+        if (devlage && aktivFil && handtag.name !== aktivFil && !arbetsyta[handtag.name]) {
           dopOm(aktivFil, handtag.name);
         }
-        filnamn = handtag.name;
+        if (devlage) filnamn = handtag.name;
         if (arbetsyta[aktivFil]) arbetsyta[aktivFil].filhandtag = handtag;
         markeraSparad();
         visaFlik("utskrift");
-        skriv(SPRAK.msg.sparad_till.replace("{namn}", filnamn) + "\n", "system");
+        skriv(SPRAK.msg.sparad_till.replace("{namn}", handtag.name) + "\n", "system");
         return;
       } catch (e) {
         if (e && e.name === "AbortError") return;
@@ -2991,8 +2998,11 @@ window.PYTHONLAB_START = function (SPRAK) {
       if (!nytt) return;
       var onskat = nytt.trim();
       if (onskat.slice(-3) !== ".py") onskat += ".py";
-      if (aktivFil && onskat !== aktivFil && !arbetsyta[onskat]) dopOm(aktivFil, onskat);
-      filnamn = onskat;
+      // Ett kapitel behåller sitt namn — annars tappar det kopplingen
+      // till kapitellistan. Bara namnet på den nedladdade filen ändras.
+      if (devlage && aktivFil && onskat !== aktivFil && !arbetsyta[onskat]) dopOm(aktivFil, onskat);
+      if (devlage) filnamn = onskat;
+      return laddaNer(onskat);
     }
     laddaNer();
   }
@@ -3002,6 +3012,7 @@ window.PYTHONLAB_START = function (SPRAK) {
   /* En fil från hårddisken blir en fil i arbetsytan — samma sak som
      allt annat, och därmed importerbar. */
   function laddaText(text, namn, handtag) {
+    if (!devlage) return laddaIKapitlet(text, namn);
     if (!gangbartNamn(namn) && !confirm(SPRAK.fraga.ej_importerbar.replace("{namn}", namn))) return;
     if (arbetsyta[namn] && arbetsyta[namn].kod !== text &&
         !confirm(SPRAK.fraga.ersatt_fil.replace("{namn}", namn))) return;
@@ -3018,6 +3029,23 @@ window.PYTHONLAB_START = function (SPRAK) {
     rensaKonsol();
     skriv(SPRAK.msg.oppnade.replace("{namn}", namn).replace("{plats}", kapitelnamn()) + "\n", "system");
     byteAvSamtal();
+  }
+
+  /* Undervisningsläget har inga egna filer. En inläst fil ersätter koden i
+     kapitlet (eller startsidan) man står i. Filen räknas då som ändrad,
+     så Återställ tar tillbaka kapitlets original. */
+  function laddaIKapitlet(text, namn) {
+    var f = post(aktivFil);
+    if (!f || !horTillKursen(f)) { visaStartsida(); f = post(aktivFil); }
+    var nuvarande = kodruta.value;
+    if (nuvarande.trim() && nuvarande !== text && nuvarande !== originalFor(f) &&
+        !confirm(SPRAK.fraga.ersatt_kapitel.replace("{namn}", namn)
+                                          .replace("{plats}", kapitelnamn()))) return;
+    redigera(0, kodruta.value.length, text, 0, 0);   // går att ångra med Ctrl+Z
+    kodruta.scrollTop = 0;
+    visaFlik(arMobil() ? "kod" : "utskrift");
+    rensaKonsol();
+    skriv(SPRAK.msg.oppnade.replace("{namn}", namn).replace("{plats}", kapitelnamn()) + "\n", "system");
   }
 
   async function oppnaFil() {
@@ -3151,6 +3179,9 @@ window.PYTHONLAB_START = function (SPRAK) {
       // Startfilen beter sig som ett kapitel: den listas när den är
       // ändrad eller öppen, inte annars.
       if (f.kurs) f.egen = false;
+      // Egna filer finns inte längre i undervisningsläget. De som skapats
+      // där tidigare raderas inte — de flyttas till utvecklarläget.
+      if (f.varld === "kurs" && !f.kurs && f.kapitel === null) f.varld = "dev";
       f.namn = n;
     });
   }
@@ -4540,6 +4571,13 @@ _plt.show = _labb_visa
     }
 
     aterstallKapitelKnapp.textContent = devlage ? SPRAK.ui.tom_fil : SPRAK.ui.aterstall;
+    // Mobilens navigeringsflik: kapitellistan i kursen, fillistan i
+    // utvecklarläget. Innehållet byter, så namnet byter med.
+    if (flikFiler) {
+      var nyckel = devlage ? "flik_filer" : "flik_kapitellista";
+      flikFiler.setAttribute("data-i18n", "ui." + nyckel);
+      flikFiler.textContent = SPRAK.ui[nyckel] || (devlage ? "Filer" : "Kapitel");
+    }
     ritaChipar();
     if (spara !== false) sparaSnart();
   }

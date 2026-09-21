@@ -15,6 +15,7 @@ window.PYTHONLAB_SPRAK.en = {
   ui: {
     flik_kod: "Code",
     flik_filer: "Files",
+    flik_kapitellista: "Chapters",
     visa_uppgift: "Show the exercise",
     sok_knapp: "Find/Replace",
     sok_tips: "Find and replace (Ctrl + F)",
@@ -64,7 +65,7 @@ window.PYTHONLAB_SPRAK.en = {
     om: "About Pytho",
     start: "Start",
     kapitel_rubrik: "Chapters",
-    flik_kapitel: "Chapter",
+    flik_kapitel: "Lesson",
     flik_utskrift: "Output",
     flik_scen: "3D scene",
     flik_ai: "AI assistant"
@@ -179,6 +180,7 @@ window.PYTHONLAB_SPRAK.en = {
     dop_om: "New name for the file. The .py extension is added, and you import it with the new name.",
     namnet_upptaget: "There is already a file called {namn}.",
     ersatt_fil: "{namn} is already in your workspace. Replace it?",
+    ersatt_kapitel: "The code in {plats} will be replaced with {namn}. What you wrote there will be lost (undo with Ctrl+Z, or Reset for the original). Continue?",
     ej_importerbar: "{namn} cannot be imported — a module name may not start with a digit. Load it anyway?",
     tom_fil: "Clear {namn}? The contents will be lost.",
     nytt_filnamn: "What should the file be called?",

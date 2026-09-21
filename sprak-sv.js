@@ -11,6 +11,7 @@ window.PYTHONLAB_SPRAK.sv = {
   ui: {
     "flik_kod": "Kod",
     "flik_filer": "Filer",
+    "flik_kapitellista": "Kapitel",
     "visa_uppgift": "Visa uppgift",
     "sok_knapp": "Sök/Ersätt",
     "sok_tips": "Sök och ersätt (Ctrl + F)",
@@ -60,7 +61,7 @@ window.PYTHONLAB_SPRAK.sv = {
   "om": "Om Pytho",
   "start": "Start",
   "kapitel_rubrik": "Kapitel",
-  "flik_kapitel": "Kapitel",
+  "flik_kapitel": "Lektion",
   "flik_utskrift": "Utskrift",
   "flik_scen": "3D-scen",
   "flik_ai": "AI-hjälp"
@@ -169,6 +170,7 @@ window.PYTHONLAB_SPRAK.sv = {
     "dop_om": "Nytt namn på filen. Ändelsen .py läggs till, och du importerar den sedan med det nya namnet.",
     "namnet_upptaget": "Det finns redan en fil som heter {namn}.",
     "ersatt_fil": "{namn} finns redan i arbetsytan. Ersätta den?",
+    "ersatt_kapitel": "Koden i {plats} ersätts med {namn}. Det du skrivit där försvinner (Ångra med Ctrl+Z, eller Återställ för originalet). Fortsätta?",
     "ej_importerbar": "{namn} kan inte importeras — ett modulnamn får inte börja med en siffra. Läsa in den ändå?",
     "tom_fil": "Tömma {namn}? Innehållet försvinner.",
     "nytt_filnamn": "Vad ska filen heta?",
