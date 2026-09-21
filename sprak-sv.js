@@ -165,6 +165,14 @@ window.PYTHONLAB_SPRAK.sv = {
   "felsakert_pa": "Felsäkert läge på. Stoppa-knappen fungerar och programmet avbryts automatiskt efter 45 sekunder.",
   "felsakert_av": "Felsäkert läge av. Koden kör i full fart, men kan inte stoppas — en oändlig loop låser sidan och kräver omladdning."
 },
+  flik: {
+    rubrik_upptagen: "Pytho är redan öppet",
+    upptagen: "Pytho är öppet i en annan flik eller ett annat fönster. Bara en flik i taget kan användas — annars kan det du skriver i den ena skrivas över av den andra.",
+    rubrik_forlorad: "Pytho används i en annan flik",
+    forlorad: "Du har öppnat Pytho i en annan flik. Allt du skrev här är sparat och finns med där.",
+    knapp: "Använd här",
+    vaxlar: "Växlar …"
+  },
   fraga: {
     "ga_till_rad": "Gå till rad (1–{antal}):",
     "dop_om": "Nytt namn på filen. Ändelsen .py läggs till, och du importerar den sedan med det nya namnet.",

@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.76";
+  window.PYTHONLABBET_VERSION = "1.77";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -575,6 +575,8 @@
     display: flex; align-items: center; justify-content: center; padding: 20px;
   }
   #app-root .overlagring[hidden] { display: none; }
+  /* Flikspärren ligger över allt, även laddningsskärmen. */
+  #app-root #flik-overlagring { z-index: 90; background: rgba(8, 16, 30, 0.92); }
   #app-root .dialog {
     width: 100%; max-width: 470px;
     background: var(--panel); border: 1px solid var(--line);
@@ -1106,6 +1108,17 @@
 
 <div class="overlagring" id="om-overlagring" hidden>
   <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="om-rubrik" id="om-dialog"></div>
+</div>
+
+<div class="overlagring" id="flik-overlagring" hidden>
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="flik-rubrik" aria-describedby="flik-text">
+    <h2 class="dialog-rubrik" id="flik-rubrik"></h2>
+    <p class="dialog-ingress" id="flik-text"></p>
+    <div class="dialog-fot">
+      <span class="ai-status"></span>
+      <button class="knapp kor" id="flik-knapp"></button>
+    </div>
+  </div>
 </div>
 
 <div class="overlagring" id="ai-overlagring" hidden>
@@ -3198,6 +3211,9 @@ window.PYTHONLAB_START = function (SPRAK) {
   }
 
   async function sparaArbetsyta() {
+    // Bara den aktiva fliken får skriva. En flik som tagits över har en
+    // gammal kopia av arbetsytan och skulle annars skriva över den nya.
+    if (!flikAgerSparningen()) return;
     sparaAktiv();
     var rena = {};
     Object.keys(arbetsyta).forEach(function (n) {
@@ -3208,11 +3224,15 @@ window.PYTHONLAB_START = function (SPRAK) {
     });
     try {
       var db = await oppnaLager();
-      db.transaction(LAGER.butik, "readwrite").objectStore(LAGER.butik).put(
+      var tx = db.transaction(LAGER.butik, "readwrite");
+      tx.objectStore(LAGER.butik).put(
         { format: LAGER.format, filer: rena, aktiv: aktivFil, dev: devlage,
           devfiler: devfilerSkapade,
           sparad: Date.now(), version: window.PYTHONLABBET_VERSION },
         LAGER.nyckel);
+      // Vänta tills skrivningen är klar — vid flikbyte läser nästa flik
+      // direkt efteråt och ska få med allt.
+      await new Promise(function (klar) { tx.oncomplete = tx.onerror = tx.onabort = klar; });
       db.close();
     } catch (e) { /* lagring kan vara avstängd — kör vidare utan */ }
   }
@@ -4809,7 +4829,149 @@ _plt.show = _labb_visa
     return false;
   }
 
+
+  /* ================= en flik i taget =================
+     Hela arbetsytan sparas som en enda post. Två flikar som båda sparar
+     skriver över varandra — den som sparar sist vinner, och det den andra
+     fliken gjort försvinner utan varning. Därför är bara en flik aktiv:
+
+       - Ett Web Lock hålls av den aktiva fliken. Stängs fliken släpps det
+         automatiskt, så nästa flik som öppnas startar direkt.
+       - En ny flik som ser att låset är taget visar en ruta med
+         "Använd här". Den gamla fliken sparar då, släpper låset och låser
+         sig själv. Den nya läser in arbetsytan först efter det — alltså med
+         allt den gamla hann skriva.
+       - Svarar inte den gamla fliken (en telefon kan frysa flikar i
+         bakgrunden) tas låset med våld efter några sekunder.
+       - Som sista skydd står den aktiva flikens id i localStorage. Varje
+         sparning kontrollerar det först, så en flik som vaknar ur frysning
+         kan aldrig skriva sin gamla kopia över den nya. */
+  var FLIK = {
+    las: "pytho-aktiv-flik",
+    nyckel: "pytho.aktiv-flik",
+    atertag: "pytho.ta-over",
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+    aktiv: false,
+    startad: false,       // har den här fliken läst in arbetsytan?
+    slapp: null,          // släpper låset
+    kanal: null,
+    tidsgrans: 3000
+  };
+  try { FLIK.kanal = new BroadcastChannel("pytho-flikar"); } catch (e) { FLIK.kanal = null; }
+
+  function lasAgare() { try { return localStorage.getItem(FLIK.nyckel); } catch (e) { return null; } }
+  function skrivAgare() { try { localStorage.setItem(FLIK.nyckel, FLIK.id); } catch (e) { /* avstängd lagring */ } }
+
+  function flikAgerSparningen() {
+    if (!FLIK.aktiv) return false;
+    var agare = lasAgare();
+    if (agare && agare !== FLIK.id) { blevOvertagen(false); return false; }
+    return true;
+  }
+
+  var flikRuta = document.getElementById("flik-overlagring");
+  var flikKnapp = document.getElementById("flik-knapp");
+
+  function visaFlikruta(lage, vidKlick) {
+    var t = SPRAK.flik || {};
+    document.getElementById("flik-rubrik").textContent =
+      lage === "upptagen" ? t.rubrik_upptagen : t.rubrik_forlorad;
+    document.getElementById("flik-text").textContent =
+      lage === "upptagen" ? t.upptagen : t.forlorad;
+    flikKnapp.textContent = t.knapp;
+    flikKnapp.disabled = false;
+    flikKnapp.onclick = function () {
+      flikKnapp.disabled = true;
+      flikKnapp.textContent = t.vaxlar;
+      vidKlick();
+    };
+    flikRuta.hidden = false;
+    try { flikKnapp.focus(); } catch (e) { /* ingen fokus före ritning */ }
+  }
+
+  /* Håller låset tills slapp() anropas. Returnerar true om låset togs. */
+  function begarLas(alternativ) {
+    return new Promise(function (klar, fel) {
+      navigator.locks.request(FLIK.las, alternativ, function (las) {
+        if (!las) { klar(false); return; }
+        klar(true);
+        return new Promise(function (slapp) { FLIK.slapp = slapp; });
+      }).catch(function (e) {
+        // AbortError: vi avbröt själva väntan. Annars har en annan flik
+        // tagit låset med våld medan vi höll det.
+        if (FLIK.aktiv) blevOvertagen(false);
+        fel(e);
+      });
+    });
+  }
+
+  function blevAktiv() {
+    FLIK.aktiv = true;
+    skrivAgare();
+    flikRuta.hidden = true;
+  }
+
+  /* En annan flik har tagit över. Spara det sista (om vi fortfarande får)
+     och lås sedan den här fliken. */
+  async function blevOvertagen(hinnerSpara) {
+    if (!FLIK.aktiv) return;
+    if (hinnerSpara) { clearTimeout(sparklocka); await sparaArbetsyta(); }
+    FLIK.aktiv = false;
+    clearTimeout(sparklocka);
+    if (FLIK.slapp) { FLIK.slapp(); FLIK.slapp = null; }
+    visaFlikruta("forlorad", function () {
+      // Den här flikens arbetsyta är gammal nu — börja om från det sparade.
+      try { sessionStorage.setItem(FLIK.atertag, "1"); } catch (e) { /* */ }
+      location.reload();
+    });
+  }
+
+  async function taOver() {
+    if (FLIK.kanal) FLIK.kanal.postMessage({ typ: "ta-over", fran: FLIK.id });
+    var avbryt = new AbortController();
+    var klocka = setTimeout(function () { avbryt.abort(); }, FLIK.tidsgrans);
+    try {
+      await begarLas({ signal: avbryt.signal });
+    } catch (e) {
+      // Den gamla fliken svarade inte. Ta låset ändå.
+      await begarLas({ steal: true });
+    }
+    clearTimeout(klocka);
+    blevAktiv();
+  }
+
+  if (FLIK.kanal) {
+    FLIK.kanal.onmessage = function (e) {
+      var m = e.data || {};
+      if (m.typ === "ta-over" && m.fran !== FLIK.id) blevOvertagen(true);
+    };
+  }
+  try {
+    window.addEventListener("storage", function (e) {
+      if (e.key === FLIK.nyckel && e.newValue && e.newValue !== FLIK.id) blevOvertagen(false);
+    });
+  } catch (e) { /* */ }
+
+  /* Löses när den här fliken är den aktiva. */
+  async function sakraEnsamFlik() {
+    if (!navigator.locks) {       // mycket gamla webbläsare: som förut
+      blevAktiv();
+      return;
+    }
+    var atertag = false;
+    try {
+      atertag = sessionStorage.getItem(FLIK.atertag) === "1";
+      sessionStorage.removeItem(FLIK.atertag);
+    } catch (e) { /* */ }
+    if (atertag) return taOver();
+    if (await begarLas({ ifAvailable: true })) { blevAktiv(); return; }
+    await new Promise(function (klar) { visaFlikruta("upptagen", klar); });
+    await taOver();
+  }
+
   (async function init() {
+    await sakraEnsamFlik();
+    FLIK.startad = true;
     var sparat = await laddaArbetsyta();
     sakerstallFil(huvudfil(), STARTKOD, null, true).kurs = true;
     // Appen startar i kursläget, så en sparad utvecklarfil öppnas inte.

@@ -175,6 +175,14 @@ window.PYTHONLAB_SPRAK.en = {
     felsakert_av: "Failsafe mode off. Code runs at full speed but cannot be stopped — an infinite loop will freeze the page and force a reload."
   },
 
+  flik: {
+    rubrik_upptagen: "Pytho is already open",
+    upptagen: "Pytho is open in another tab or window. Only one tab can be used at a time — otherwise what you write in one could be overwritten by the other.",
+    rubrik_forlorad: "Pytho is in use in another tab",
+    forlorad: "You opened Pytho in another tab. Everything you wrote here is saved and is there too.",
+    knapp: "Use here",
+    vaxlar: "Switching …"
+  },
   fraga: {
     ga_till_rad: "Go to line (1–{antal}):",
     dop_om: "New name for the file. The .py extension is added, and you import it with the new name.",
