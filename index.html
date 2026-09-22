@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.80";
+  window.PYTHONLABBET_VERSION = "1.81";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -562,7 +562,45 @@
   #app-root .scenruta canvas {
     display: block; border-radius: 8px;
     max-width: 100%; max-height: 100%;
+    /* Beröring på ytan styr kameran — webbläsaren ska inte rulla eller
+       zooma sidan samtidigt. */
+    touch-action: none;
   }
+  #app-root #panel-scen { position: relative; }
+
+  /* ---- styrknappar för pekskärm ----
+     Håll inne för att flyga, precis som piltangenterna. Visas bara på
+     pekskärmar och smala skärmar, och bara när det finns en scen. */
+  #app-root .scenstyr { display: none; }
+  @media (pointer: coarse), (max-width: 720px) {
+    #app-root .scenstyr:not([hidden]) {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      position: absolute; left: 12px; right: 12px; bottom: 12px;
+      pointer-events: none;        /* bara knapparna fångar beröring */
+      z-index: 6;
+    }
+  }
+  #app-root .styrkors {
+    display: grid; gap: 6px;
+    grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 50px);
+    grid-template-areas: ". fram ." "vanster bak hoger";
+  }
+  #app-root .s-fram { grid-area: fram; }
+  #app-root .s-vanster { grid-area: vanster; }
+  #app-root .s-hoger { grid-area: hoger; }
+  #app-root .s-bak { grid-area: bak; }
+  #app-root .hojdstyr { display: grid; gap: 6px; grid-template-rows: repeat(2, 50px); }
+  #app-root .s-knapp {
+    pointer-events: auto; touch-action: none;
+    width: 50px; height: 50px; border-radius: 12px;
+    background: rgba(20, 38, 67, 0.72); color: var(--amber);
+    border: 1px solid rgba(255, 201, 74, 0.35);
+    font-size: 20px; line-height: 1; padding: 0; cursor: pointer;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    backdrop-filter: blur(3px);
+  }
+  #app-root .s-knapp.tryckt { background: rgba(255, 201, 74, 0.3); border-color: var(--amber); }
   #app-root #panel-scen:fullscreen {
     background: var(--blueprint); padding: 0; display: block;
   }
@@ -918,6 +956,8 @@
       margin: 0; gap: 6px;
     }
     #app-root:not(.vy-utskrift):not(.vy-scen) .flikverktyg { display: none; }
+    /* Scenvyn fyller redan skärmen på en telefon. */
+    #app-root #helskarm-knapp { display: none !important; }
     #app-root.vy-utskrift #panel-utskrift,
     #app-root.vy-scen #panel-scen { padding-top: 46px; }
 
@@ -1122,6 +1162,18 @@
       </div>
       <div class="flikinnehall" id="panel-scen" hidden>
         <div id="scenruta" class="scenruta"><p class="tomt" data-i18n-html="scen.tom"></p></div>
+        <div class="scenstyr" id="scenstyr" hidden>
+          <div class="styrkors">
+            <button type="button" class="s-knapp s-fram" data-tangent="ArrowUp" data-etikett="scen_framat">▲</button>
+            <button type="button" class="s-knapp s-vanster" data-tangent="ArrowLeft" data-etikett="scen_vanster">◀</button>
+            <button type="button" class="s-knapp s-hoger" data-tangent="ArrowRight" data-etikett="scen_hoger">▶</button>
+            <button type="button" class="s-knapp s-bak" data-tangent="ArrowDown" data-etikett="scen_bakat">▼</button>
+          </div>
+          <div class="hojdstyr">
+            <button type="button" class="s-knapp" data-tangent="PageUp" data-etikett="scen_upp">⇧</button>
+            <button type="button" class="s-knapp" data-tangent="PageDown" data-etikett="scen_ner">⇩</button>
+          </div>
+        </div>
       </div>
       <div class="flikinnehall" id="panel-ai" hidden>
         <div class="ai-chatt" id="ai-chatt" hidden>
@@ -1646,6 +1698,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     if (!tre.renderare) return;
     var r = tre.renderare;
     tre.renderare = null;
+    if (scenstyr) scenstyr.hidden = true;
     try { r.dispose(); r.forceContextLoss(); } catch (e) { /* redan borta */ }
     if (r.domElement && r.domElement.parentNode) r.domElement.parentNode.removeChild(r.domElement);
   }
@@ -1804,15 +1857,38 @@ window.PYTHONLAB_START = function (SPRAK) {
   document.addEventListener("keyup", function (e) { delete tangenter[e.key]; });
   window.addEventListener("blur", function () { tangenter = {}; });
 
-  /* ---- musstyrning ---- */
+  /* ---- mus och beröring ----
+     Ett finger (eller musen) vrider blicken. Två fingrar som nyper
+     flyttar kameran fram och tillbaka, som hjulet gör på datorn. */
   function kopplaMus(duk) {
     duk.style.cursor = "grab";
+    var pekare = {};                  // aktiva fingrar: id -> {x, y}
+    var nypAvstand = 0;
+
+    function antal() { return Object.keys(pekare).length; }
+    function avstand() {
+      var p = Object.keys(pekare).map(function (k) { return pekare[k]; });
+      return Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+    }
+
     duk.addEventListener("pointerdown", function (e) {
+      pekare[e.pointerId] = { x: e.clientX, y: e.clientY };
+      duk.setPointerCapture(e.pointerId);
+      if (antal() === 2) { nypAvstand = avstand(); bana.aktiv = false; return; }
       bana.aktiv = true; bana.x = e.clientX; bana.y = e.clientY;
       duk.style.cursor = "grabbing";
-      duk.setPointerCapture(e.pointerId);
     });
     duk.addEventListener("pointermove", function (e) {
+      if (!pekare[e.pointerId]) return;
+      pekare[e.pointerId] = { x: e.clientX, y: e.clientY };
+      if (antal() >= 2) {
+        var nu = avstand();
+        var skillnad = nu - nypAvstand;       // isär = framåt
+        nypAvstand = nu;
+        if (skillnad) flytta(skillnad > 0 ? 1 : -1, 0, 0,
+                             Math.abs(skillnad) * Math.max(0.02, bana.skala * 0.006));
+        return;
+      }
       if (!bana.aktiv) return;
       // Vrider blicken kring kamerans egen position.
       bana.theta -= (e.clientX - bana.x) * 0.005;
@@ -1821,7 +1897,17 @@ window.PYTHONLAB_START = function (SPRAK) {
       placeraKamera();
     });
     ["pointerup", "pointercancel"].forEach(function (h) {
-      duk.addEventListener(h, function () { bana.aktiv = false; duk.style.cursor = "grab"; });
+      duk.addEventListener(h, function (e) {
+        delete pekare[e.pointerId];
+        duk.style.cursor = "grab";
+        // Lyfts ett av två fingrar fortsätter det andra vrida — utan hopp.
+        var kvar = Object.keys(pekare);
+        if (kvar.length === 1) {
+          bana.aktiv = true; bana.x = pekare[kvar[0]].x; bana.y = pekare[kvar[0]].y;
+        } else if (!kvar.length) {
+          bana.aktiv = false;
+        }
+      });
     });
     // Hjulet flyttar kameran fram och tillbaka längs blickriktningen.
     duk.addEventListener("wheel", function (e) {
@@ -1830,6 +1916,31 @@ window.PYTHONLAB_START = function (SPRAK) {
       flytta(steg > 0 ? 1 : -1, 0, 0, Math.abs(steg));
     }, { passive: false });
   }
+
+  /* Styrknapparna på pekskärm: håll inne = samma som att hålla en
+     piltangent, så rörelsen blir lika mjuk. */
+  var scenstyr = document.getElementById("scenstyr");
+  Array.prototype.forEach.call(scenstyr.querySelectorAll("[data-tangent]"), function (b) {
+    var tangent = b.getAttribute("data-tangent");
+    function slapp() { delete tangenter[tangent]; b.classList.remove("tryckt"); }
+    b.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      tangenter[tangent] = true;
+      b.classList.add("tryckt");
+      try { b.setPointerCapture(e.pointerId); } catch (x) { /* */ }
+    });
+    ["pointerup", "pointercancel", "lostpointercapture"].forEach(function (h) {
+      b.addEventListener(h, slapp);
+    });
+    b.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    var etikett = SPRAK.ui[b.getAttribute("data-etikett")];
+    if (etikett) { b.setAttribute("aria-label", etikett); b.title = etikett; }
+  });
+
+  /* Läsbar kameraposition, för felsökning och tester. */
+  window._pythoKamera = function () {
+    return { x: bana.pos.x, y: bana.pos.y, z: bana.pos.z, theta: bana.theta, phi: bana.phi };
+  };
 
   function helskarm() {
     if (document.fullscreenElement) {
@@ -1891,6 +2002,7 @@ window.PYTHONLAB_START = function (SPRAK) {
         kopplaMus(tre.renderare.domElement);
       }
     }
+    scenstyr.hidden = !tre.renderare;
     var riktat = new T.DirectionalLight(0xffffff, 1.1);
     riktat.position.set(4, 6, 5);
     tre.scen.add(riktat);
@@ -1920,6 +2032,7 @@ window.PYTHONLAB_START = function (SPRAK) {
   }
 
   function visaUtanWebGL() {
+    scenstyr.hidden = true;
     scenruta.textContent = "";
     var text = document.createElement("p");
     text.className = "tomt";
