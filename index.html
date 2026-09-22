@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.78";
+  window.PYTHONLABBET_VERSION = "1.79";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -202,6 +202,9 @@
   #app-root .status.klar .dot { background: var(--mint); animation: none; }
   #app-root .status.trasig .dot { background: var(--coral); animation: none; }
   @keyframes pulse { 0%,100% { opacity: .3 } 50% { opacity: 1 } }
+
+  /* Kapitelväljaren finns bara på mobil, där sidomenyn inte får plats. */
+  #app-root .kapitelvaljare { display: none; }
 
   #app-root .layout { flex: 1 1 auto; display: grid; grid-template-columns: 248px 1fr; min-height: 0; }
 
@@ -920,6 +923,39 @@
 
     #app-root .endast-mobil { display: block; }
 
+    /* ---- kapitelväljaren ----
+       En rad under reglagen som alltid syns. Webbläsarens egen lista
+       används, så telefonen visar sitt vanliga val-hjul. Den ersätter
+       kapitellistan, så Kapitel-fliken behövs inte i undervisningsläget. */
+    #app-root .kapitelvaljare {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px; flex: 0 0 auto;
+      border-bottom: 1px solid var(--line);
+      background: rgba(20, 38, 67, 0.7);
+    }
+    #app-root.dev-lage .kapitelvaljare { display: none; }
+    #app-root:not(.dev-lage) #flik-filer { display: none; }
+    #app-root #kv-lista {
+      flex: 1 1 auto; min-width: 0;
+      font-family: var(--sans); font-size: 16px; color: var(--chalk);
+      background: var(--panel-2); border: 1px solid var(--line);
+      border-radius: 8px; padding: 7px 30px 7px 10px;
+      appearance: none; -webkit-appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, var(--amber) 50%),
+                        linear-gradient(135deg, var(--amber) 50%, transparent 50%);
+      background-position: calc(100% - 16px) 55%, calc(100% - 11px) 55%;
+      background-size: 5px 5px; background-repeat: no-repeat;
+      text-overflow: ellipsis;
+    }
+    #app-root #kv-lista:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+    #app-root .kv-pil {
+      flex: 0 0 auto; width: 38px; height: 36px;
+      background: var(--panel-2); color: var(--amber);
+      border: 1px solid var(--line); border-radius: 8px;
+      font-size: 22px; line-height: 1; cursor: pointer; padding: 0 0 3px;
+    }
+    #app-root .kv-pil:disabled, #app-root #kv-lista:disabled { opacity: .38; cursor: default; }
+
     /* Körknappen svävar över koden, ovanför flikraden. */
     #app-root .flytknapp {
       position: fixed; right: 16px; z-index: 40;
@@ -990,6 +1026,12 @@
   <button class="omlank" id="om-knapp" data-i18n="ui.om"></button>
   <span class="status" id="status"><span class="dot"></span><span id="status-text" data-i18n="status.startar"></span></span>
 </header>
+
+<nav class="kapitelvaljare" id="kapitelvaljare">
+  <button class="kv-pil" id="kv-forra" type="button">‹</button>
+  <select id="kv-lista"></select>
+  <button class="kv-pil" id="kv-nasta" type="button">›</button>
+</nav>
 
 <div class="layout">
   <aside class="rail">
@@ -3169,6 +3211,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     var alla = document.getElementById("lektionslista").querySelectorAll(".lektion");
     for (var i = 0; i < alla.length; i++) alla[i].classList.toggle("vald", i === index);
     startKnapp.classList.toggle("vald", index === -2);
+    uppdateraKapitelvaljare();
   }
 
   var STARTSIDA = lektionstext.innerHTML;
@@ -3531,7 +3574,66 @@ window.PYTHONLAB_START = function (SPRAK) {
       knapp.addEventListener("click", function () { oppnaLektion(i); });
       behallare.appendChild(knapp);
     });
+    ritaKapitelvaljare();
   }
+
+  /* ---- kapitelväljaren (mobil) ----
+     Samma innehåll som sidomenyn: Start och kapitlen, grupperade per del.
+     Värdet "start" är startsidan, annars kapitlets index. */
+  var kvLista = document.getElementById("kv-lista");
+  var kvForra = document.getElementById("kv-forra");
+  var kvNasta = document.getElementById("kv-nasta");
+  var kvLast = false;
+
+  function ritaKapitelvaljare() {
+    kvLista.textContent = "";
+    var start = document.createElement("option");
+    start.value = "start";
+    start.textContent = SPRAK.ui.start;
+    kvLista.appendChild(start);
+    var grupp = null, senasteDel = null;
+    LEKTIONER.forEach(function (lek, i) {
+      if (lek.del !== senasteDel) {
+        grupp = document.createElement("optgroup");
+        grupp.label = lek.del;
+        kvLista.appendChild(grupp);
+        senasteDel = lek.del;
+      }
+      var o = document.createElement("option");
+      o.value = String(i);
+      o.textContent = String(i + 1).padStart(2, "0") + "  " + lek.titel;
+      grupp.appendChild(o);
+    });
+    kvLista.setAttribute("aria-label", SPRAK.ui.kapitel_rubrik);
+    kvForra.setAttribute("aria-label", SPRAK.ui.forra_kapitel || "‹");
+    kvNasta.setAttribute("aria-label", SPRAK.ui.nasta_kapitel || "›");
+    uppdateraKapitelvaljare();
+  }
+
+  function kvIndex() {                 // -1 = startsidan
+    var v = kvLista.value;
+    return v === "start" || v === "" ? -1 : parseInt(v, 10);
+  }
+
+  function uppdateraKapitelvaljare() {
+    if (!kvLista) return;              // anropas innan väljaren finns
+    var f = post(aktivFil);
+    var i = f && f.kapitel !== null && f.kapitel !== undefined ? f.kapitel : -1;
+    kvLista.value = i >= 0 ? String(i) : "start";
+    kvLista.disabled = kvLast;
+    kvForra.disabled = kvLast || i < 0;
+    kvNasta.disabled = kvLast || i >= LEKTIONER.length - 1;
+  }
+
+  function gaTillKapitel(i) {
+    if (i < 0) visaStartsida();
+    else oppnaLektion(i);
+    uppdateraKapitelvaljare();
+  }
+
+  kvLista.addEventListener("change", function () { gaTillKapitel(kvIndex()); });
+  kvForra.addEventListener("click", function () { gaTillKapitel(kvIndex() - 1); });
+  kvNasta.addEventListener("click", function () { gaTillKapitel(kvIndex() + 1); });
 
   /* =======================================================
      AI-hjälp
@@ -4436,6 +4538,8 @@ window.PYTHONLAB_START = function (SPRAK) {
       function (b) { b.disabled = las; });
     var app = document.getElementById("app-root");
     if (app) app.classList.toggle("kor-lage", las);
+    kvLast = las;
+    uppdateraKapitelvaljare();
     uppdateraFlytknapp();
     if (!las) {
       // återta det som styrs av annan logik

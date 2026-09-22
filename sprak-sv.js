@@ -12,6 +12,8 @@ window.PYTHONLAB_SPRAK.sv = {
     "flik_kod": "Kod",
     "flik_filer": "Filer",
     "flik_kapitellista": "Kapitel",
+    "forra_kapitel": "Föregående kapitel",
+    "nasta_kapitel": "Nästa kapitel",
     "visa_uppgift": "Visa uppgift",
     "sok_knapp": "Sök/Ersätt",
     "sok_tips": "Sök och ersätt (Ctrl + F)",

@@ -16,6 +16,8 @@ window.PYTHONLAB_SPRAK.en = {
     flik_kod: "Code",
     flik_filer: "Files",
     flik_kapitellista: "Chapters",
+    forra_kapitel: "Previous chapter",
+    nasta_kapitel: "Next chapter",
     visa_uppgift: "Show the exercise",
     sok_knapp: "Find/Replace",
     sok_tips: "Find and replace (Ctrl + F)",
