@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.79";
+  window.PYTHONLABBET_VERSION = "1.80";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -4728,21 +4728,44 @@ _plt.show = _labb_visa
     }
   }
 
+  /* Var man senast stod i varje läge. Växlar man fram och tillbaka
+     kommer man tillbaka till samma kapitel och samma fil. */
+  var senastIVarld = { kurs: null, dev: null };
+
   function sattDevlage(pa, spara) {
+    var foreVy = nuvarandeVy;
+    if (aktivFil && arbetsyta[aktivFil]) senastIVarld[varldFor(arbetsyta[aktivFil])] = aktivFil;
     devlage = !!pa;
     devToggle.checked = devlage;
     document.getElementById("app-root").classList.toggle("dev-lage", devlage);
 
-    // Står man i ett kapitel när kursen döljs behövs en ny vy.
+    // Filen man står i hör till det andra läget — gå dit man senast var.
     if (devlage) {
       forberedUtvecklarfiler();
-      if (varldFor(post(aktivFil)) !== "dev") oppna(DEV_HUVUD);
+      if (varldFor(post(aktivFil)) !== "dev") {
+        var d = senastIVarld.dev;
+        oppna(d && arbetsyta[d] && varldFor(arbetsyta[d]) === "dev" ? d : DEV_HUVUD);
+      }
     } else if (varldFor(post(aktivFil)) !== "kurs") {
-      // Står man i en utvecklarfil när kursen tas fram hör den inte hit.
-      visaStartsida();
+      var k = senastIVarld.kurs && arbetsyta[senastIVarld.kurs];
+      if (k && k.kapitel !== null && LEKTIONER[k.kapitel]) oppnaLektion(k.kapitel);
+      else visaStartsida();
     }
     ritaFiler();
-    if (devlage && flikAr("lektion")) visaFlik("utskrift");
+
+    /* Vyn i nederkant behålls. Bara Lektion och Filer byter plats med
+       varandra, eftersom den ena inte finns i det andra läget. På datorn
+       finns ingen Filer-flik (fillistan står i sidomenyn), så där blir
+       Lektion till Utskrift. */
+    var nyVy = foreVy;
+    if (arMobil()) {
+      if (devlage && foreVy === "lektion") nyVy = "filer";
+      else if (!devlage && foreVy === "filer") nyVy = "lektion";
+    } else if (devlage && foreVy === "lektion") {
+      nyVy = "utskrift";
+    }
+    if (nyVy === "ai" && flikAi.hidden) nyVy = "utskrift";
+    visaFlik(nyVy);
     if (devlage) {
       // Startsidans kurstext hör inte hemma i utvecklarläget.
       lektionstext.innerHTML = "";
