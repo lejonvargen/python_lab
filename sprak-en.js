@@ -174,6 +174,11 @@ window.PYTHONLAB_SPRAK.en = {
     paketfel: "Could not fetch a package: ",
     matplotlibfel: "Could not set up matplotlib: ",
     pillowfel: "Could not set up image display (Pillow): ",
+    cv2fel: "Could not set up image display (OpenCV): ",
+    ipythonfel: "Could not set up IPython.display: ",
+    bokehfel: "Could not set up bokeh: ",
+    altairfel: "Could not set up altair: ",
+    sympyfel: "Could not set up sympy: ",
     ingen_utskrift: "The program ran without printing anything. Use print(...) to see the result.",
     klart: "[finished in {ms} ms]",
     forsoker_hamta: "Trying to fetch Python from {kalla} …",
@@ -254,6 +259,8 @@ window.PYTHONLAB_SPRAK.en = {
     KeyError: "That key is not in your dictionary. Try .get(key, fallback) if it might be missing.",
     AttributeError: "That type has no such method. Check the spelling, and that the variable contains what you think it does.",
     RecursionError: "A function is calling itself without ever reaching the base case. Check that the argument really shrinks towards the stop condition.",
+    ConnectionError: "The request did not get through. The usual reason in a browser: the site does not allow requests from other websites (CORS). Try an open API, or data.fetch_text(...), which reports the same thing.",
+    URLError: "The request did not get through. Check the address — and remember the site must allow requests from other websites (CORS).",
     ModuleNotFoundError: "That module is not available in the browser's Python. The standard library works (random, math, time, string, json), but pygame and similar do not."
   },
 
@@ -298,7 +305,11 @@ window.PYTHONLAB_SPRAK.en = {
     tom_lista: "The list is empty — there is nothing to save.",
     laddade_ner: "Downloaded {namn} ({tecken} characters)",
     laste_in: "Read {fran} -> {till} ({tecken} characters)",
-    inga_filer: "No files yet. Create one with open(..., \"w\")."
+    inga_filer: "No files yet. Create one with open(..., \"w\").",
+    cv2_bild: "The image could not be turned into a PNG. Is it a numpy array of image values?",
+    ingen_bokeh: "bokeh draws with its own JavaScript, which Pytho does not have. Use matplotlib instead: import matplotlib.pyplot as plt",
+    ingen_altair: "altair draws with Vega-Lite inside a notebook, which Pytho does not have. Use matplotlib instead: import matplotlib.pyplot as plt",
+    sympy_matplotlib: "sympy is drawing a simple text graph because matplotlib is not loaded. Add the line: import matplotlib.pyplot as plt"
   },
 
   ai_roll_dev: "You are an experienced Python developer sitting alongside and helping out.\n\nTone:\n- Write in English, briefly and concretely. Straight to the point.\n- Talk as you would to a colleague. No cheering, no praise.\n- If you need mathematics, write it as LaTeX between $ … $ or $$ … $$.\n\nHow you help:\n- Give direct answers. If code is needed, write the code — this is not a course.\n- Point out real problems: edge cases, error handling, names that mislead.\n- Suggest the simplest thing that works, not the most general.\n- Say when something is wrong, even if that was not what was asked.\n- If you are unsure, say so rather than guessing.\n\n{fakta}",

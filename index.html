@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.85";
+  window.PYTHONLABBET_VERSION = "1.86";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -581,6 +581,16 @@
     padding: 0 2px 1px;
   }
   #app-root .konsol .svar { color: var(--amber); }
+  #app-root .konsol .ipyhtml {
+    font-family: var(--sans); font-size: 13px; margin: 8px 0; overflow-x: auto;
+  }
+  #app-root .konsol .ipyhtml table {
+    border-collapse: collapse; font-family: var(--mono); font-size: 12.5px;
+  }
+  #app-root .konsol .ipyhtml th, #app-root .konsol .ipyhtml td {
+    border: 1px solid var(--line); padding: 3px 8px; text-align: right;
+  }
+  #app-root .konsol .ipyhtml th { color: var(--amber); }
   #app-root .konsol .diagram {
     display: block; max-width: 100%; height: auto;
     margin: 10px 0; border: 1px solid var(--line); border-radius: 8px;
@@ -1522,6 +1532,17 @@ window.PYTHONLAB_START = function (SPRAK) {
     bild.className = "diagram";
     bild.src = dataurl;
     konsol.appendChild(bild);
+    konsol.scrollTop = konsol.scrollHeight;
+  };
+
+  /* Tar emot färdig HTML från Python (IPython.display). Innehållet kommer
+     från elevens egen kod och läggs in som ett block i utskriften. */
+  window._labbHtml = function (html) {
+    visaFlik("utskrift");
+    var ruta = document.createElement("div");
+    ruta.className = "ipyhtml";
+    ruta.innerHTML = String(html);
+    konsol.appendChild(ruta);
     konsol.scrollTop = konsol.scrollHeight;
   };
 
@@ -2717,6 +2738,9 @@ window.PYTHONLAB_START = function (SPRAK) {
 
   var FELTIPS = [
     { m: /KeyboardInterrupt/, n: "KeyboardInterrupt" },
+    // Nätfel har många namn beroende på vilket bibliotek som användes.
+    { m: /ConnectionError|MaxRetryError|NetworkError|Failed to fetch|ERR_/, n: "ConnectionError" },
+    { m: /URLError|unknown url type/, n: "URLError" },
     { m: /SyntaxError/, n: "SyntaxError" },
     { m: /IndentationError|unexpected indent|expected an indented block/, n: "IndentationError" },
     { m: /NameError/, n: "NameError" },
@@ -4972,6 +4996,244 @@ window.PYTHONLAB_START = function (SPRAK) {
     redigera(blockStart, blockSlut, nya.join("\n"), nyStart, nySlut === null ? nyStart : nySlut);
   }
 
+
+  /* ================= paketanpassningar =================
+     Bibliotek som ritar eller hämtar data förutsätter ett operativsystem:
+     ett fönster att öppna, en bildvisare, ett nätverksuttag. I en
+     webbläsare finns inget av det, och biblioteken misslyckas då tyst
+     eller låser sig. Här läggs de om till labbets egna vägar — bilder
+     hamnar i utskriften, och det som inte går alls säger ifrån tydligt.
+
+     Varje anpassning körs bara om paketet faktiskt laddades, och körs om
+     vid varje körning (ett program kan importera nya paket). Den måste
+     därför tåla att köras flera gånger. */
+  var PAKETANPASSNINGAR = [
+    {
+      // loadPackagesFromImports ser bara riktiga import-satser, så vi
+      // frågar vad som laddades — inte vad texten nämner.
+      paket: ["matplotlib"],
+      fel: "matplotlibfel",
+      kod: `
+import matplotlib
+matplotlib.use('AGG')
+import matplotlib.pyplot as _plt
+import base64 as _base64
+import io as _io
+import js as _js
+
+_plt.rcParams.update({
+    'figure.facecolor': '#142643',
+    'axes.facecolor': '#0e1c33',
+    'axes.edgecolor': '#93a9cc',
+    'axes.labelcolor': '#e8f0ff',
+    'axes.titlecolor': '#ffc94a',
+    'text.color': '#e8f0ff',
+    'xtick.color': '#93a9cc',
+    'ytick.color': '#93a9cc',
+    'grid.color': '#1b3255',
+    'font.size': 9,
+    'figure.figsize': (8, 3.2),
+})
+
+
+def _labb_visa(*a, **k):
+    for nummer in _plt.get_fignums():
+        figur = _plt.figure(nummer)
+        buffert = _io.BytesIO()
+        figur.savefig(buffert, format='png', dpi=120, bbox_inches='tight')
+        kod = _base64.b64encode(buffert.getvalue()).decode()
+        _js.window._labbBild('data:image/png;base64,' + kod)
+    _plt.close('all')
+
+
+_plt.show = _labb_visa
+`
+    },
+    {
+      paket: ["Pillow", "pillow"],
+      fel: "pillowfel",
+      kod: `
+import PIL.ImageShow as _pil_show
+import base64 as _base64
+import io as _io
+import js as _js
+
+
+class _LabbBildvisare(_pil_show.Viewer):
+    _labb = True
+
+    def show(self, image, **options):
+        bild = image
+        if bild.mode not in ('1', 'L', 'P', 'RGB', 'RGBA'):
+            bild = bild.convert('RGB')
+        buffert = _io.BytesIO()
+        bild.save(buffert, format='PNG')
+        kod = _base64.b64encode(buffert.getvalue()).decode()
+        _js.window._labbBild('data:image/png;base64,' + kod)
+        return 1
+
+
+# Körs om vid varje körning: ta bort den gamla visaren först, annars
+# skulle bilden visas en gång per körning man gjort.
+_pil_show._viewers = [_v for _v in _pil_show._viewers
+                      if not getattr(_v, '_labb', False)]
+_pil_show.register(_LabbBildvisare(), 0)
+`
+    },
+    {
+      /* cv2.imshow och cv2.waitKey väntar på ett fönstersystem som inte
+         finns: programmet låser sig och bara Stoppa hjälper. Bilden ritas
+         i utskriften i stället, och fönsterfunktionerna görs tomma. */
+      paket: ["opencv-python"],
+      fel: "cv2fel",
+      kod: `
+import cv2 as _cv2
+import base64 as _base64
+import js as _js
+
+
+def _labb_cv_imshow(fonster, bild, *a, **k):
+    ok, buffert = _cv2.imencode('.png', bild)
+    if not ok:
+        raise ValueError(_T['cv2_bild'])
+    kod = _base64.b64encode(buffert.tobytes()).decode()
+    _js.window._labbBild('data:image/png;base64,' + kod)
+
+
+def _labb_tom(*a, **k):
+    return None
+
+
+def _labb_tangent(*a, **k):
+    return -1
+
+
+_cv2.imshow = _labb_cv_imshow
+_cv2.waitKey = _labb_tangent
+_cv2.waitKeyEx = _labb_tangent
+_cv2.pollKey = _labb_tangent
+for _namn in ('namedWindow', 'destroyWindow', 'destroyAllWindows',
+              'startWindowThread', 'moveWindow', 'resizeWindow',
+              'setWindowTitle', 'setWindowProperty'):
+    if hasattr(_cv2, _namn):
+        setattr(_cv2, _namn, _labb_tom)
+`
+    },
+    {
+      /* IPython.display.display() skriver bara ut objektets repr utanför
+         en notebook. Bilder, tabeller och HTML visas här i stället. */
+      paket: ["ipython"],
+      fel: "ipythonfel",
+      kod: `
+import base64 as _base64
+import js as _js
+import IPython.display as _ipd
+
+
+def _labb_display(*objekt, **k):
+    for _o in objekt:
+        _png = getattr(_o, '_repr_png_', None)
+        _html = getattr(_o, '_repr_html_', None)
+        if _png is not None:
+            _bild = _png()
+            if isinstance(_bild, str):
+                _js.window._labbBild('data:image/png;base64,' + _bild)
+            else:
+                _js.window._labbBild('data:image/png;base64,'
+                                     + _base64.b64encode(_bild).decode())
+        elif getattr(_o, 'data', None) is not None and \
+                getattr(_o, 'format', '') in ('png', 'jpeg', 'jpg', 'gif'):
+            _rad = _o.data
+            if isinstance(_rad, str):
+                print(_rad)
+            else:
+                _js.window._labbBild('data:image/' + _o.format + ';base64,'
+                                     + _base64.b64encode(_rad).decode())
+        elif _html is not None:
+            _js.window._labbHtml(_html())
+        else:
+            print(_o)
+
+
+_ipd.display = _labb_display
+import IPython as _ipython
+_ipython.display.display = _labb_display
+`
+    },
+    {
+      /* bokeh och altair ritar med sina egna JavaScript-bibliotek, som
+         inte finns här. Utan besked händer ingenting alls. */
+      paket: ["bokeh"],
+      fel: "bokehfel",
+      kod: `
+import bokeh.io as _bokeh_io
+
+
+def _labb_bokeh(*a, **k):
+    print(_T['ingen_bokeh'])
+
+
+_bokeh_io.show = _labb_bokeh
+try:
+    import bokeh.plotting as _bokeh_plot
+    _bokeh_plot.show = _labb_bokeh
+except Exception:
+    pass
+`
+    },
+    {
+      paket: ["altair"],
+      fel: "altairfel",
+      kod: `
+import altair as _alt
+
+
+def _labb_altair(self, *a, **k):
+    print(_T['ingen_altair'])
+
+
+_alt.Chart.show = _labb_altair
+if hasattr(_alt, 'TopLevelMixin'):
+    _alt.TopLevelMixin.show = _labb_altair
+`
+    },
+    {
+      /* sympy.plot ritar en ASCII-graf när matplotlib saknas. Det ser ut
+         som ett fel men är sympys reservläge — säg vad som behövs. */
+      paket: ["sympy"],
+      fel: "sympyfel",
+      kod: `
+import sys as _sys
+import sympy as _sympy
+
+if not getattr(_sympy.plot, '_labb', False):
+    _sympy_plot = _sympy.plot
+
+    def _labb_sympy_plot(*a, **k):
+        if 'matplotlib' not in _sys.modules:
+            print(_T['sympy_matplotlib'])
+        return _sympy_plot(*a, **k)
+
+    _labb_sympy_plot._labb = True
+    _sympy.plot = _labb_sympy_plot
+`
+    }
+  ];
+
+  async function anpassaPaket() {
+    if (!pyodide || !pyodide.loadedPackages) return;
+    for (var i = 0; i < PAKETANPASSNINGAR.length; i++) {
+      var a = PAKETANPASSNINGAR[i];
+      var laddat = a.paket.some(function (n) { return pyodide.loadedPackages[n]; });
+      if (!laddat) continue;
+      try {
+        await pyodide.runPythonAsync(a.kod);
+      } catch (e) {
+        skriv((SPRAK.msg[a.fel] || SPRAK.msg.paketfel) + ((e && e.message) || e) + "\n", "fel");
+      }
+    }
+  }
+
   /* =======================================================
      Körning
      ======================================================= */
@@ -5039,92 +5301,7 @@ window.PYTHONLAB_START = function (SPRAK) {
       statusText.textContent = SPRAK.status.redo;
     }
 
-    // Paketet laddas av loadPackagesFromImports, som bara ser riktiga
-    // import-satser. En kommentar som nämner matplotlib räknas inte —
-    // därför frågar vi vad som faktiskt laddades, inte vad texten säger.
-    var harMatplotlib = pyodide.loadedPackages &&
-                        pyodide.loadedPackages.matplotlib;
-    if (harMatplotlib) {
-      try {
-        await pyodide.runPythonAsync(`
-import matplotlib
-matplotlib.use('AGG')
-import matplotlib.pyplot as _plt
-import base64 as _base64
-import io as _io
-import js as _js
-
-_plt.rcParams.update({
-    'figure.facecolor': '#142643',
-    'axes.facecolor': '#0e1c33',
-    'axes.edgecolor': '#93a9cc',
-    'axes.labelcolor': '#e8f0ff',
-    'axes.titlecolor': '#ffc94a',
-    'text.color': '#e8f0ff',
-    'xtick.color': '#93a9cc',
-    'ytick.color': '#93a9cc',
-    'grid.color': '#1b3255',
-    'font.size': 9,
-    'figure.figsize': (8, 3.2),
-})
-
-
-def _labb_visa(*a, **k):
-    for nummer in _plt.get_fignums():
-        figur = _plt.figure(nummer)
-        buffert = _io.BytesIO()
-        figur.savefig(buffert, format='png', dpi=120, bbox_inches='tight')
-        kod = _base64.b64encode(buffert.getvalue()).decode()
-        _js.window._labbBild('data:image/png;base64,' + kod)
-    _plt.close('all')
-
-
-_plt.show = _labb_visa
-`);
-      } catch (e) {
-        skriv(SPRAK.msg.matplotlibfel + ((e && e.message) || e) + "\n", "fel");
-      }
-    }
-
-    /* Pillow: im.show() ber operativsystemet öppna en bildvisare. I en
-       webbläsare finns ingen, så Pillow registrerar ingen visare alls och
-       show() gör tyst ingenting. Här läggs en visare in som skickar bilden
-       till utskriften i stället — samma väg som matplotlib går. */
-    var harPillow = pyodide.loadedPackages &&
-                    (pyodide.loadedPackages.Pillow || pyodide.loadedPackages.pillow);
-    if (harPillow) {
-      try {
-        await pyodide.runPythonAsync(`
-import PIL.ImageShow as _pil_show
-import base64 as _base64
-import io as _io
-import js as _js
-
-
-class _LabbBildvisare(_pil_show.Viewer):
-    _labb = True
-
-    def show(self, image, **options):
-        bild = image
-        if bild.mode not in ('1', 'L', 'P', 'RGB', 'RGBA'):
-            bild = bild.convert('RGB')
-        buffert = _io.BytesIO()
-        bild.save(buffert, format='PNG')
-        kod = _base64.b64encode(buffert.getvalue()).decode()
-        _js.window._labbBild('data:image/png;base64,' + kod)
-        return 1
-
-
-# Körs om vid varje körning: ta bort den gamla visaren först, annars
-# skulle bilden visas en gång per körning man gjort.
-_pil_show._viewers = [_v for _v in _pil_show._viewers
-                      if not getattr(_v, '_labb', False)]
-_pil_show.register(_LabbBildvisare(), 0)
-`);
-      } catch (e) {
-        skriv(SPRAK.msg.pillowfel + ((e && e.message) || e) + "\n", "fel");
-      }
-    }
+    await anpassaPaket();
 
     markeraSteg(2);
     var start = performance.now();
@@ -6491,6 +6668,24 @@ _data_modul.open_json = _oppna_json
 _data_modul.list_files = _lista_filer
 _sys.modules['data'] = _data_modul
 `);
+
+    /* urllib.request öppnar ett uttag (socket), som inte finns i en
+       webbläsare: urlopen() dör med "unknown url type". pyodide-http
+       lägger om den till webbläsarens egen hämtning. Paketet är litet
+       (30 kB) och laddas därför alltid.
+
+       requests rörs inte: det paket Pyodide levererar bygger på urllib3,
+       som redan kan tala med webbläsaren. Att lägga om det också ändrade
+       ingenting i mätningar — och det som fungerar ska man låta vara.
+
+       Webbens vanliga regel gäller ändå för båda: servern måste tillåta
+       anrop från andra sajter (CORS). */
+    try {
+      await pyodide.loadPackage("pyodide-http", { messageCallback: function () {} });
+      await pyodide.runPythonAsync("import pyodide_http\npyodide_http.patch_urllib()\n");
+    } catch (e) {
+      // Nätet fungerar ändå via data.fetch_text och data.fetch_json.
+    }
 
     forberedKod = pyodide.globals.get("_labb_forbered");
     nollstallVakt = pyodide.globals.get("_labb_nollstall");

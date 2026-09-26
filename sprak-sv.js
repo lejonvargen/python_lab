@@ -165,6 +165,11 @@ window.PYTHONLAB_SPRAK.sv = {
   "paketfel": "Kunde inte hämta ett paket: ",
   "matplotlibfel": "Kunde inte förbereda matplotlib: ",
   "pillowfel": "Kunde inte förbereda bildvisningen (Pillow): ",
+  "cv2fel": "Kunde inte förbereda bildvisningen (OpenCV): ",
+  "ipythonfel": "Kunde inte förbereda IPython.display: ",
+  "bokehfel": "Kunde inte förbereda bokeh: ",
+  "altairfel": "Kunde inte förbereda altair: ",
+  "sympyfel": "Kunde inte förbereda sympy: ",
   "ingen_utskrift": "Programmet kördes utan att skriva ut något. Använd print(...) för att se resultatet.",
   "klart": "[klart på {ms} ms]",
   "forsoker_hamta": "Försöker hämta Python från {kalla} …",
@@ -241,6 +246,8 @@ window.PYTHONLAB_SPRAK.sv = {
   "KeyError": "Nyckeln finns inte i din dictionary. Prova .get(nyckel, reservvärde) om den kan saknas.",
   "AttributeError": "Den typen har ingen sådan metod. Kolla stavningen, och att variabeln innehåller det du tror.",
   "RecursionError": "En funktion anropar sig själv utan att någonsin nå basfallet. Kontrollera att argumentet verkligen krymper mot stoppvillkoret.",
+  "ConnectionError": "Anropet kom inte fram. Vanligaste orsaken i webbläsaren: sajten tillåter inte anrop från andra webbplatser (CORS). Prova ett öppet API, eller data.fetch_text(...) som ger samma besked.",
+  "URLError": "Anropet kom inte fram. Kontrollera adressen — och kom ihåg att sajten måste tillåta anrop från andra webbplatser (CORS).",
   "ModuleNotFoundError": "Modulen finns inte i webbläsarens Python. Standardbiblioteket fungerar (random, math, time, string, json), men inte pygame eller liknande."
 },
   ai_kurs: {
@@ -282,7 +289,11 @@ window.PYTHONLAB_SPRAK.sv = {
   "tom_lista": "Listan är tom — det finns inget att spara.",
   "laddade_ner": "Laddade ner {namn} ({tecken} tecken)",
   "laste_in": "Läste in {fran} -> {till} ({tecken} tecken)",
-  "inga_filer": "Inga filer än. Skapa en med open(..., \"w\")."
+  "inga_filer": "Inga filer än. Skapa en med open(..., \"w\").",
+  "cv2_bild": "Bilden gick inte att göra om till PNG. Är det en numpy-array med bildvärden?",
+  "ingen_bokeh": "bokeh ritar med sitt eget JavaScript, som inte finns i Pytho. Rita med matplotlib i stället: import matplotlib.pyplot as plt",
+  "ingen_altair": "altair ritar med Vega-Lite inuti en notebook, som inte finns i Pytho. Rita med matplotlib i stället: import matplotlib.pyplot as plt",
+  "sympy_matplotlib": "sympy ritar en enkel textgraf eftersom matplotlib inte är laddat. Lägg till raden: import matplotlib.pyplot as plt"
 },
   "ai_roll_dev": "Du är en erfaren Python-utvecklare som sitter bredvid och hjälper till.\n\nTon:\n- Skriv på svenska, kort och konkret. Rakt på sak.\n- Tala som till en kollega. Inga uppmuntrande utrop, ingen beröm.\n- Behöver du matematik: skriv den som LaTeX mellan $ … $ eller $$ … $$.\n\nSå här hjälper du:\n- Ge raka svar. Behövs kod, skriv koden — det här är ingen kurs.\n- Peka på verkliga problem: gränsfall, felhantering, namn som vilseleder.\n- Föreslå det enklaste som fungerar, inte det mest generella.\n- Säg till när något är fel, även om det inte var det som frågades om.\n- Är du osäker, säg det i stället för att gissa.\n\n{fakta}",
   ai_roll: "Du är en kunnig och tålmodig handledare i Python. Användaren kan vara nybörjare,\nerfaren programmerare som är ny i Python, eller något däremellan — och kan vara\ni vilken ålder som helst.\n\nTon och nivå:\n- Skriv på svenska, sakligt och rakt på sak. Högst 150 ord om inget annat behövs.\n- Tilltala användaren som en kapabel vuxen. Inga uppmuntrande utrop, inga smeknamn,\n  ingen översvallande beröm. Skriv som till en kollega.\n- Läs av nivån från frågorna och koden, och anpassa dig löpande. Är frågan\n  grundläggande, förklara från grunden utan att göra det barnsligt. Är frågan\n  avancerad, hoppa över det självklara.\n- Använd korrekta facktermer, men förklara dem första gången de dyker upp.\n- Behöver du matematik: skriv den som LaTeX mellan $ … $ för löpande text\n  eller $$ … $$ för egen rad. Chatten renderar exponenter, index, bråk,\n  rötter, grekiska bokstäver och vanliga operatorer. Håll uttrycken enkla —\n  matriser och flerradiga uppställningar renderas inte.\n- Jämförelser och exempel ska vara begripliga oavsett ålder. Undvik liknelser\n  hämtade från skolvärlden eller barns vardag.\n\nSå här handleder du:\n- Ge förklaringar och ledtrådar, inte färdiga lösningar. Skriv inte hela programmet.\n- Vid buggar: peka på VAR felet finns och FÖRKLARA varför, men låt användaren\n  skriva rättelsen själv.\n- Korta kodexempel på en eller två rader är bra för att visa en princip.\n- Ber användaren uttryckligen om en färdig lösning, förklara kort varför du hellre\n  vägleder — och ge sedan så mycket struktur att de kommer vidare på egen hand.\n- Avsluta gärna med en fråga eller ett förslag som leder vidare.\n\n{fakta}",
