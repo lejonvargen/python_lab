@@ -46,9 +46,9 @@ window.PYTHONLAB_SPRAK.sv = {
     "dev": "Utvecklarläge",
     "dev_info": "Döljer kapitlen och gör Pytho till en enkel utvecklingsmiljö. Din kod ligger kvar.",
     "tom_fil": "Rensa fil",
-    "filer_rubrik": "Filer i arbetsytan",
-    "ny_fil": "+ Ny fil",
-    "inga_filer": "Inga filer ännu. Allt du skriver hamnar här och kan importeras.",
+    "filer_rubrik": "Kod",
+    "ny_fil": "+ Ny kodfil",
+    "inga_filer": "Ingen kod ännu. Allt du skriver hamnar här och kan importeras.",
     "ta_bort": "Ta bort",
     "repl": "Skriv ett uttryck och tryck Enter …",
     "filtext": "<h3>Egna filer</h3><p>Den här filen ligger i din arbetsyta och sparas i webbläsaren. Kör ett program i vilket kapitel som helst och skriv <code>import {modul}</code> för att använda den.</p><p>Allt du skriver finns kvar när du laddar om sidan.</p>",
@@ -164,6 +164,7 @@ window.PYTHONLAB_SPRAK.sv = {
   "oppnade": "Öppnade {namn} i {plats}.",
   "paketfel": "Kunde inte hämta ett paket: ",
   "matplotlibfel": "Kunde inte förbereda matplotlib: ",
+  "pillowfel": "Kunde inte förbereda bildvisningen (Pillow): ",
   "ingen_utskrift": "Programmet kördes utan att skriva ut något. Använd print(...) för att se resultatet.",
   "klart": "[klart på {ms} ms]",
   "forsoker_hamta": "Försöker hämta Python från {kalla} …",
@@ -255,6 +256,17 @@ window.PYTHONLAB_SPRAK.sv = {
   "kod": "Koden i redigeraren:",
   "markering": "Användaren har markerat den här delen:"
 },
+  data: {
+    "rubrik": "Data",
+    "rubrik_antal": "Data ({antal}, {storlek})",
+    "tomt": "Ingen data än. Dra in en fil, eller skapa en med open(\"namn.csv\", \"w\") i ditt program.",
+    "lagg_till": "+ Lägg till data",
+    "ladda_ner": "Ladda ner till datorn",
+    "nytt_namn": "Nytt namn på filen:",
+    "for_stor": "{namn} är för stor. Största storlek per fil är {max}.",
+    "fullt": "Datafilerna får ta högst {max} tillsammans. Ta bort något först.",
+    "ingen_lagring": "Kunde inte spara datafilen — labbet är öppet i en annan flik."
+  },
   py: {
   "ingen_3d": "3D-motorn laddas fortfarande — vänta några sekunder och kör igen.",
   "cors": "Kunde inte nå {url}. Antingen är servern nere, eller så tillåter den inte att webbläsare hämtar data från andra sidor (CORS). Ursprungligt fel: {fel}",

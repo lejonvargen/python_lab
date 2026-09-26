@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.81";
+  window.PYTHONLABBET_VERSION = "1.85";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -426,7 +426,38 @@
      filer. Fillistan, dess rubrik och Ny fil hör till utvecklarläget. */
   #app-root:not(.dev-lage) #filer-rubrik,
   #app-root:not(.dev-lage) #fillista,
-  #app-root:not(.dev-lage) #ny-fil-knapp { display: none; }
+  #app-root:not(.dev-lage) #ny-fil-knapp,
+  #app-root:not(.dev-lage) #datarubrik,
+  #app-root:not(.dev-lage) #datalista,
+  #app-root:not(.dev-lage) #ny-datafil-knapp { display: none; }
+
+  /* ---- datafiler ----
+     Selektorerna måste väga tyngre än .filrad-reglerna längre ner, som
+     annars gömmer knapparna tills man pekar på raden. */
+  #app-root .filrad.datarad { cursor: default; gap: 6px; }
+  #app-root .filrad.datarad:hover { background: var(--panel-2); }
+  #app-root .filrad.datarad > span:first-child {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+  }
+  #app-root .filrad.datarad .storlek {
+    margin-left: auto; font-size: 11px; opacity: .7; white-space: nowrap; flex: 0 0 auto;
+  }
+  #app-root .filrad.datarad .knappar { display: flex; gap: 1px; flex: 0 0 auto; }
+  #app-root .filrad.datarad .bort,
+  #app-root .filrad.datarad .dop-om,
+  #app-root .filrad.datarad .ned {
+    margin-left: 0; opacity: .55; border: 0; background: none;
+    color: var(--chalk-dim); cursor: pointer; font-size: 13px; padding: 0 3px;
+  }
+  #app-root .filrad.datarad:hover .bort,
+  #app-root .filrad.datarad:hover .dop-om,
+  #app-root .filrad.datarad:hover .ned { opacity: .85; }
+  #app-root .filrad.datarad .bort:hover { color: var(--coral); opacity: 1; }
+  #app-root .filrad.datarad .ned:hover,
+  #app-root .filrad.datarad .dop-om:hover { color: var(--amber); opacity: 1; }
+  #app-root #datalista.slapp {
+    outline: 2px dashed var(--amber); outline-offset: 2px; border-radius: 8px;
+  }
 
   #app-root .replrad {
     display: flex; align-items: center; gap: 8px;
@@ -1084,6 +1115,11 @@
     <p class="rubrik" id="filer-rubrik" style="margin-top:18px" data-i18n="ui.filer_rubrik"></p>
     <div id="fillista"></div>
     <button class="knapp minifil" id="ny-fil-knapp" data-i18n="ui.ny_fil"></button>
+
+    <p class="rubrik" id="datarubrik" style="margin-top:18px"></p>
+    <div id="datalista"></div>
+    <button class="knapp minifil" id="ny-datafil-knapp" data-i18n="data.lagg_till"></button>
+    <input type="file" id="datavaljare" multiple hidden>
   </aside>
 
   <section class="arbetsyta">
@@ -1445,7 +1481,10 @@ window.PYTHONLAB_START = function (SPRAK) {
         if (!fil) return stad(undefined);
         var lasare = new FileReader();
         lasare.onload = function () {
-          stad({ namn: fil.name, innehall: String(lasare.result) });
+          // Fälten heter name/content: det är Python-sidan som läser dem
+          // (data.open_file). Med svenska namn hittade den inget innehåll
+          // och sa "Ingen fil valdes" fast användaren valt en fil.
+          stad({ name: fil.name, content: String(lasare.result) });
         };
         lasare.onerror = function () { stad(undefined); };
         lasare.readAsText(fil);
@@ -3342,7 +3381,8 @@ window.PYTHONLAB_START = function (SPRAK) {
   var arbetsyta = {};
   var aktivFil = null;
 
-  var LAGER = { namn: "pytho", butik: "arbetsyta", nyckel: 1, format: 2 };
+  var LAGER = { namn: "pytho", butik: "arbetsyta", databutik: "datafiler",
+                nyckel: 1, format: 2, version: 2 };
   var sparklocka = null;
 
   function huvudfil() { return SPRAK.ui.huvudfil || "huvudprogram.py"; }
@@ -3417,8 +3457,14 @@ window.PYTHONLAB_START = function (SPRAK) {
   function oppnaLager() {
     return new Promise(function (klar, fel) {
       if (!window.indexedDB) return fel(new Error("ingen lagring"));
-      var beg = indexedDB.open(LAGER.namn, 1);
-      beg.onupgradeneeded = function () { beg.result.createObjectStore(LAGER.butik); };
+      var beg = indexedDB.open(LAGER.namn, LAGER.version);
+      beg.onupgradeneeded = function () {
+        var db = beg.result;
+        if (!db.objectStoreNames.contains(LAGER.butik)) db.createObjectStore(LAGER.butik);
+        // Version 2 lade till datafilerna. En äldre lagring får butiken
+        // här, utan att arbetsytan rörs.
+        if (!db.objectStoreNames.contains(LAGER.databutik)) db.createObjectStore(LAGER.databutik);
+      };
       beg.onsuccess = function () { klar(beg.result); };
       beg.onerror = function () { fel(beg.error); };
     });
@@ -3521,6 +3567,309 @@ window.PYTHONLAB_START = function (SPRAK) {
     normaliseraArbetsyta();
     foljSpraket();
     return { aktiv: null, dev: gammal.dev, migrerad: true };
+  }
+
+  /* ================= datafiler =================
+     Filer som inte är kod: CSV, JSON, text, bilder. De ligger i en egen
+     butik med sitt innehåll i råa byte, så att även binära filer överlever.
+     Python ser dem som vanliga filer i sin arbetskatalog (DATAMAPP), och
+     det som programmet skapar där hamnar här efter körningen.
+
+     Bara utvecklarläget sparar dem. Undervisningsläget fungerar som förut:
+     filer lever under sessionen och försvinner när sidan laddas om. Annars
+     skulle eleven få sparade filer som ingenting i gränssnittet visar. */
+  var MAX_DATAFIL = 25 * 1024 * 1024;
+  var MAX_DATA_TOTALT = 100 * 1024 * 1024;
+  var datafiler = {};          // namn -> { namn, storlek, andrad }
+
+  function datalagerTransaktion(las) {
+    return oppnaLager().then(function (db) {
+      var tx = db.transaction(LAGER.databutik, las ? "readonly" : "readwrite");
+      return { db: db, butik: tx.objectStore(LAGER.databutik), tx: tx };
+    });
+  }
+
+  function vantaPa(beg) {
+    return new Promise(function (klar, fel) {
+      beg.onsuccess = function () { klar(beg.result); };
+      beg.onerror = function () { fel(beg.error); };
+    });
+  }
+
+  async function laddaDatafiler() {
+    datafiler = {};
+    try {
+      var t = await datalagerTransaktion(true);
+      var poster = await vantaPa(t.butik.getAll());
+      t.db.close();
+      (poster || []).forEach(function (f) {
+        datafiler[f.namn] = { namn: f.namn, storlek: f.storlek, andrad: f.andrad };
+      });
+    } catch (e) { /* lagring kan vara avstängd */ }
+  }
+
+  async function hamtaDatafil(namn) {
+    var t = await datalagerTransaktion(true);
+    var post = await vantaPa(t.butik.get(namn));
+    t.db.close();
+    return post || null;
+  }
+
+  function dataTotalt(utom) {
+    return Object.keys(datafiler).reduce(function (summa, n) {
+      return n === utom ? summa : summa + (datafiler[n].storlek || 0);
+    }, 0);
+  }
+
+  /* Returnerar null om filen sparades, annars ett felmeddelande. */
+  async function sparaDatafil(namn, byte) {
+    if (!flikAgerSparningen()) return SPRAK.data.ingen_lagring;
+    if (byte.length > MAX_DATAFIL) {
+      return SPRAK.data.for_stor.replace("{namn}", namn)
+        .replace("{max}", storleksText(MAX_DATAFIL));
+    }
+    if (dataTotalt(namn) + byte.length > MAX_DATA_TOTALT) {
+      return SPRAK.data.fullt.replace("{max}", storleksText(MAX_DATA_TOTALT));
+    }
+    var post = { namn: namn, byte: byte, storlek: byte.length, andrad: Date.now() };
+    try {
+      var t = await datalagerTransaktion(false);
+      await vantaPa(t.butik.put(post, namn));
+      t.db.close();
+    } catch (e) { return (e && e.message) || String(e); }
+    datafiler[namn] = { namn: namn, storlek: post.storlek, andrad: post.andrad };
+    ritaDatafiler();
+    return null;
+  }
+
+  async function taBortDatafil(namn) {
+    try {
+      var t = await datalagerTransaktion(false);
+      await vantaPa(t.butik.delete(namn));
+      t.db.close();
+    } catch (e) { /* redan borta */ }
+    delete datafiler[namn];
+    ritaDatafiler();
+  }
+
+  /* ---- listan i sidomenyn ---- */
+  var datalistan = document.getElementById("datalista");
+  var datarubrik = document.getElementById("datarubrik");
+  var datavaljare = document.getElementById("datavaljare");
+
+  function ritaDatafiler() {
+    if (!datalistan) return;
+    var namnen = Object.keys(datafiler).sort();
+    datarubrik.textContent = namnen.length
+      ? SPRAK.data.rubrik_antal.replace("{antal}", namnen.length)
+          .replace("{storlek}", storleksText(dataTotalt(null)))
+      : SPRAK.data.rubrik;
+    datalistan.textContent = "";
+    if (!namnen.length) {
+      var tom = document.createElement("p");
+      tom.className = "tomlista";
+      tom.textContent = SPRAK.data.tomt;
+      datalistan.appendChild(tom);
+      return;
+    }
+    namnen.forEach(function (namn) { datalistan.appendChild(datarad(namn)); });
+  }
+
+  function datarad(namn) {
+    var rad = document.createElement("div");
+    rad.className = "filrad datarad";
+    var etikett = document.createElement("span");
+    etikett.textContent = namn;
+    rad.appendChild(etikett);
+    var storlek = document.createElement("span");
+    storlek.className = "storlek";
+    storlek.textContent = storleksText(datafiler[namn].storlek);
+    rad.appendChild(storlek);
+
+    var knappar = document.createElement("span");
+    knappar.className = "knappar";
+    knappar.appendChild(radknapp("ned", "⭳", SPRAK.data.ladda_ner, function () {
+      laddaNerDatafil(namn);
+    }));
+    knappar.appendChild(radknapp("dop-om", "✎", SPRAK.ui.dop_om, function () {
+      var nytt = prompt(SPRAK.data.nytt_namn, namn);
+      if (nytt === null) return;
+      nytt = nytt.trim();
+      if (!nytt || nytt === namn) return;
+      if (datafiler[nytt]) { alert(SPRAK.fraga.namnet_upptaget.replace("{namn}", nytt)); return; }
+      dopOmDatafil(namn, nytt);
+    }));
+    knappar.appendChild(radknapp("bort", "×", SPRAK.ui.ta_bort, function () {
+      if (!confirm(SPRAK.fraga.radera_fil.replace("{namn}", namn))) return;
+      raderaDatafil(namn);
+    }));
+    rad.appendChild(knappar);
+    return rad;
+  }
+
+  function radknapp(klass, tecken, titel, vidKlick) {
+    var k = document.createElement("button");
+    k.className = klass;
+    k.type = "button";
+    k.textContent = tecken;
+    k.title = titel || "";
+    if (titel) k.setAttribute("aria-label", titel);
+    k.addEventListener("click", function (e) { e.stopPropagation(); vidKlick(); });
+    return k;
+  }
+
+  async function laddaNerDatafil(namn) {
+    var post = await hamtaDatafil(namn);
+    if (!post) return;
+    var blob = new Blob([post.byte], { type: "application/octet-stream" });
+    var url = URL.createObjectURL(blob);
+    var lank = document.createElement("a");
+    lank.href = url;
+    lank.download = namn;
+    document.body.appendChild(lank);
+    lank.click();
+    document.body.removeChild(lank);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+
+  async function dopOmDatafil(gammalt, nytt) {
+    var post = await hamtaDatafil(gammalt);
+    if (!post) return;
+    var fel = await laggInDatafil(nytt, post.byte);
+    if (fel) { alert(fel); return; }
+    await raderaDatafil(gammalt);
+  }
+
+  async function raderaDatafil(namn) {
+    await taBortDatafil(namn);
+    if (pyodide && pyodide.FS) {
+      try { pyodide.FS.unlink(DATAMAPP + "/" + namn); } catch (e) { /* fanns inte */ }
+      kandaDatafiler = lasDatamapp();
+    }
+  }
+
+  /* Läser in filer från datorn: knappen, filväljaren och dra-och-släpp. */
+  async function taEmotFiler(lista) {
+    for (var i = 0; i < lista.length; i++) {
+      var fil = lista[i];
+      var byte = new Uint8Array(await fil.arrayBuffer());
+      var fel = await laggInDatafil(fil.name, byte);
+      if (fel) { alert(fel); return; }
+    }
+  }
+
+  document.getElementById("ny-datafil-knapp").addEventListener("click", function () {
+    datavaljare.click();
+  });
+  datavaljare.addEventListener("change", async function () {
+    if (datavaljare.files && datavaljare.files.length) await taEmotFiler(datavaljare.files);
+    datavaljare.value = "";
+  });
+  ["dragenter", "dragover"].forEach(function (h) {
+    datalistan.addEventListener(h, function (e) {
+      e.preventDefault(); e.stopPropagation();
+      datalistan.classList.add("slapp");
+    });
+  });
+  ["dragleave", "drop"].forEach(function (h) {
+    datalistan.addEventListener(h, function (e) {
+      e.preventDefault(); e.stopPropagation();
+      datalistan.classList.remove("slapp");
+    });
+  });
+  datalistan.addEventListener("drop", async function (e) {
+    var filer = e.dataTransfer && e.dataTransfer.files;
+    if (filer && filer.length) await taEmotFiler(filer);
+  });
+
+  /* ---- Pythons arbetskatalog ----
+     Programmet kör i DATAMAPP, så open("elever.csv") hittar filen direkt
+     och nya filer hamnar där. Före körningen läggs de sparade filerna ut,
+     efter körningen tas det som ändrats tillbaka. */
+  var DATAMAPP = "/home/pyodide/data";
+  var kandaDatafiler = {};        // ögonblicksbild av mappen före körningen
+
+  function fsStat(vag) {
+    try { return pyodide.FS.stat(vag); } catch (e) { return null; }
+  }
+
+  function lasDatamapp() {
+    var ut = {};
+    if (!pyodide || !pyodide.FS) return ut;
+    try {
+      pyodide.FS.readdir(DATAMAPP).forEach(function (namn) {
+        if (namn === "." || namn === "..") return;
+        var st = fsStat(DATAMAPP + "/" + namn);
+        if (!st || pyodide.FS.isDir(st.mode)) return;
+        ut[namn] = { storlek: st.size, mtime: +st.mtime };
+      });
+    } catch (e) { /* mappen finns inte än */ }
+    return ut;
+  }
+
+  async function forberedDatamapp() {
+    if (!pyodide || !pyodide.FS) return;
+    try { pyodide.FS.mkdirTree(DATAMAPP); } catch (e) { /* finns redan */ }
+    if (devlage) {
+      var namnen = Object.keys(datafiler);
+      for (var i = 0; i < namnen.length; i++) {
+        var namn = namnen[i];
+        var st = fsStat(DATAMAPP + "/" + namn);
+        if (st && st.size === datafiler[namn].storlek) continue;
+        var post = await hamtaDatafil(namn);
+        if (post && post.byte) {
+          try { pyodide.FS.writeFile(DATAMAPP + "/" + namn, post.byte); } catch (e) { /* */ }
+        }
+      }
+    }
+    try { pyodide.FS.chdir(DATAMAPP); } catch (e) { /* */ }
+    kandaDatafiler = lasDatamapp();
+  }
+
+  /* Tar hand om det programmet skapat, ändrat eller tagit bort.
+     Bara i utvecklarläget — se kommentaren vid datafiler ovan. */
+  async function synkaDatafiler() {
+    if (!devlage || !pyodide || !pyodide.FS) return;
+    var nu = lasDatamapp(), problem = [];
+    var namnen = Object.keys(nu);
+    for (var i = 0; i < namnen.length; i++) {
+      var namn = namnen[i], fore = kandaDatafiler[namn];
+      var orord = fore && datafiler[namn] &&
+                  nu[namn].storlek === fore.storlek && nu[namn].mtime === fore.mtime;
+      if (orord) continue;
+      var byte;
+      try { byte = new Uint8Array(pyodide.FS.readFile(DATAMAPP + "/" + namn)); }
+      catch (e) { continue; }
+      var fel = await sparaDatafil(namn, byte);
+      if (fel) problem.push(fel);
+    }
+    var gamla = Object.keys(kandaDatafiler);
+    for (var j = 0; j < gamla.length; j++) {
+      if (!nu[gamla[j]] && datafiler[gamla[j]]) await taBortDatafil(gamla[j]);
+    }
+    kandaDatafiler = nu;
+    problem.forEach(function (m) { skriv(m + "\n", "fel"); });
+  }
+
+  /* Lägger in en fil utifrån: både i lagret och i Pythons filsystem, så
+     att den går att använda direkt från REPL:en utan att köra om. */
+  async function laggInDatafil(namn, byte) {
+    var fel = await sparaDatafil(namn, byte);
+    if (fel) return fel;
+    if (pyodide && pyodide.FS) {
+      try {
+        pyodide.FS.mkdirTree(DATAMAPP);
+        pyodide.FS.writeFile(DATAMAPP + "/" + namn, byte);
+        kandaDatafiler = lasDatamapp();
+      } catch (e) { /* Python kanske inte startat än */ }
+    }
+    return null;
+  }
+
+  function storleksText(byte) {
+    if (byte < 1024) return byte + " B";
+    if (byte < 1024 * 1024) return (byte / 1024).toFixed(byte < 10240 ? 1 : 0) + " kB";
+    return (byte / (1024 * 1024)).toFixed(byte < 10 * 1024 * 1024 ? 1 : 0) + " MB";
   }
 
   /* ---- att byta fil ---- */
@@ -4737,6 +5086,46 @@ _plt.show = _labb_visa
       }
     }
 
+    /* Pillow: im.show() ber operativsystemet öppna en bildvisare. I en
+       webbläsare finns ingen, så Pillow registrerar ingen visare alls och
+       show() gör tyst ingenting. Här läggs en visare in som skickar bilden
+       till utskriften i stället — samma väg som matplotlib går. */
+    var harPillow = pyodide.loadedPackages &&
+                    (pyodide.loadedPackages.Pillow || pyodide.loadedPackages.pillow);
+    if (harPillow) {
+      try {
+        await pyodide.runPythonAsync(`
+import PIL.ImageShow as _pil_show
+import base64 as _base64
+import io as _io
+import js as _js
+
+
+class _LabbBildvisare(_pil_show.Viewer):
+    _labb = True
+
+    def show(self, image, **options):
+        bild = image
+        if bild.mode not in ('1', 'L', 'P', 'RGB', 'RGBA'):
+            bild = bild.convert('RGB')
+        buffert = _io.BytesIO()
+        bild.save(buffert, format='PNG')
+        kod = _base64.b64encode(buffert.getvalue()).decode()
+        _js.window._labbBild('data:image/png;base64,' + kod)
+        return 1
+
+
+# Körs om vid varje körning: ta bort den gamla visaren först, annars
+# skulle bilden visas en gång per körning man gjort.
+_pil_show._viewers = [_v for _v in _pil_show._viewers
+                      if not getattr(_v, '_labb', False)]
+_pil_show.register(_LabbBildvisare(), 0)
+`);
+      } catch (e) {
+        skriv(SPRAK.msg.pillowfel + ((e && e.message) || e) + "\n", "fel");
+      }
+    }
+
     markeraSteg(2);
     var start = performance.now();
     try {
@@ -4765,6 +5154,8 @@ _plt.show = _labb_visa
           catch (e) { skriv(SPRAK.msg.filfel + ((e && e.message) || e) + "\n", "fel"); }
         }
       }
+      // Datafilerna läggs ut och blir programmets arbetskatalog.
+      await forberedDatamapp();
       if (vakt && nollstallVakt) {
         try { nollstallVakt(45.0); } catch (e) { /* ingen vakt */ }
       }
@@ -4791,6 +5182,7 @@ _plt.show = _labb_visa
       markeraSteg(2);
       visaFel(String((err && err.message) || err));
     } finally {
+      try { await synkaDatafiler(); } catch (e) { /* lagring kan vara avstängd */ }
       korKnapp.disabled = false;
       korning.igang = false;
       korning.vakter = 0;
@@ -4855,6 +5247,10 @@ _plt.show = _labb_visa
     // Filen man står i hör till det andra läget — gå dit man senast var.
     if (devlage) {
       forberedUtvecklarfiler();
+      // Filer som skapats i undervisningsläget syns nu — ta hand om dem
+      // i stället för att låta dem försvinna vid nästa omladdning.
+      kandaDatafiler = {};
+      synkaDatafiler().catch(function () { /* lagring kan vara avstängd */ });
       if (varldFor(post(aktivFil)) !== "dev") {
         var d = senastIVarld.dev;
         oppna(d && arbetsyta[d] && varldFor(arbetsyta[d]) === "dev" ? d : DEV_HUVUD);
@@ -5273,6 +5669,8 @@ _plt.show = _labb_visa
     await sakraEnsamFlik();
     FLIK.startad = true;
     var sparat = await laddaArbetsyta();
+    await laddaDatafiler();
+    ritaDatafiler();
     sakerstallFil(huvudfil(), STARTKOD, null, true).kurs = true;
     // Appen startar i kursläget, så en sparad utvecklarfil öppnas inte.
     var start = (sparat && sparat.aktiv && arbetsyta[sparat.aktiv] &&
@@ -6002,7 +6400,7 @@ _data_modul.backup_data = _reservdata
 def _exportera(filename, content):
     """Laddar ner text till datorn under det angivna filnamnet."""
     js.window._labbLaddaNer(str(filename), str(content))
-    print(_T['laddade_ner'].replace('{name}', str(filename))
+    print(_T['laddade_ner'].replace('{namn}', str(filename))
           .replace('{tecken}', str(len(str(content)))))
 
 
@@ -6010,7 +6408,7 @@ def _ladda_ner(path, save_as=None):
     """Tar en fil du skapat med open() och laddar ner den till datorn."""
     import os
     if not os.path.exists(path):
-        raise FileNotFoundError(_T['saknas'].replace('{name}', str(path)))
+        raise FileNotFoundError(_T['saknas'].replace('{namn}', str(path)))
     with open(path, 'r', encoding='utf-8') as _fil:
         content = _fil.read()
     _exportera(save_as or os.path.basename(path), content)

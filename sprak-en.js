@@ -50,9 +50,9 @@ window.PYTHONLAB_SPRAK.en = {
     dev: "Developer mode",
     dev_info: "Hides the chapters and turns Pytho into a small development environment. Your code stays put.",
     tom_fil: "Clear file",
-    filer_rubrik: "Files in your workspace",
-    ny_fil: "+ New file",
-    inga_filer: "No files yet. Everything you write lands here and can be imported.",
+    filer_rubrik: "Code",
+    ny_fil: "+ New code file",
+    inga_filer: "No code yet. Everything you write lands here and can be imported.",
     ta_bort: "Delete",
     repl: "Type an expression and press Enter …",
     filtext: "<h3>Your files</h3><p>This file lives in your workspace and is saved in the browser. Run a program in any chapter and write <code>import {modul}</code> to use it.</p><p>Everything you write here survives a reload.</p>",
@@ -173,6 +173,7 @@ window.PYTHONLAB_SPRAK.en = {
     oppnade: "Opened {namn} in {plats}.",
     paketfel: "Could not fetch a package: ",
     matplotlibfel: "Could not set up matplotlib: ",
+    pillowfel: "Could not set up image display (Pillow): ",
     ingen_utskrift: "The program ran without printing anything. Use print(...) to see the result.",
     klart: "[finished in {ms} ms]",
     forsoker_hamta: "Trying to fetch Python from {kalla} …",
@@ -271,6 +272,17 @@ window.PYTHONLAB_SPRAK.en = {
     markering: "The user has selected this part:"
   },
 
+  data: {
+    rubrik: "Data",
+    rubrik_antal: "Data ({antal}, {storlek})",
+    tomt: "No data yet. Drag a file in, or create one with open(\"name.csv\", \"w\") in your program.",
+    lagg_till: "+ Add data",
+    ladda_ner: "Download to your computer",
+    nytt_namn: "New name for the file:",
+    for_stor: "{namn} is too big. The limit per file is {max}.",
+    fullt: "Data files may take at most {max} in total. Remove something first.",
+    ingen_lagring: "Could not save the data file — Pytho is open in another tab."
+  },
   py: {
     ingen_3d: "The 3D engine is still loading — wait a few seconds and run again.",
     cors: "Could not reach {url}. Either the server is down, or it does not allow browsers to fetch data from other sites (CORS). Original error: {fel}",
