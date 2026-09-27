@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.86";
+  window.PYTHONLABBET_VERSION = "1.88";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -206,7 +206,11 @@
   /* Kapitelväljaren finns bara på mobil, där sidomenyn inte får plats. */
   #app-root .kapitelvaljare { display: none; }
 
-  #app-root .layout { flex: 1 1 auto; display: grid; grid-template-columns: 248px 1fr; min-height: 0; }
+  /* minmax(0, 1fr), inte 1fr: ett rutnätsspår får annars minst sitt
+     innehålls bredd, och en lång rad i utskriften skulle bredda hela
+     arbetsytan utanför skärmen i stället för att rulla. */
+  #app-root .layout { flex: 1 1 auto; display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 0; }
+  #app-root .arbetsyta, #app-root .nedre, #app-root .flikinnehall { min-width: 0; }
 
   #app-root .rail {
     border-right: 1px solid var(--line); padding: 14px 12px 24px;
@@ -253,6 +257,40 @@
   #app-root button.kor { background: var(--amber); border-color: var(--amber); color: #2a1a00; font-weight: 650; }
   #app-root button.kor:hover { background: #ffd772; }
   #app-root button.kor:disabled { opacity: .45; cursor: wait; }
+
+  /* Medan programmet kör: randig, rörlig knapp med snurra och tid. Gäller
+     i alla lägen — utan felsäkert läge går programmet inte att stoppa, och
+     då är det här det enda som visar att något händer. */
+  /* Ränderna och snurran rör sig med transform, som webbläsaren ritar på
+     ett eget lager. Utan felsäkert läge blockerar en tung loop sidan helt —
+     då står klockan still, men knappen fortsätter röra sig. */
+  #app-root button.kor.kors, #app-root .flytknapp.kors {
+    opacity: 1; cursor: progress; color: #2a1a00;
+    display: inline-flex; align-items: center; gap: 8px;
+    position: relative; overflow: hidden; isolation: isolate;
+    background: #ffc94a;
+  }
+  #app-root button.kor.kors::before, #app-root .flytknapp.kors::before {
+    content: ""; position: absolute; top: 0; bottom: 0; left: -26px; right: -26px;
+    z-index: -1; pointer-events: none;
+    background: repeating-linear-gradient(-45deg, #ffc94a 0 9px, #ffe08f 9px 18px);
+    animation: korrand .7s linear infinite; will-change: transform;
+  }
+  /* Under körning dämpas låsta knappar — men inte den som visar körningen. */
+  #app-root.kor-lage .verktyg .knapp.kor.kors:disabled { opacity: 1; cursor: progress; }
+  #app-root .snurra {
+    width: 12px; height: 12px; flex: 0 0 auto; border-radius: 50%;
+    border: 2px solid rgba(42, 26, 0, .3); border-top-color: #2a1a00;
+    animation: snurr .8s linear infinite;
+  }
+  @keyframes korrand { from { transform: translateX(0); } to { transform: translateX(25.46px); } }
+  @keyframes snurr { to { transform: rotate(360deg); } }
+  #app-root .status.kor .dot { background: var(--amber); animation: pulse .6s ease-in-out infinite; }
+  #app-root .status.kor { color: var(--amber); }
+  @media (prefers-reduced-motion: reduce) {
+    #app-root button.kor.kors::before, #app-root .flytknapp.kors::before,
+    #app-root .snurra { animation: none; }
+  }
   #app-root button.stoppa {
     background: var(--coral); border-color: var(--coral);
     color: #2a0a05; font-weight: 650;
@@ -411,8 +449,29 @@
      med sitt innehåll och klämma ihop kodrutan. Därför tas raden bort
      ur mallen samtidigt. */
   #app-root.dev-lage .arbetsyta {
-    grid-template-rows: minmax(0, 1fr) minmax(0, 0.95fr);
+    grid-template-rows: minmax(0, var(--kodandel, 1fr)) 9px minmax(0, var(--utandel, 0.95fr));
   }
+
+  /* ---- avdelaren ----
+     Syns bara i utvecklarläget på dator. I kursläget ligger stegraden
+     mellan kod och utskrift och gör samma jobb. */
+  #app-root .delare { display: none; }
+  #app-root.dev-lage .delare {
+    display: flex; align-items: center; justify-content: center;
+    cursor: row-resize; touch-action: none; user-select: none;
+    background: var(--panel);
+    border-top: 1px solid var(--line); border-bottom: 1px solid rgba(255, 201, 74, .35);
+  }
+  #app-root .delare .grepp {
+    width: 44px; height: 3px; border-radius: 3px; background: var(--chalk-dim); opacity: .45;
+  }
+  #app-root .delare:hover .grepp, #app-root .delare.drar .grepp,
+  #app-root .delare:focus-visible .grepp { background: var(--amber); opacity: 1; }
+  #app-root .delare:focus-visible { outline: none; }
+
+  /* Terminalen: egen, mörkare yta, så att man ser var koden slutar. */
+  #app-root.dev-lage .nedre { background: #081223; }
+  #app-root.dev-lage .flikar { background: var(--panel); border-bottom: 1px solid var(--line); padding-bottom: 0; }
   #app-root.dev-lage #fillista { margin-top: 4px; }
   /* Nytt är borttaget: Återställ lägger tillbaka originalet i ett
      kapitel, Rensa fil tömmer en fil utan original.
@@ -455,6 +514,39 @@
   #app-root .filrad.datarad .bort:hover { color: var(--coral); opacity: 1; }
   #app-root .filrad.datarad .ned:hover,
   #app-root .filrad.datarad .dop-om:hover { color: var(--amber); opacity: 1; }
+  #app-root .ikonknapp { display: inline-flex; align-items: center; justify-content: center; }
+  #app-root .ikonknapp svg { width: 15px; height: 15px; display: block; }
+
+  /* Pekskärm: Apples minsta tryckyta är 44 punkter. Knapparna syns alltid,
+     eftersom det inte finns någon muspekare som kan få dem att dyka upp —
+     och iPhone behandlar annars första trycket som "hovra". */
+  @media (pointer: coarse), (max-width: 720px) {
+    #app-root .filrad { min-height: 48px; }
+    /* "button" i selektorn: den måste väga tyngre än .filrad .bort längre
+       ner i filen, som annars gömmer knapparna tills man hovrar. */
+    #app-root .filrad button.ikonknapp,
+    #app-root .filrad.datarad button.ikonknapp {
+      width: 44px; height: 44px; padding: 0; margin: 0;
+      opacity: .85; border-radius: 10px;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    }
+    #app-root .filrad .ikonknapp svg { width: 21px; height: 21px; }
+    #app-root .filrad .ikonknapp:active { background: rgba(255, 201, 74, .18); color: var(--amber); }
+    #app-root .filrad .bort.ikonknapp:active { background: rgba(255, 125, 107, .18); color: var(--coral); }
+    #app-root .filrad.datarad .knappar { gap: 2px; }
+    /* Namnet tar platsen som blir över, så knapparna hamnar i högerkanten
+       oavsett vilken knapp som kommer först. */
+    #app-root .filrad > span:first-child {
+      margin-right: auto; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    #app-root .filrad .dop-om + .bort { margin-left: 2px; }
+  }
+  @media (hover: none) {
+    #app-root .filrad button.bort { opacity: .85; }
+  }
+  #app-root .sparknapp { display: block; }
+
   #app-root #datalista.slapp {
     outline: 2px dashed var(--amber); outline-offset: 2px; border-radius: 8px;
   }
@@ -565,11 +657,42 @@
   }
   #app-root .flikinnehall[hidden] { display: none; }
 
-  #app-root #panel-utskrift { display: flex; flex-direction: column; }
+  /* Utskriften är sitt eget rullfönster, med REPL-raden fast under.
+     Förr rullade hela panelen: då följde inte utskriften med nedåt (koden
+     rullade konsolen, som inte kunde rulla), och breda rader fick ingen
+     vågrät rullning. */
+  #app-root #panel-utskrift { display: flex; flex-direction: column; overflow: hidden; }
+  #app-root #panel-utskrift .konsol {
+    flex: 1 1 auto; min-height: 0; overflow: auto;
+    overscroll-behavior: contain;
+  }
   /* Två id-selektorer väger tyngre än .flikinnehall[hidden], så den
      dolda panelen måste sägas ifrån på samma nivå. */
   #app-root #panel-utskrift[hidden] { display: none; }
   #app-root .konsol { font-family: var(--mono); font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+  #app-root.dev-lage .konsol { white-space: pre; word-break: normal; overflow-wrap: normal; }
+
+  /* Synliga rullningslister i terminalen. macOS och telefoner döljer dem
+     tills man rullar, och då vet man inte att en rad fortsätter åt höger.
+     ::-webkit-scrollbar tvingar fram en list som alltid syns i Safari och
+     Chrome; Firefox får sin egen variant. */
+  #app-root #panel-utskrift .konsol::-webkit-scrollbar { width: 10px; height: 10px; }
+  #app-root #panel-utskrift .konsol::-webkit-scrollbar-track { background: rgba(255, 255, 255, .03); }
+  #app-root #panel-utskrift .konsol::-webkit-scrollbar-thumb {
+    background: rgba(147, 169, 204, .45); border-radius: 6px;
+    border: 2px solid transparent; background-clip: padding-box;
+  }
+  #app-root #panel-utskrift .konsol::-webkit-scrollbar-thumb:hover { background-color: var(--amber); }
+  #app-root #panel-utskrift .konsol::-webkit-scrollbar-corner { background: transparent; }
+  @supports (-moz-appearance: none) {
+    #app-root #panel-utskrift .konsol {
+      scrollbar-width: thin; scrollbar-color: rgba(147, 169, 204, .55) rgba(255, 255, 255, .03);
+    }
+  }
+  #app-root.dev-lage .konsol .tips,
+  #app-root.dev-lage .konsol .ipyhtml,
+  #app-root.dev-lage .konsol .fraga,
+  #app-root.dev-lage .konsol .ai-knapp { white-space: normal; }
   #app-root .konsol .ut { color: var(--chalk); }
   #app-root .konsol .fel { color: var(--coral); }
   #app-root .konsol .system { color: var(--chalk-dim); }
@@ -1003,6 +1126,7 @@
     #app-root.vy-scen #panel-scen { padding-top: 46px; }
 
     #app-root .endast-mobil { display: block; }
+    #app-root.dev-lage .delare { display: none; }
 
     /* ---- kapitelväljaren ----
        En rad under reglagen som alltid syns. Webbläsarens egen lista
@@ -1170,6 +1294,9 @@
       </div>
       <input type="file" id="filvaljare" accept=".py,.txt" hidden>
     </div>
+
+    <div class="delare" id="delare" role="separator" aria-orientation="horizontal"
+         tabindex="0" data-i18n-title="ui.delare_tips"><span class="grepp"></span></div>
 
     <div class="spar" id="spar" aria-hidden="true">
       <span class="steg" data-steg="0" data-i18n="steg.kalla"></span><span class="pil">→</span>
@@ -1383,11 +1510,12 @@ window.PYTHONLAB_START = function (SPRAK) {
      Utskrift och flikar
      ======================================================= */
   function skriv(text, klass) {
+    var langstNer = konsol.scrollHeight - konsol.scrollTop - konsol.clientHeight < 48;
     var rad = document.createElement("span");
     rad.className = klass || "ut";
     rad.textContent = text;
     konsol.appendChild(rad);
-    konsol.scrollTop = konsol.scrollHeight;
+    if (langstNer) konsol.scrollTop = konsol.scrollHeight;
   }
   function rensaKonsol() { konsol.textContent = ""; }
 
@@ -1512,9 +1640,24 @@ window.PYTHONLAB_START = function (SPRAK) {
     });
   };
 
-  /* Låter Python-kod ladda ner en fil till datorn. */
-  window._labbLaddaNer = function (namn, innehall) {
-    var blob = new Blob([innehall], { type: "text/plain;charset=utf-8" });
+  /* ---- att spara en fil till datorn ----
+     På en dator räcker en länk med download-attribut. På iPhone och iPad
+     fungerar den dåligt: Safari visar först en fråga, och då har länken
+     ofta redan kastats. Där används delningsbladet i stället — samma ruta
+     som när man delar en bild, med "Spara i Filer", AirDrop och e-post.
+
+     Delningsbladet kräver att användaren just har tryckt på något. Anrop
+     som inte kommer från ett tryck (t.ex. data.export() från Python) får
+     därför en knapp i utskriften att trycka på. */
+  var AR_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+               (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  function kanDelaFil(fil) {
+    try { return !!(navigator.canShare && navigator.canShare({ files: [fil] })); }
+    catch (e) { return false; }
+  }
+
+  function laddaNerLank(blob, namn) {
     var url = URL.createObjectURL(blob);
     var lank = document.createElement("a");
     lank.href = url;
@@ -1522,7 +1665,43 @@ window.PYTHONLAB_START = function (SPRAK) {
     document.body.appendChild(lank);
     lank.click();
     document.body.removeChild(lank);
-    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+    // En minut, inte två sekunder: Safari frågar först, och länken måste
+    // finnas kvar tills användaren har svarat.
+    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+  }
+
+  /* Sparar en blob under ett namn. Returnerar ett löfte som alltid löses. */
+  function sparaTillDatorn(blob, namn) {
+    if (AR_IOS && typeof File === "function") {
+      var fil = new File([blob], namn, { type: blob.type || "application/octet-stream" });
+      if (kanDelaFil(fil)) {
+        return navigator.share({ files: [fil] }).catch(function (e) {
+          if (e && e.name === "AbortError") return;      // användaren ångrade sig
+          laddaNerLank(blob, namn);
+        });
+      }
+    }
+    laddaNerLank(blob, namn);
+    return Promise.resolve();
+  }
+
+  /* En knapp i utskriften som sparar filen när man trycker — för iPhone,
+     där en nedladdning utan tryck inte släpps igenom. */
+  function sparknappIUtskrift(blob, namn) {
+    var k = document.createElement("button");
+    k.type = "button";
+    k.className = "ai-knapp sparknapp";
+    k.textContent = SPRAK.ui.spara_fil.replace("{namn}", namn);
+    k.addEventListener("click", function () { sparaTillDatorn(blob, namn); });
+    konsol.appendChild(k);
+    konsol.scrollTop = konsol.scrollHeight;
+  }
+
+  /* Låter Python-kod ladda ner en fil till datorn. */
+  window._labbLaddaNer = function (namn, innehall) {
+    var blob = new Blob([innehall], { type: "text/plain;charset=utf-8" });
+    if (AR_IOS) sparknappIUtskrift(blob, namn);
+    else laddaNerLank(blob, namn);
   };
 
   /* Tar emot diagram från matplotlib och visar dem i utskriften. */
@@ -1570,10 +1749,21 @@ window.PYTHONLAB_START = function (SPRAK) {
     var visa = arMobil() && nuvarandeVy === "kod";
     flytKor.hidden = !visa;
     if (!visa) return;
-    var kor = korning.igang && !stoppaKnapp.hidden;
-    flytKor.textContent = kor ? SPRAK.ui.stoppa : SPRAK.ui.kor;
-    flytKor.classList.toggle("stoppar", kor);
-    flytKor.disabled = kor ? stoppaKnapp.disabled : korKnapp.disabled;
+    var igang = arKorning();
+    var stoppbar = igang && !stoppaKnapp.hidden && !stoppaKnapp.disabled;
+    flytKor.classList.toggle("stoppar", stoppbar);
+    flytKor.classList.toggle("kors", igang && !stoppbar);
+    if (stoppbar) {
+      flytKor.textContent = SPRAK.ui.stoppa;
+      flytKor.disabled = false;
+    } else if (igang) {
+      // Går inte att stoppa (felsäkert läge av): visa att det arbetar.
+      ritaKorKnapp(flytKor);
+      flytKor.disabled = true;
+    } else {
+      flytKor.textContent = SPRAK.ui.kor;
+      flytKor.disabled = korKnapp.disabled;
+    }
   }
 
   var mobilfraga = window.matchMedia ? window.matchMedia("(max-width: 720px)") : null;
@@ -2862,7 +3052,9 @@ window.PYTHONLAB_START = function (SPRAK) {
     if (!horTillKursen(f)) {
       var byt = document.createElement("button");
       byt.className = "bort dop-om";
-      byt.textContent = "✎";
+      byt.className += " ikonknapp";
+      byt.type = "button";
+      byt.innerHTML = ikon("penna");
       byt.title = SPRAK.ui.dop_om;
       byt.addEventListener("click", function (e) {
         e.stopPropagation();
@@ -2872,7 +3064,9 @@ window.PYTHONLAB_START = function (SPRAK) {
       rad.appendChild(byt);
       var bort = document.createElement("button");
       bort.className = "bort";
-      bort.textContent = "×";
+      bort.className += " ikonknapp";
+      bort.type = "button";
+      bort.innerHTML = ikon("papperskorg");
       bort.title = SPRAK.ui.ta_bort;
       bort.addEventListener("click", function (e) {
         e.stopPropagation();
@@ -3243,14 +3437,7 @@ window.PYTHONLAB_START = function (SPRAK) {
   function laddaNer(namnPaDisken) {
     var namnet = namnPaDisken || filnamn;
     var blob = new Blob([kodruta.value], { type: "text/x-python;charset=utf-8" });
-    var url = URL.createObjectURL(blob);
-    var lank = document.createElement("a");
-    lank.href = url;
-    lank.download = namnet;
-    document.body.appendChild(lank);
-    lank.click();
-    document.body.removeChild(lank);
-    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+    sparaTillDatorn(blob, namnet);
     markeraSparad();
     visaFlik("utskrift");
     skriv(SPRAK.msg.sparad_hamtade.replace("{namn}", namnet) + "\n", "system");
@@ -3712,10 +3899,12 @@ window.PYTHONLAB_START = function (SPRAK) {
 
     var knappar = document.createElement("span");
     knappar.className = "knappar";
-    knappar.appendChild(radknapp("ned", "⭳", SPRAK.data.ladda_ner, function () {
+    var ned = radknapp("ned", "ned", SPRAK.data.ladda_ner, function () {
       laddaNerDatafil(namn);
-    }));
-    knappar.appendChild(radknapp("dop-om", "✎", SPRAK.ui.dop_om, function () {
+    });
+    ned.addEventListener("pointerdown", function () { forhandshamta(namn); });
+    knappar.appendChild(ned);
+    knappar.appendChild(radknapp("dop-om", "penna", SPRAK.ui.dop_om, function () {
       var nytt = prompt(SPRAK.data.nytt_namn, namn);
       if (nytt === null) return;
       nytt = nytt.trim();
@@ -3723,7 +3912,7 @@ window.PYTHONLAB_START = function (SPRAK) {
       if (datafiler[nytt]) { alert(SPRAK.fraga.namnet_upptaget.replace("{namn}", nytt)); return; }
       dopOmDatafil(namn, nytt);
     }));
-    knappar.appendChild(radknapp("bort", "×", SPRAK.ui.ta_bort, function () {
+    knappar.appendChild(radknapp("bort", "papperskorg", SPRAK.ui.ta_bort, function () {
       if (!confirm(SPRAK.fraga.radera_fil.replace("{namn}", namn))) return;
       raderaDatafil(namn);
     }));
@@ -3731,29 +3920,46 @@ window.PYTHONLAB_START = function (SPRAK) {
     return rad;
   }
 
+  /* Ikonerna ritas som SVG. Teckensymboler (⭳ ✎ ×) ser olika ut på olika
+     enheter, och ⭳ saknas helt i iPhonens typsnitt. */
+  var IKONER = {
+    ned: '<path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14"/>',
+    penna: '<path d="M15.5 5.5l3 3L8 19l-4 1 1-4z"/>',
+    papperskorg: '<path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12M10.5 11v5M13.5 11v5"/>'
+  };
+  function ikon(namn) {
+    return '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" ' +
+      'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+      IKONER[namn] + '</svg>';
+  }
+
   function radknapp(klass, tecken, titel, vidKlick) {
     var k = document.createElement("button");
-    k.className = klass;
+    k.className = klass + " ikonknapp";
     k.type = "button";
-    k.textContent = tecken;
+    if (IKONER[tecken]) k.innerHTML = ikon(tecken);
+    else k.textContent = tecken;
     k.title = titel || "";
     if (titel) k.setAttribute("aria-label", titel);
     k.addEventListener("click", function (e) { e.stopPropagation(); vidKlick(); });
     return k;
   }
 
+  var forhandshamtat = {};
+
+  function forhandshamta(namn) {
+    if (forhandshamtat[namn]) return forhandshamtat[namn];
+    forhandshamtat[namn] = hamtaDatafil(namn).then(function (post) {
+      setTimeout(function () { delete forhandshamtat[namn]; }, 30000);
+      return post;
+    });
+    return forhandshamtat[namn];
+  }
+
   async function laddaNerDatafil(namn) {
-    var post = await hamtaDatafil(namn);
+    var post = await forhandshamta(namn);
     if (!post) return;
-    var blob = new Blob([post.byte], { type: "application/octet-stream" });
-    var url = URL.createObjectURL(blob);
-    var lank = document.createElement("a");
-    lank.href = url;
-    lank.download = namn;
-    document.body.appendChild(lank);
-    lank.click();
-    document.body.removeChild(lank);
-    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+    await sparaTillDatorn(new Blob([post.byte], { type: "application/octet-stream" }), namn);
   }
 
   async function dopOmDatafil(gammalt, nytt) {
@@ -5248,6 +5454,115 @@ if not getattr(_sympy.plot, '_labb', False):
                "ai-installningar-knapp", "ai-rensa-samtal", "ai-skicka", "ai-fraga",
                "start-knapp", "ny-fil-knapp", "repl", "dev-toggle", "sok-knapp"];
 
+  /* ---- avdelaren mellan kod och terminal ----
+     Dra för att ändra fördelningen, piltangenterna flyttar 5 %, dubbelklick
+     återställer. Valet sparas i webbläsaren, som en bekvämlighet. */
+  (function kopplaDelare() {
+    var delare = document.getElementById("delare");
+    var yta = document.querySelector(".arbetsyta");
+    if (!delare || !yta) return;
+    var NYCKEL = "pytho.delning", STANDARD = 1 / 1.95;
+    var andel = STANDARD;
+    try {
+      var sparad = parseFloat(localStorage.getItem(NYCKEL));
+      if (sparad > 0.1 && sparad < 0.9) andel = sparad;
+    } catch (e) { /* lagring avstängd */ }
+
+    function satt(ny, spara) {
+      andel = Math.max(0.15, Math.min(0.85, ny));
+      yta.style.setProperty("--kodandel", andel + "fr");
+      yta.style.setProperty("--utandel", (1 - andel) + "fr");
+      delare.setAttribute("aria-valuenow", Math.round(andel * 100));
+      try { if (spara) localStorage.setItem(NYCKEL, String(andel)); } catch (e) { /* */ }
+      if (tre && tre.renderare) { try { anpassaStorlek(); } catch (e) { /* */ } }
+    }
+    delare.setAttribute("aria-valuemin", "15");
+    delare.setAttribute("aria-valuemax", "85");
+    satt(andel, false);
+
+    delare.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      delare.setPointerCapture(e.pointerId);
+      delare.classList.add("drar");
+    });
+    delare.addEventListener("pointermove", function (e) {
+      if (!delare.classList.contains("drar")) return;
+      var r = yta.getBoundingClientRect();
+      satt((e.clientY - r.top) / r.height, false);
+    });
+    ["pointerup", "pointercancel"].forEach(function (h) {
+      delare.addEventListener(h, function () {
+        if (!delare.classList.contains("drar")) return;
+        delare.classList.remove("drar");
+        satt(andel, true);
+      });
+    });
+    delare.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowUp") { e.preventDefault(); satt(andel - 0.05, true); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); satt(andel + 0.05, true); }
+    });
+    delare.addEventListener("dblclick", function () { satt(STANDARD, true); });
+  })();
+
+  /* ---- körläget ----
+     Knappen blir "Körs … 3 s" under hela körningen, även medan paket
+     laddas. Tiden räknas i hela sekunder från första sekunden. */
+  var korKlocka = null, korStart = 0;
+
+  function korText() {
+    var s = Math.floor((performance.now() - korStart) / 1000);
+    return s < 1 ? SPRAK.ui.kors : SPRAK.ui.kors_tid.replace("{s}", s);
+  }
+
+  function ritaKorKnapp(knapp) {
+    if (!knapp) return;
+    var t = knapp.querySelector(".kortext");
+    if (!t) {
+      knapp.textContent = "";
+      var snurra = document.createElement("span");
+      snurra.className = "snurra";
+      snurra.setAttribute("aria-hidden", "true");
+      t = document.createElement("span");
+      t.className = "kortext";
+      knapp.appendChild(snurra);
+      knapp.appendChild(t);
+    }
+    t.textContent = korText();
+  }
+
+  function sattKorLage(pa) {
+    var app = document.getElementById("app-root");
+    if (app) app.classList.toggle("python-kor", pa);
+    korKnapp.classList.toggle("kors", pa);
+    if (pa) {
+      korStart = performance.now();
+      korKnapp.title = SPRAK.ui.kors_tips;
+      korKnapp.setAttribute("aria-live", "polite");
+      ritaKorKnapp(korKnapp);
+      clearInterval(korKlocka);
+      korKlocka = setInterval(function () {
+        ritaKorKnapp(korKnapp);
+        if (flytKor && flytKor.classList.contains("kors")) ritaKorKnapp(flytKor);
+      }, 250);
+    } else {
+      clearInterval(korKlocka);
+      korKlocka = null;
+      korKnapp.textContent = SPRAK.ui.kor;
+      korKnapp.title = SPRAK.ui.kor_tips;
+      korKnapp.removeAttribute("aria-live");
+      if (statusEl.classList.contains("kor")) {
+        statusEl.className = "status klar";
+        statusText.textContent = SPRAK.status.redo;
+      }
+    }
+    uppdateraFlytknapp();
+  }
+
+  function arKorning() {
+    var app = document.getElementById("app-root");
+    return !!(app && app.classList.contains("python-kor"));
+  }
+
   function lasGranssnitt(las) {
     LASTA.forEach(function (id) {
       var el = document.getElementById(id);
@@ -5262,6 +5577,7 @@ if not getattr(_sympy.plot, '_labb', False):
       function (b) { b.disabled = las; });
     var app = document.getElementById("app-root");
     if (app) app.classList.toggle("kor-lage", las);
+    sattKorLage(las);
     kvLast = las;
     uppdateraKapitelvaljare();
     uppdateraFlytknapp();
@@ -5273,7 +5589,7 @@ if not getattr(_sympy.plot, '_labb', False):
   }
 
   async function kor() {
-    if (!pyodide) return;
+    if (!pyodide || arKorning()) return;
     korKnapp.disabled = true;
     lasGranssnitt(true);
     rensaKonsol();
@@ -5303,6 +5619,8 @@ if not getattr(_sympy.plot, '_labb', False):
 
     await anpassaPaket();
 
+    statusEl.className = "status kor";
+    statusText.textContent = SPRAK.status.kor;
     markeraSteg(2);
     var start = performance.now();
     try {
@@ -5519,11 +5837,15 @@ if not getattr(_sympy.plot, '_labb', False):
 
   async function korRepl(rad) {
     skriv(">>> " + rad + "\n", "svar");
+    var egenKorning = !arKorning();
+    if (egenKorning) sattKorLage(true);
     try {
       var svar = await replKor(rad);
       if (svar !== null && svar !== undefined) skriv(svar + "\n", "ut");
     } catch (e) {
       skriv(((e && e.message) || String(e)).trim() + "\n", "fel");
+    } finally {
+      if (egenKorning) sattKorLage(false);
     }
     konsol.scrollTop = konsol.scrollHeight;
   }

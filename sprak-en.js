@@ -13,6 +13,11 @@ window.PYTHONLAB_SPRAK.en = {
   beskrivning: "Pytho is an interactive Python course that runs entirely in your browser. 29 chapters, from your first print statement to 3D graphics, machine learning and transformers.",
 
   ui: {
+    spara_fil: "Save {namn} …",
+    kors: "Running …",
+    kors_tid: "Running {s} s",
+    kors_tips: "Python is running your program",
+    delare_tips: "Drag to resize. Double-click to reset.",
     flik_kod: "Code",
     flik_filer: "Files",
     flik_kapitellista: "Chapters",
@@ -132,6 +137,7 @@ window.PYTHONLAB_SPRAK.en = {
     hamtar: "Fetching Python from {kalla} …",
     kontroll: "Fetching packages …",
     redo: "Python is ready",
+    kor: "Running your program …",
     misslyckades: "Python could not start"
   },
 

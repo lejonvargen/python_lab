@@ -10,6 +10,11 @@ window.PYTHONLAB_SPRAK.sv = {
   beskrivning: "Pytho är en interaktiv kurs i Python som körs direkt i webbläsaren. 29 kapitel från din första utskrift till 3D-grafik, maskininlärning och transformers.",
   ui: {
     "flik_kod": "Kod",
+    "kors": "Körs …",
+    "kors_tid": "Körs {s} s",
+    "kors_tips": "Python kör ditt program",
+    "delare_tips": "Dra för att ändra storlek. Dubbelklicka för att återställa.",
+    "spara_fil": "Spara {namn} …",
     "flik_filer": "Filer",
     "flik_kapitellista": "Kapitel",
     "forra_kapitel": "Föregående kapitel",
@@ -125,6 +130,7 @@ window.PYTHONLAB_SPRAK.sv = {
   "hamtar": "Hämtar Python från {kalla} …",
   "kontroll": "Hämtar paket …",
   "redo": "Python är redo",
+  "kor": "Kör programmet …",
   "misslyckades": "Python kunde inte startas"
 },
   ladd: {
