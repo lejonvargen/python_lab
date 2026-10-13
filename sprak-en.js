@@ -413,6 +413,7 @@ window.PYTHONLAB_SPRAK.en.om = `
     <p class="om-text">If you are interested in using the application for education or teaching — get in touch via
       <a href="https://www.linkedin.com/in/gabriel-westman-08a708206/"
          target="_blank" rel="noopener">LinkedIn</a>.</p>
+    <p class="om-text">Pytho counts visits anonymously with GoatCounter: no cookies, and nothing about you is stored. Browsers that have asked not to be tracked are not counted.</p>
     <p class="om-copyright">Copyright Gabriel Westman 2026</p>
     <h3 class="om-rubrik">Keyboard shortcuts</h3>
     <table class="kortkommandon"><tr><td><kbd>Ctrl + Enter</kbd></td><td>Run the program</td></tr><tr><td><kbd>Ctrl + Enter</kbd></td><td>Run the selection in the same namespace</td></tr><tr><td><kbd>Tab / Shift + Tab</kbd></td><td>Indent or remove indentation</td></tr><tr><td><kbd>Ctrl + F</kbd> / <kbd>Ctrl + H</kbd></td><td>Find and replace</td></tr><tr><td><kbd>Ctrl + G</kbd></td><td>Go to line</td></tr><tr><td><kbd>Ctrl + S</kbd></td><td>Save to disk</td></tr><tr><td><kbd>Ctrl + Shift + S</kbd></td><td>Save as</td></tr><tr><td><kbd>Ctrl + O</kbd></td><td>Open a file</td></tr><tr><td><kbd>R</kbd></td><td>Reset the 3D view</td></tr><tr><td><kbd>Escape</kbd></td><td>Close the dialog or cancel input</td></tr></table>
