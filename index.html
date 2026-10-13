@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.89";
+  window.PYTHONLABBET_VERSION = "1.90";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -30,20 +30,19 @@
 <title>Pytho</title>
 <script>
   /* ===== Besöksräknare =====
-     En osynlig bild från GoatCounter, en gång per sidladdning. Inga cookies,
-     ingenting sparas i webbläsaren, och GoatCounter sparar aldrig IP-adressen.
+     En osynlig bild från GoatCounter, en gång per sidladdning. Inga cookies
+     och ingenting sparas i webbläsaren. Sessioner är avstängda i GoatCounter,
+     så ingenting om besökaren minns mellan anropen: varje sidladdning är en
+     räkning, och GoatCounter sparar aldrig IP-adressen.
 
-     Räknar inte lokalt (file://, localhost) — då blåser egna tester och
-     utveckling inte upp siffrorna — och inte heller när webbläsaren har bett
-     om att slippa spåras (Do Not Track eller Global Privacy Control).
-     "rnd" hindrar webbläsaren från att återanvända en sparad bild, annars
-     räknas ett återbesök inte. */
+     Eftersom ingenting om någon sparas eller känns igen räknas alla besök,
+     även från webbläsare med Do Not Track. Lokalt (file://, localhost) räknas
+     ingenting, så egna tester blåser inte upp siffrorna. "rnd" hindrar
+     webbläsaren från att återanvända en sparad bild. */
   (function () {
     var vard = location.hostname;
     if (!/^https?:$/.test(location.protocol)) return;
     if (/^(localhost|127\.0\.0\.1|\[?::1\]?|0\.0\.0\.0)$/.test(vard) || /\.local$/.test(vard)) return;
-    if (navigator.doNotTrack === "1" || window.doNotTrack === "1" ||
-        navigator.globalPrivacyControl === true) return;
     var bild = new Image(1, 1);
     bild.src = "https://lejonvargen.goatcounter.com/count?p=%2F&rnd=" +
                Math.random().toString(36).slice(2);
