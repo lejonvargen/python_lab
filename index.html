@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.91";
+  window.PYTHONLABBET_VERSION = "1.92";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -6035,11 +6035,16 @@ if not getattr(_sympy.plot, '_labb', False):
     var egenKorning = !arKorning();
     if (egenKorning) sattKorLage(true);
     try {
+      // Samma förberedelse som Kör: sparade datafiler ska finnas och
+      // datamappen vara arbetskatalog, även när man bara skriver vid >>>
+      // eller kör en markering med Ctrl+Enter.
+      if (egenKorning) { try { await forberedDatamapp(); } catch (e) { /* */ } }
       var svar = await replKor(rad);
       if (svar !== null && svar !== undefined) skriv(svar + "\n", "ut");
     } catch (e) {
       skriv(((e && e.message) || String(e)).trim() + "\n", "fel");
     } finally {
+      if (egenKorning) { try { await synkaDatafiler(); } catch (e) { /* */ } }
       if (egenKorning) sattKorLage(false);
     }
     konsol.scrollTop = konsol.scrollHeight;
@@ -7238,6 +7243,8 @@ _sys.modules['data'] = _data_modul
     raknaVakter = pyodide.globals.get("_labb_antal_vakter");
     skrivArbetsfiler = pyodide.globals.get("_labb_arbetsfiler");
     replKor = pyodide.globals.get("_labb_repl");
+    // Datamappen är arbetskatalog från början, inte först efter första Kör.
+    try { await forberedDatamapp(); } catch (e) { /* */ }
 
     statusEl.className = "status klar";
     statusText.textContent = SPRAK.status.redo;
