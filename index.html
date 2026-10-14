@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.90";
+  window.PYTHONLABBET_VERSION = "1.91";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -316,6 +316,16 @@
     color: #2a0a05; font-weight: 650;
   }
   #app-root button.stoppa:hover { background: #ff9686; }
+  #app-root button.stoppa.uppmana:not(:disabled), #app-root .flytknapp.stoppar.uppmana {
+    animation: uppmana 1.1s ease-in-out infinite;
+  }
+  @keyframes uppmana {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 125, 107, .7); }
+    50% { box-shadow: 0 0 0 7px rgba(255, 125, 107, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #app-root button.stoppa.uppmana, #app-root .flytknapp.stoppar.uppmana { animation: none; outline: 2px solid var(--coral); }
+  }
   #app-root.kor-lage .lektion:disabled,
   #app-root.kor-lage .verktyg .knapp:disabled,
   #app-root.kor-lage .strombrytare:has(input:disabled),
@@ -336,17 +346,10 @@
     font-size: 14.5px; line-height: 1.65; padding: 14px 16px; tab-size: 4;
   }
 
-  /* ---- radnummer ----
-     Spalten måste ha exakt samma teckenstorlek, radhöjd och övre
-     marginal som textrutan, annars glider siffrorna isär från koden. */
+  /* ---- kodytan: redigeraren (CodeMirror) eller reservtextrutan ---- */
   #app-root .kodyta {
     flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden;
   }
-  /* ---- syntaxfärgning ----
-     Den färgade texten ligger i ett lager under textrutan. Textrutan
-     görs genomskinlig men behåller sin markör och sin markering, så
-     redigeringen fungerar precis som förut. Måtten MÅSTE vara identiska,
-     annars glider lagren isär tecken för tecken. */
   /* Uppgiften ligger längst ner i kapiteltexten, som inte syns när man
      kodar. Den här raden håller den framme utan att ta plats. */
   #app-root .uppgiftsrad {
@@ -410,51 +413,19 @@
     min-width: 46px;
   }
 
-  #app-root .skrivyta { position: relative; flex: 1 1 auto; min-width: 0; }
-  #app-root .traffar,
-  #app-root .kodfarg,
-  #app-root .skrivyta textarea {
-    position: absolute; inset: 0; margin: 0;
-    font-family: var(--mono); font-size: 14.5px; line-height: 1.65;
-    padding: 14px 16px 14px 10px; tab-size: 4;
-    white-space: pre; overflow: auto; border: 0;
-    letter-spacing: normal; word-spacing: normal;
+  /* ---- redigeraren ----
+     CodeMirror när det finns, annars en vanlig textruta (kodspegel). */
+  #app-root .kodvy { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; }
+  #app-root .kodvy .cm-editor { flex: 1 1 auto; min-width: 0; height: 100%; }
+  #app-root .kodvy .cm-editor.cm-focused { outline: none; }
+  #app-root .kodyta.med-cm .kodspegel { display: none; }
+  #app-root .kodyta:not(.med-cm) .kodvy { display: none; }
+  #app-root .kodspegel {
+    flex: 1 1 auto; min-width: 0; resize: none; border: 0; outline: none;
+    background: transparent; color: var(--chalk); font-family: var(--mono);
+    font-size: 14.5px; line-height: 1.65; padding: 14px 16px; tab-size: 4;
+    white-space: pre; overflow: auto;
   }
-  #app-root .kodfarg {
-    pointer-events: none; color: var(--chalk-dim);
-    overflow: hidden; background: transparent;
-  }
-  /* Träfflagret målar bara bakgrunder. Texten är osynlig, färgerna
-     ligger ovanpå, och textrutan högst upp. */
-  #app-root .traffar {
-    pointer-events: none; color: transparent;
-    overflow: hidden; background: transparent;
-  }
-  /* Konturer, inte fyllning. En ifylld markering ljusnar bakgrunden och
-     äter upp kontrasten för de dämpade färgerna — kommentarer ligger
-     redan lågt och blir oläsliga. En kontur syns lika bra och lämnar
-     textens läsbarhet exakt som den var. */
-  #app-root .traffar .traff {
-    border-radius: 3px;
-    box-shadow: inset 0 0 0 1px rgba(143, 180, 255, .75);
-  }
-  #app-root .traffar .traff.aktiv {
-    box-shadow: inset 0 0 0 2px var(--amber), 0 0 6px rgba(255, 201, 74, .45);
-  }
-  #app-root .skrivyta textarea {
-    color: transparent; caret-color: var(--chalk);
-    background: transparent; resize: none; outline: none; width: 100%;
-  }
-  #app-root .skrivyta textarea::selection { background: rgba(255, 201, 74, 0.3); }
-
-  #app-root .kodfarg .nyckel   { color: #ff9ecb; }
-  #app-root .kodfarg .inbyggd  { color: #8fb4ff; }
-  #app-root .kodfarg .strang   { color: #6ee7b7; }
-  #app-root .kodfarg .tal      { color: #ffc94a; }
-  #app-root .kodfarg .komm     { color: #6b7f9e; font-style: italic; }
-  #app-root .kodfarg .namn     { color: #ffd9a0; }   /* funktionsnamn */
-  #app-root .kodfarg .dekor    { color: #c98bff; }
-  #app-root .kodfarg .vanlig   { color: var(--chalk); }  /* variabler */
   /* ---- dev-läge: ett vyfilter, inget annat ----
      Kapitlen finns kvar i minnet och kommer tillbaka orörda när man
      växlar tillbaka. Här döljs bara det som hör kursen till. */
@@ -626,20 +597,6 @@
   #app-root .tomlista {
     font-size: 11.5px; color: var(--chalk-dim); opacity: .7;
     padding: 4px 8px; line-height: 1.5;
-  }
-  #app-root .radnummer {
-    flex: 0 0 auto; overflow: hidden; user-select: none;
-    padding: 14px 8px 14px 14px; text-align: right;
-    font-family: var(--mono); font-size: 14.5px; line-height: 1.65;
-    color: var(--chalk-dim); opacity: .45;
-    border-right: 1px solid var(--line);
-    background: rgba(0, 0, 0, .13);
-  }
-  #app-root .radnummer b { display: block; font-weight: inherit; }
-  #app-root .radnummer b.fel {
-    color: var(--coral); opacity: 1; font-weight: 700;
-    background: rgba(255, 125, 107, .2);
-    margin: 0 -8px 0 -14px; padding: 0 8px 0 14px;
   }
   #app-root textarea::selection { background: rgba(255, 201, 74, 0.3); }
   #app-root .redigerare.slapp { outline: 2px dashed var(--amber); outline-offset: -6px; }
@@ -1220,7 +1177,7 @@
 
   /* På riktigt smala skärmar tar radnumren för mycket av bredden. */
   @media (max-width: 480px) {
-    #app-root .radnummer { display: none; }
+    #app-root .kodvy .cm-gutters { display: none; }
   }
   @media (max-width: 400px) {
     #app-root button.flik { letter-spacing: 0; font-size: 10.5px; }
@@ -1304,13 +1261,13 @@
         <button class="minik" id="sok-ersatt-alla" data-i18n="ui.ersatt_alla"></button>
         <button class="minik stang" id="sok-stang">×</button>
       </div>
-      <div class="kodyta">
-        <div class="radnummer" id="radnummer" aria-hidden="true"></div>
-        <div class="skrivyta">
-          <pre class="traffar" id="traffar" aria-hidden="true"></pre>
-          <pre class="kodfarg" id="kodfarg" aria-hidden="true"></pre>
-          <textarea id="kod" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
-        </div>
+      <div class="kodyta" id="kodyta">
+        <!-- Redigeraren (CodeMirror) ritas här. -->
+        <div class="kodvy" id="kodvy"></div>
+        <!-- Textrutan används bara om codemirror.js saknas. Annars är den en
+             dold spegel av koden — tester och äldre kod kan läsa och skriva
+             den, och ändringar förs över till redigeraren. -->
+        <textarea id="kod" class="kodspegel" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
       </div>
       <input type="file" id="filvaljare" accept=".py,.txt" hidden>
     </div>
@@ -1412,6 +1369,9 @@
   <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="ai-dialog-rubrik" id="ai-dialog"></div>
 </div>
 
+<!-- CodeMirror 6, byggd lokalt (tools/codemirror). Laddas före appen så att
+     window.PythoCM finns när redigeraren skapas. -->
+<script src="codemirror.js"></script>
 <script>
 window.PYTHONLAB_START = function (SPRAK) {
   "use strict";
@@ -1479,7 +1439,297 @@ window.PYTHONLAB_START = function (SPRAK) {
       : "ver " + VERSION;
   });
 
-  var kodruta = document.getElementById("kod");
+  // Fylls i av skapaRedigerare() — måste därför deklareras före anropet.
+  var cmVy = null;
+  var cmFelrad = null, cmTraffar = null;
+  var kodruta = skapaRedigerare();
+
+  /* ================= redigeraren =================
+     CodeMirror bakom ett litet gränssnitt som liknar en textruta (value,
+     selectionStart, setSelectionRange, focus, scrollTop, addEventListener).
+     Resten av appen skrevs mot en textruta, och kan på så vis fortsätta
+     göra det. Saknas codemirror.js används den vanliga textrutan. */
+  function skapaRedigerare() {
+    var spegel = document.getElementById("kod");
+    var CMx = window.PythoCM;
+    if (!CMx) {
+      console.warn("codemirror.js saknas — en enkel textruta används som redigerare.");
+      return spegel;
+    }
+    document.getElementById("kodyta").classList.add("med-cm");
+    var t = CMx.tags;
+
+    // ---- färger: samma som förut ----
+    var farger = CMx.HighlightStyle.define([
+      { tag: [t.keyword, t.controlKeyword, t.definitionKeyword, t.moduleKeyword,
+              t.operatorKeyword, t.bool, t.null], color: "#ff9ecb" },
+      { tag: [t.string, t.special(t.string), t.escape], color: "#6ee7b7" },
+      { tag: t.number, color: "#ffc94a" },
+      { tag: [t.lineComment, t.comment], color: "#6b7f9e", fontStyle: "italic" },
+      { tag: [t.function(t.variableName), t.function(t.propertyName),
+              t.function(t.definition(t.variableName)), t.definition(t.className)], color: "#ffd9a0" },
+      { tag: t.meta, color: "#c98bff" },
+      { tag: [t.variableName, t.propertyName], color: "var(--chalk)" }
+    ]);
+
+    // Inbyggda namn (print, len, range, self …) blå, som i den gamla
+    // redigeraren. Grammatiken skiljer dem inte från andra namn.
+    var INBYGGDA_NAMN = {};
+    ("abs all any bool bytes callable chr dict dir divmod enumerate eval filter float " +
+     "format frozenset getattr hasattr hash help hex id input int isinstance issubclass " +
+     "iter len list map max min next object oct open ord pow print range repr reversed " +
+     "round set setattr slice sorted str sum tuple type zip self cls super")
+      .split(" ").forEach(function (n) { INBYGGDA_NAMN[n] = true; });
+    var inbyggdMarkering = CMx.Decoration.mark({ class: "cm-inbyggd" });
+    function markeraInbyggda(view) {
+      var b = new CMx.RangeSetBuilder();
+      view.visibleRanges.forEach(function (r) {
+        CMx.syntaxTree(view.state).iterate({ from: r.from, to: r.to, enter: function (n) {
+          if (n.name === "VariableName" && INBYGGDA_NAMN[view.state.doc.sliceString(n.from, n.to)]) {
+            b.add(n.from, n.to, inbyggdMarkering);
+          }
+        }});
+      });
+      return b.finish();
+    }
+    var inbyggda = CMx.ViewPlugin.fromClass(function (view) {
+      this.decorations = markeraInbyggda(view);
+      this.update = function (u) {
+        if (u.docChanged || u.viewportChanged || CMx.syntaxTree(u.startState) !== CMx.syntaxTree(u.state)) {
+          this.decorations = markeraInbyggda(u.view);
+        }
+      };
+    }, { decorations: function (v) { return v.decorations; } });
+
+    // ---- felraden: bakgrund på raden, rött radnummer ----
+    var satFelrad = CMx.StateEffect.define();
+    var felMarkor = new (class extends CMx.GutterMarker {})();
+    felMarkor.elementClass = "cm-felrad-nr";
+    var felradFalt = CMx.StateField.define({
+      create: function () { return CMx.Decoration.none; },
+      update: function (deko, tr) {
+        if (tr.docChanged) deko = CMx.Decoration.none;     // en ändring släcker markeringen
+        tr.effects.forEach(function (e) {
+          if (!e.is(satFelrad)) return;
+          if (!e.value || e.value > tr.state.doc.lines) { deko = CMx.Decoration.none; return; }
+          var rad = tr.state.doc.line(e.value);
+          deko = CMx.Decoration.set([CMx.Decoration.line({ class: "cm-felrad" }).range(rad.from)]);
+        });
+        return deko;
+      },
+      provide: function (f) {
+        return [
+          CMx.EditorView.decorations.from(f),
+          CMx.gutterLineClass.from(f, function (deko) {
+            var b = new CMx.RangeSetBuilder();
+            var it = deko.iter();
+            while (it.value) { b.add(it.from, it.from, felMarkor); it.next(); }
+            return b.finish();
+          })
+        ];
+      }
+    });
+    cmFelrad = satFelrad;
+
+    // ---- sökträffar ----
+    var satTraffar = CMx.StateEffect.define();
+    var traff = CMx.Decoration.mark({ class: "cm-traff" });
+    var aktivTraff = CMx.Decoration.mark({ class: "cm-traff cm-traff-aktiv" });
+    var traffFalt = CMx.StateField.define({
+      create: function () { return CMx.Decoration.none; },
+      update: function (deko, tr) {
+        deko = deko.map(tr.changes);
+        tr.effects.forEach(function (e) {
+          if (!e.is(satTraffar)) return;
+          var v = e.value;
+          if (!v || !v.platser || !v.platser.length) { deko = CMx.Decoration.none; return; }
+          var max = tr.state.doc.length;
+          deko = CMx.Decoration.set(v.platser.filter(function (i) { return i + v.langd <= max; })
+            .map(function (i) { return (i === v.aktiv ? aktivTraff : traff).range(i, i + v.langd); }));
+        });
+        return deko;
+      },
+      provide: function (f) { return CMx.EditorView.decorations.from(f); }
+    });
+    cmTraffar = satTraffar;
+
+    // ---- Tab ----
+    // Utan markering: fyll ut till nästa tabbstopp vid markören (som förut).
+    // Med markering: dra in varje berörd rad, men lämna tomma rader tomma.
+    // Är förslagslistan öppen väljer Tab förslaget.
+    function tab(view) {
+      // Förslagslistan är öppen: Tab väljer förslaget. CodeMirror ignorerar
+      // valet de första 75 ms efter att listan öppnats (mot felval). Tab
+      // räknas ändå som hanterad, annars flyttar webbläsaren fokus ut ur
+      // redigeraren.
+      if (CMx.completionStatus(view.state) === "active") { CMx.acceptCompletion(view); return true; }
+      var st = view.state, sel = st.selection.main;
+      if (sel.empty) {
+        var kolumn = sel.head - st.doc.lineAt(sel.head).from;
+        var fyll = "    ".slice(kolumn % 4);
+        view.dispatch({ changes: { from: sel.head, insert: fyll },
+                        selection: { anchor: sel.head + fyll.length },
+                        userEvent: "input.indent", scrollIntoView: true });
+        return true;
+      }
+      var forsta = st.doc.lineAt(sel.from);
+      var sistaPos = sel.to > sel.from && st.doc.lineAt(sel.to).from === sel.to ? sel.to - 1 : sel.to;
+      var sista = st.doc.lineAt(sistaPos);
+      var flera = sista.number > forsta.number;
+      var andringar = [];
+      for (var n = forsta.number; n <= sista.number; n++) {
+        var rad = st.doc.line(n);
+        if (flera && !rad.text.trim()) continue;
+        andringar.push({ from: rad.from, insert: "    " });
+      }
+      if (!andringar.length) return true;
+      var ch = st.changes(andringar);
+      var fran = sel.from === forsta.from ? ch.mapPos(sel.from, -1) : ch.mapPos(sel.from, 1);
+      var till = ch.mapPos(sel.to, sel.to === sistaPos + 1 ? -1 : 1);
+      var framat = sel.head >= sel.anchor;
+      view.dispatch({ changes: ch, userEvent: "input.indent",
+                      selection: framat ? { anchor: fran, head: till } : { anchor: till, head: fran } });
+      return true;
+    }
+
+    // ---- appens kortkommandon, före allt annat ----
+    var kommandon = CMx.Prec.highest(CMx.keymap.of([
+      { key: "Mod-Enter", preventDefault: true, run: function () { korFranRedigeraren(); return true; } },
+      { key: "Mod-s", preventDefault: true, run: function () { sparaFil(false); return true; } },
+      { key: "Mod-Shift-s", preventDefault: true, run: function () { sparaFil(true); return true; } },
+      { key: "Mod-o", preventDefault: true, run: function () { oppnaFil(); return true; } },
+      { key: "Mod-f", preventDefault: true, run: function () { visaSok(); return true; } },
+      { key: "Mod-h", preventDefault: true, run: function () { visaSok(); return true; } },
+      { key: "Mod-g", preventDefault: true, run: function () { gaTillRad(); return true; } },
+      { key: "Escape", run: function () { if (sokraden.hidden) return false; doljSok(); return true; } },
+      { key: "Tab", run: tab, shift: CMx.indentLess }
+    ]));
+
+    var lyssnare = { input: [], select: [] };
+    function avfyra(typ) {
+      (lyssnare[typ] || []).forEach(function (fn) { try { fn({ type: typ }); } catch (e) { console.error(e); } });
+    }
+
+    var tillagg = [
+      CMx.lineNumbers(), CMx.highlightActiveLineGutter(), CMx.highlightSpecialChars(),
+      CMx.history(), CMx.drawSelection(), CMx.dropCursor(),
+      CMx.EditorState.allowMultipleSelections.of(true), CMx.indentOnInput(),
+      CMx.syntaxHighlighting(farger), CMx.bracketMatching(), CMx.closeBrackets(),
+      CMx.autocompletion({ icons: false }), CMx.rectangularSelection(), CMx.crosshairCursor(),
+      CMx.highlightActiveLine(), CMx.highlightSelectionMatches(),
+      CMx.indentUnit.of("    "), CMx.EditorState.tabSize.of(4),
+      CMx.python(), inbyggda, felradFalt, traffFalt, kommandon,
+      CMx.keymap.of([].concat(CMx.closeBracketsKeymap, CMx.defaultKeymap,
+                              CMx.historyKeymap, CMx.completionKeymap)),
+      CMx.EditorView.contentAttributes.of({ autocapitalize: "off", autocorrect: "off",
+                                            spellcheck: "false", "aria-label": "Python" }),
+      // Filer som släpps över redigeraren läses in av appen, inte av CodeMirror.
+      CMx.EditorView.domEventHandlers({
+        drop: function (e) { return !!(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length); }
+      }),
+      CMx.EditorView.updateListener.of(function (u) {
+        if (u.docChanged) { spegel.value = u.state.doc.toString(); avfyra("input"); }
+        if (u.selectionSet || u.docChanged) avfyra("select");
+      }),
+      CMx.EditorView.theme({
+        "&": { height: "100%", backgroundColor: "transparent", color: "var(--chalk)", fontSize: "14.5px" },
+        ".cm-scroller": { fontFamily: "var(--mono)", lineHeight: "1.65", overflow: "auto" },
+        ".cm-content": { padding: "14px 0", caretColor: "var(--chalk)" },
+        ".cm-line": { padding: "0 16px 0 10px" },
+        ".cm-gutters": { backgroundColor: "rgba(0, 0, 0, .13)", color: "var(--chalk-dim)",
+                         borderRight: "1px solid var(--line)" },
+        ".cm-lineNumbers .cm-gutterElement": { padding: "0 8px 0 14px", opacity: ".55" },
+        ".cm-activeLineGutter": { backgroundColor: "transparent" },
+        ".cm-activeLineGutter.cm-gutterElement": { opacity: "1", color: "var(--chalk)" },
+        ".cm-activeLine": { backgroundColor: "rgba(255, 255, 255, .025)" },
+        ".cm-cursor, .cm-dropCursor": { borderLeftColor: "var(--chalk)" },
+        "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection":
+          { backgroundColor: "rgba(255, 201, 74, .3)" },
+        ".cm-selectionMatch": { backgroundColor: "rgba(143, 180, 255, .16)" },
+        "&.cm-focused .cm-matchingBracket": { backgroundColor: "rgba(110, 231, 183, .2)",
+                                              outline: "1px solid rgba(110, 231, 183, .55)" },
+        ".cm-inbyggd, .cm-inbyggd *": { color: "#8fb4ff" },
+        ".cm-felrad": { backgroundColor: "rgba(255, 125, 107, .16)" },
+        ".cm-felrad-nr": { color: "var(--coral)", fontWeight: "700", opacity: "1 !important",
+                           backgroundColor: "rgba(255, 125, 107, .2)" },
+        ".cm-traff": { borderRadius: "3px", boxShadow: "inset 0 0 0 1px rgba(143, 180, 255, .75)" },
+        ".cm-traff-aktiv": { boxShadow: "inset 0 0 0 2px var(--amber), 0 0 6px rgba(255, 201, 74, .45)" },
+        ".cm-tooltip": { backgroundColor: "var(--panel)", border: "1px solid var(--line)", color: "var(--chalk)" },
+        ".cm-tooltip.cm-tooltip-autocomplete > ul": { fontFamily: "var(--mono)", fontSize: "13px" },
+        ".cm-completionMatchedText": { textDecoration: "none", color: "var(--amber)", fontWeight: "600" },
+        ".cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected]":
+          { backgroundColor: "var(--panel-2)", color: "var(--amber)" }
+      }, { dark: true })
+    ];
+
+    function nyttTillstand(text) {
+      return CMx.EditorState.create({ doc: text || "", extensions: tillagg });
+    }
+    cmVy = new CMx.EditorView({ state: nyttTillstand(spegel.value), parent: document.getElementById("kodvy") });
+
+    // Ändrar någon spegeln (tester, äldre kod) förs ändringen in som en
+    // vanlig redigering — den går att ångra och sätter igång allt som
+    // lyssnar på ändringar.
+    spegel.addEventListener("input", function () {
+      var ny = spegel.value;
+      if (ny === cmVy.state.doc.toString()) return;
+      cmVy.dispatch({ changes: { from: 0, to: cmVy.state.doc.length, insert: ny }, userEvent: "input" });
+    });
+
+    function begransa(p) { return Math.max(0, Math.min(p, cmVy.state.doc.length)); }
+
+    return {
+      cm: true,
+      get value() { return cmVy.state.doc.toString(); },
+      // Att sätta value är att byta fil: ny text, ny ångra-historik, inga
+      // ändringshändelser (precis som för en textruta).
+      set value(text) {
+        cmVy.setState(nyttTillstand(text));
+        spegel.value = text || "";
+      },
+      get selectionStart() { return cmVy.state.selection.main.from; },
+      get selectionEnd() { return cmVy.state.selection.main.to; },
+      setSelectionRange: function (a, b) {
+        cmVy.dispatch({ selection: { anchor: begransa(a), head: begransa(b === undefined ? a : b) },
+                        scrollIntoView: true });
+      },
+      focus: function () { cmVy.focus(); },
+      get scrollTop() { return cmVy.scrollDOM.scrollTop; },
+      set scrollTop(v) { cmVy.scrollDOM.scrollTop = v; },
+      get scrollLeft() { return cmVy.scrollDOM.scrollLeft; },
+      set scrollLeft(v) { cmVy.scrollDOM.scrollLeft = v; },
+      get scrollHeight() { return cmVy.scrollDOM.scrollHeight; },
+      get clientHeight() { return cmVy.scrollDOM.clientHeight; },
+      addEventListener: function (typ, fn) {
+        if (typ === "input" || typ === "select") lyssnare[typ].push(fn);
+        else if (typ === "scroll") cmVy.scrollDOM.addEventListener(typ, fn);
+        else cmVy.contentDOM.addEventListener(typ, fn);
+      },
+      dispatchEvent: function (e) { if (e && lyssnare[e.type]) avfyra(e.type); return true; },
+      /* En ändring som går att ångra och som räknas som redigering. */
+      ersatt: function (fran, till, text, nyStart, nySlut) {
+        cmVy.dispatch({ changes: { from: fran, to: till, insert: text },
+                        selection: nyStart === undefined ? undefined
+                          : { anchor: begransa(nyStart), head: begransa(nySlut === undefined ? nyStart : nySlut) },
+                        userEvent: "input", scrollIntoView: true });
+      },
+      /* Rullar en position till mitten av rutan. */
+      visaMitt: function (pos) {
+        cmVy.dispatch({ effects: window.PythoCM.EditorView.scrollIntoView(begransa(pos), { y: "center" }) });
+      }
+    };
+  }
+
+  /* Redigeraren går att nå utifrån, för felsökning och tester. */
+  window._pythoRedigerare = kodruta;
+
+  /* Ctrl/Cmd+Enter: markerad kod körs i programmets namnrymd, som en rad i
+     REPL:en. Utan markering körs hela filen. */
+  function korFranRedigeraren() {
+    var vald = kodruta.value.slice(kodruta.selectionStart, kodruta.selectionEnd);
+    if (vald.trim() && replKor) korMarkering(vald);
+    else kor();
+  }
   var konsol = document.getElementById("konsol");
   var korKnapp = document.getElementById("kor-knapp");
   var statusEl = document.getElementById("status");
@@ -1732,6 +1982,14 @@ window.PYTHONLAB_START = function (SPRAK) {
     bild.src = dataurl;
     konsol.appendChild(bild);
     konsol.scrollTop = konsol.scrollHeight;
+  };
+
+  /* Felsäkert läge: programmet har kört länge. Det fortsätter, men
+     Stoppa lyfts fram ifall det har fastnat i en loop. */
+  window._labbLangKorning = function (sek) {
+    skriv(SPRAK.msg.lang_korning.replace("{sek}", sek) + "\n", "system");
+    stoppaKnapp.classList.add("uppmana");
+    if (flytKor) flytKor.classList.add("uppmana");
   };
 
   /* Tar emot färdig HTML från Python (IPython.display). Innehållet kommer
@@ -2110,7 +2368,9 @@ window.PYTHONLAB_START = function (SPRAK) {
   function scenHarFokus() {
     if (!tre.kamera) return false;
     if (panelScen.hidden && !document.fullscreenElement) return false;
-    var etikett = document.activeElement && document.activeElement.tagName;
+    var aktiv = document.activeElement;
+    if (aktiv && aktiv.isContentEditable) return false;      // CodeMirror
+    var etikett = aktiv && aktiv.tagName;
     return etikett !== "INPUT" && etikett !== "TEXTAREA" && etikett !== "SELECT";
   }
 
@@ -3165,70 +3425,12 @@ window.PYTHONLAB_START = function (SPRAK) {
     sparaSnart();
   }
 
-  /* ================= syntaxfärgning =================
-     En liten tokeniserare för Python. Ett enda reguljärt uttryck går
-     igenom texten i ordning, så en nyckelordsträff inuti en sträng eller
-     kommentar kan aldrig uppstå — den delen har redan konsumerats. */
-  var kodfarg = document.getElementById("kodfarg");
-
-  var NYCKELORD = ("False None True and as assert async await break class continue " +
-    "def del elif else except finally for from global if import in is lambda " +
-    "nonlocal not or pass raise return try while with yield match case").split(" ");
-  var INBYGGDA = ("abs all any bool bytes callable chr dict dir divmod enumerate " +
-    "eval filter float format frozenset getattr hasattr hash help hex id input int " +
-    "isinstance issubclass iter len list map max min next object oct open ord pow " +
-    "print range repr reversed round set setattr slice sorted str sum tuple type zip " +
-    "self cls super").split(" ");
-
-  var MONSTER = new RegExp([
-    "(#[^\\n]*)",                                       // kommentar
-    '([rbfu]{0,2}"""[\\s\\S]*?(?:"""|$))',              // trippelsträngar
-    "([rbfu]{0,2}'''[\\s\\S]*?(?:'''|$))",
-    '([rbfu]{0,2}"(?:[^"\\\\\\n]|\\\\.)*(?:"|$))',      // vanliga strängar
-    "([rbfu]{0,2}'(?:[^'\\\\\\n]|\\\\.)*(?:'|$))",
-    "(@[A-Za-z_]\\w*)",                                 // dekorator
-    "\\b(\\d[\\w.]*)",                                  // tal
-    "\\b([A-Za-z_]\\w*)"                                // ord
-  ].join("|"), "g");
+  /* Syntaxfärgningen sköts av CodeMirror (se skapaRedigerare). Funktionen
+     finns kvar för de ställen som anropar den. */
+  function ritaFarger() {}
 
   function flyKod(text) {
     return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  }
-
-  function fargaKod(kod) {
-    var ut = "";
-    var sist = 0;
-    var m;
-    MONSTER.lastIndex = 0;
-    while ((m = MONSTER.exec(kod)) !== null) {
-      ut += flyKod(kod.slice(sist, m.index));
-      sist = MONSTER.lastIndex;
-      if (m[1]) {
-        ut += '<span class="komm">' + flyKod(m[1]) + "</span>";
-      } else if (m[2] || m[3] || m[4] || m[5]) {
-        ut += '<span class="strang">' + flyKod(m[2] || m[3] || m[4] || m[5]) + "</span>";
-      } else if (m[6]) {
-        ut += '<span class="dekor">' + flyKod(m[6]) + "</span>";
-      } else if (m[7]) {
-        ut += '<span class="tal">' + flyKod(m[7]) + "</span>";
-      } else if (m[8]) {
-        var ord = m[8];
-        var klass = NYCKELORD.indexOf(ord) >= 0 ? "nyckel"
-                  : INBYGGDA.indexOf(ord) >= 0 ? "inbyggd"
-                  : kod.charAt(MONSTER.lastIndex) === "(" ? "namn" : "vanlig";
-        ut += '<span class="' + klass + '">' + flyKod(ord) + "</span>";
-      }
-    }
-    ut += flyKod(kod.slice(sist));
-    return ut;
-  }
-
-  function ritaFarger() {
-    // Den avslutande radbrytningen sväljs annars av webbläsaren, och då
-    // hamnar sista raden fel i förhållande till textrutan.
-    kodfarg.innerHTML = fargaKod(kodruta.value) + "\n";
-    kodfarg.scrollTop = kodruta.scrollTop;
-    kodfarg.scrollLeft = kodruta.scrollLeft;
   }
 
   /* ================= sök, ersätt och gå till rad =================
@@ -3267,26 +3469,11 @@ window.PYTHONLAB_START = function (SPRAK) {
     return platser;
   }
 
-  var traffLager = document.getElementById("traffar");
-
-  /* Målar en bakgrund bakom varje träff, och en starkare bakom den man
-     står på. Ligger i ett eget lager så att syntaxfärgningen ovanpå
-     lämnas orörd. */
+  /* Ram runt varje träff, och en starkare runt den man står på. */
   function ritaTraffar(platser, langd, aktiv) {
-    if (!platser || !platser.length) { traffLager.textContent = ""; return; }
-    var text = kodruta.value;
-    var ut = "";
-    var sist = 0;
-    platser.forEach(function (i) {
-      ut += flyKod(text.slice(sist, i));
-      ut += '<span class="traff' + (i === aktiv ? " aktiv" : "") + '">' +
-            flyKod(text.substr(i, langd)) + "</span>";
-      sist = i + langd;
-    });
-    ut += flyKod(text.slice(sist));
-    traffLager.innerHTML = ut + "\n";
-    traffLager.scrollTop = kodruta.scrollTop;
-    traffLager.scrollLeft = kodruta.scrollLeft;
+    if (!cmVy) return;
+    cmVy.dispatch({ effects: cmTraffar.of(platser && platser.length
+      ? { platser: platser, langd: langd, aktiv: aktiv } : null) });
   }
 
   function raknaTraffar() {
@@ -3350,24 +3537,19 @@ window.PYTHONLAB_START = function (SPRAK) {
     soktraffar.textContent = SPRAK.ui.ersatta.replace("{antal}", platser.length);
   }
 
-  /* Skriver ny text och håller allt som hänger på den uppdaterat. */
+  /* Skriver ny text som en vanlig redigering: den går att ångra, och allt
+     som lyssnar på ändringar får veta det. */
   function satt(text) {
+    if (kodruta.cm) { kodruta.ersatt(0, kodruta.value.length, text); return; }
     kodruta.value = text;
     markeraAndrad();
-    ritaRadnummer();
-    ritaFarger();
     if (!sokraden.hidden) raknaTraffar();
   }
 
   function valjOchVisa(start, slut) {
     kodruta.focus();
     kodruta.setSelectionRange(start, slut);
-    var rad = kodruta.value.slice(0, start).split("\n").length;
-    var radhojd = kodruta.scrollHeight / Math.max(1, kodruta.value.split("\n").length);
-    kodruta.scrollTop = Math.max(0, (rad - 1) * radhojd - kodruta.clientHeight / 2);
-    radspalt.scrollTop = kodruta.scrollTop;
-    kodfarg.scrollTop = kodruta.scrollTop;
-    traffLager.scrollTop = kodruta.scrollTop;
+    if (kodruta.cm) kodruta.visaMitt(start);
     if (!sokraden.hidden) sokfalt.focus();
   }
 
@@ -3400,42 +3582,23 @@ window.PYTHONLAB_START = function (SPRAK) {
   document.getElementById("sok-ersatt-alla").addEventListener("click", ersattAlla);
   document.getElementById("sok-stang").addEventListener("click", doljSok);
 
-  /* ---- radnummer ---- */
-  var radspalt = document.getElementById("radnummer");
+  /* ---- radnummer och felrad ----
+     Radnumren ritar CodeMirror. Felraden markeras med bakgrund och rött
+     radnummer, och släcks av nästa ändring. */
   var felradNu = 0;
 
-  function ritaRadnummer() {
-    var antal = kodruta.value.split("\n").length;
-    var bitar = [];
-    for (var i = 1; i <= antal; i++) {
-      bitar.push(i === felradNu ? '<b class="fel">' + i + "</b>" : "<b>" + i + "</b>");
-    }
-    radspalt.innerHTML = bitar.join("");
-    radspalt.scrollTop = kodruta.scrollTop;
-  }
+  function ritaRadnummer() {}
 
   /* Markerar raden ett fel pekar på och rullar dit. */
   function markeraFelrad(rad) {
     felradNu = rad || 0;
-    ritaRadnummer();
-    if (!rad) return;
-    var radhojd = kodruta.scrollHeight / Math.max(1, kodruta.value.split("\n").length);
-    var mitt = (rad - 1) * radhojd - kodruta.clientHeight / 2 + radhojd;
-    kodruta.scrollTop = Math.max(0, mitt);
-    radspalt.scrollTop = kodruta.scrollTop;
+    if (!cmVy) return;
+    cmVy.dispatch({ effects: cmFelrad.of(felradNu) });
+    if (rad && rad <= cmVy.state.doc.lines) kodruta.visaMitt(cmVy.state.doc.line(rad).from);
   }
 
-  kodruta.addEventListener("scroll", function () {
-    radspalt.scrollTop = kodruta.scrollTop;
-    kodfarg.scrollTop = kodruta.scrollTop;
-    kodfarg.scrollLeft = kodruta.scrollLeft;
-    traffLager.scrollTop = kodruta.scrollTop;
-    traffLager.scrollLeft = kodruta.scrollLeft;
-  });
   kodruta.addEventListener("input", function () {
-    if (felradNu) felradNu = 0;
-    ritaRadnummer();
-    ritaFarger();
+    felradNu = 0;
     if (!sokraden.hidden) raknaTraffar();
   });
 
@@ -5105,14 +5268,12 @@ window.PYTHONLAB_START = function (SPRAK) {
      ======================================================= */
   kodruta.addEventListener("input", markeraAndrad);
 
-  kodruta.addEventListener("keydown", function (e) {
+  // Med CodeMirror sköts tangenterna av kommandona i skapaRedigerare.
+  // Hanteraren nedan gäller bara reservläget med en vanlig textruta.
+  if (!kodruta.cm) kodruta.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      // Markerad kod körs i samma namnrymd som programmet, precis som
-      // en rad i REPL:en. Utan markering körs hela filen.
-      var vald = kodruta.value.slice(kodruta.selectionStart, kodruta.selectionEnd);
-      if (vald.trim() && replKor) korMarkering(vald);
-      else kor();
+      korFranRedigeraren();
       return;
     }
     if (e.key.toLowerCase() === "s" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sparaFil(e.shiftKey); return; }
@@ -5150,6 +5311,7 @@ window.PYTHONLAB_START = function (SPRAK) {
   var INDRAG = "    ";
 
   function redigera(fran, till, text, nyStart, nySlut) {
+    if (kodruta.cm) { kodruta.ersatt(fran, till, text, nyStart, nySlut); kodruta.focus(); return; }
     kodruta.focus();
     kodruta.setSelectionRange(fran, till);
     var ok = false;
@@ -5672,7 +5834,7 @@ if not getattr(_sympy.plot, '_labb', False):
       // Datafilerna läggs ut och blir programmets arbetskatalog.
       await forberedDatamapp();
       if (vakt && nollstallVakt) {
-        try { nollstallVakt(45.0); } catch (e) { /* ingen vakt */ }
+        try { nollstallVakt(window.__pythoVaktGrans || 45.0); } catch (e) { /* ingen vakt */ }
       }
       window._labbStopp = false;
       // Vakten sitter i looparna. Väntan på input eller nätverk går att
@@ -5698,6 +5860,8 @@ if not getattr(_sympy.plot, '_labb', False):
       visaFel(String((err && err.message) || err));
     } finally {
       try { await synkaDatafiler(); } catch (e) { /* lagring kan vara avstängd */ }
+      stoppaKnapp.classList.remove("uppmana");
+      if (flytKor) flytKor.classList.remove("uppmana");
       korKnapp.disabled = false;
       korning.igang = false;
       korning.vakter = 0;
@@ -5752,11 +5916,22 @@ if not getattr(_sympy.plot, '_labb', False):
      kommer man tillbaka till samma kapitel och samma fil. */
   var senastIVarld = { kurs: null, dev: null };
 
+  /* Felsäkert läge har ett eget värde per läge. Kursläget börjar med det
+     påslaget — nybörjare skriver loopar som aldrig tar slut, och då ska
+     Stoppa fungera. Utvecklarläget börjar avstängt: där kör program snabbast
+     utan vakt och utan påminnelse efter 45 sekunder. Ändrar man reglaget
+     gäller ändringen det läge man står i, så länge sidan är öppen. */
+  var felsakertPerLage = { kurs: true, dev: false };
+  var felsakertStartat = false;   // första anropet sker vid start, före något val
+
   function sattDevlage(pa, spara) {
+    if (felsakertStartat) felsakertPerLage[devlage ? "dev" : "kurs"] = felsakertToggle.checked;
+    felsakertStartat = true;
     var foreVy = nuvarandeVy;
     if (aktivFil && arbetsyta[aktivFil]) senastIVarld[varldFor(arbetsyta[aktivFil])] = aktivFil;
     devlage = !!pa;
     devToggle.checked = devlage;
+    felsakertToggle.checked = felsakertPerLage[devlage ? "dev" : "kurs"];
     document.getElementById("app-root").classList.toggle("dev-lage", devlage);
 
     // Filen man står i hör till det andra läget — gå dit man senast var.
@@ -6264,8 +6439,14 @@ import time as _time
 _labb = {'varv': 0, 'start': 0.0, 'sist': 0.0, 'grans': 45.0}
 
 
+# Varvräknaren ligger i en lista så att loopkroppen kan öka den utan att
+# anropa något. Se Loopvakt nedan.
+_labb_v = [0]
+
+
 def _labb_nollstall(grans=45.0):
     """Kallas före varje körning."""
+    _labb_v[0] = 0
     nu = _time.time()
     _labb.update({'varv': 0, 'start': nu, 'sist': nu, 'grans': grans})
 
@@ -6292,9 +6473,7 @@ async def _labb_kontroll():
     lämnas kontrollen tillbaka till webbläsaren, så att Stoppa-knappen
     hinner klickas och sidan hinner rita om.
     """
-    _labb['varv'] += 1
-    if _labb['varv'] & 63:
-        return
+    # Anropas bara vart 64:e varv — räkningen sker direkt i loopen.
     nu = _time.time()
     if nu - _labb['sist'] < 0.03:
         return
@@ -6306,9 +6485,13 @@ async def _labb_kontroll():
 
     if js.window._labbStopp:
         raise KeyboardInterrupt(_T['stoppades'])
+    # Ingen hård gräns längre: ett långt program kan vara ett riktigt
+    # program (en modell som tränas). Efter gränsen sägs det en gång att
+    # programmet fortfarande kör, och att Stoppa finns om det har fastnat.
     gangna = _time.time() - _labb['start']
     if _labb['grans'] and gangna > _labb['grans']:
-        raise TimeoutError(_T['tidsgrans'].replace('{sek}', '{:.0f}'.format(gangna)))
+        _labb['grans'] = 0
+        js.window._labbLangKorning(int(gangna))
 
 
 def _labb_generator(fnod):
@@ -6457,13 +6640,32 @@ def _labb_trad(kallkod, vakt=True):
             visit_AsyncFunctionDef = _funktion
 
             def _vakta(self, nod):
+                """Först i loopkroppen:
+
+                    _labb_v[0] += 1
+                    if not _labb_v[0] & 63:
+                        _labb_kontroll()      # blir await _labb_kontroll()
+
+                Förr anropades vakten i varje varv. Den är asynkron, och att
+                skapa och invänta den 63 gånger av 64 för att genast
+                återvända gjorde täta loopar ungefär fyra gånger långsammare.
+                En vanlig heltalsökning kostar nästan ingenting."""
                 self.generic_visit(nod)
                 if self.i_generator:
                     return nod
+                def raknare(ctx):
+                    return ast.Subscript(value=ast.Name(id='_labb_v', ctx=ast.Load()),
+                                         slice=ast.Constant(0), ctx=ctx)
+                oka = ast.AugAssign(target=raknare(ast.Store()), op=ast.Add(),
+                                    value=ast.Constant(1))
                 anrop = ast.Expr(value=ast.Call(
                     func=ast.Name(id='_labb_kontroll', ctx=ast.Load()),
                     args=[], keywords=[]))
-                nod.body = [anrop] + nod.body
+                villkor = ast.If(
+                    test=ast.UnaryOp(op=ast.Not(), operand=ast.BinOp(
+                        left=raknare(ast.Load()), op=ast.BitAnd(), right=ast.Constant(63))),
+                    body=[anrop], orelse=[])
+                nod.body = [oka, villkor] + nod.body
                 return nod
 
             visit_While = _vakta

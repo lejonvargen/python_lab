@@ -192,7 +192,8 @@ window.PYTHONLAB_SPRAK.en = {
     ingen_kalla: "None of the sources responded. Reload the page and try again. If that does not help, the download is blocked here — then it is time to install Python on your computer instead.",
     redo: "Python is ready. Pick a chapter on the left, or write something of your own and press Run.",
     ingen_3d: "The 3D engine could not be fetched. The 3D chapters will not work; everything else will.",
-    felsakert_pa: "Failsafe mode on. The Stop button works and the program is halted automatically after 45 seconds.",
+    felsakert_pa: "Failsafe mode on. The Stop button works in loops, and after 45 seconds you get a reminder that the program is still running.",
+    lang_korning: "The program has run for {sek} seconds and is still going. If it is stuck in a loop, press Stop.",
     felsakert_av: "Failsafe mode off. Code runs at full speed but cannot be stopped — an infinite loop will freeze the page and force a reload."
   },
 

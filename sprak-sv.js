@@ -183,7 +183,8 @@ window.PYTHONLAB_SPRAK.sv = {
   "ingen_kalla": "Ingen av källorna svarade. Ladda om sidan och försök igen. Hjälper det inte är nedladdningen blockerad här — då är det dags att installera Python på datorn i stället.",
   "redo": "Python är redo. Välj ett kapitel till vänster, eller skriv något eget och tryck Kör.",
   "ingen_3d": "3D-motorn kunde inte hämtas. 3D-kapitlen fungerar inte, resten gör det.",
-  "felsakert_pa": "Felsäkert läge på. Stoppa-knappen fungerar och programmet avbryts automatiskt efter 45 sekunder.",
+  "felsakert_pa": "Felsäkert läge på. Stoppa-knappen fungerar i loopar, och efter 45 sekunder får du en påminnelse om att programmet fortfarande kör.",
+    "lang_korning": "Programmet har kört i {sek} sekunder och fortsätter. Har det fastnat i en loop, tryck Stoppa.",
   "felsakert_av": "Felsäkert läge av. Koden kör i full fart, men kan inte stoppas — en oändlig loop låser sidan och kräver omladdning."
 },
   flik: {
