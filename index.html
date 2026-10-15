@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.97";
+  window.PYTHONLABBET_VERSION = "1.98";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -807,6 +807,28 @@
     font-family: var(--mono); font-size: 11.5px; color: var(--chalk);
     background: var(--panel-2); border: 1px solid var(--line);
     border-radius: 5px; padding: 1px 6px; white-space: nowrap;
+  }
+  /* Om Pytho: två spalter så att rutan ryms utan rullning på en vanlig
+     bärbar skärm. Vänster: om appen och nollställningen. Höger:
+     kortkommandona. Smalare än 720 px läggs de under varandra. */
+  #app-root #om-dialog { max-width: 920px; }
+  #app-root .om-kolumner {
+    display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.25fr);
+    gap: 4px 34px; align-items: start;
+  }
+  #app-root .om-kolumner .om-text { font-size: 13.5px; line-height: 1.55; margin: 0 0 9px; }
+  #app-root .om-kolumner .om-copyright { margin: 10px 0 0; }
+  #app-root .om-aterstall {
+    margin-top: 14px; padding-top: 2px; border-top: 1px solid var(--line);
+  }
+  #app-root .om-kolumner .om-rubrik { margin: 12px 0 7px; }
+  #app-root .om-kolumner .kortkommandon td { padding: 2px 0; }
+  #app-root .om-kolumner .kortkommandon td:first-child { width: auto; white-space: nowrap; }
+  #app-root .om-kolumn > :first-child { margin-top: 0; }
+  @media (max-width: 720px) {
+    #app-root .om-kolumner { grid-template-columns: minmax(0, 1fr); }
+    #app-root .om-kolumner .kortkommandon td:first-child { white-space: normal; }
+    #app-root .om-kolumn + .om-kolumn > :first-child { margin-top: 20px; }
   }
   #app-root .om-aterstall-text { font-size: 12.5px; color: var(--chalk-dim); margin: 0 0 10px; }
   #app-root button.fara { color: var(--coral); border-color: rgba(255, 125, 107, .45); }
