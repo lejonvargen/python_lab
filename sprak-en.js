@@ -206,6 +206,8 @@ window.PYTHONLAB_SPRAK.en = {
     vaxlar: "Switching …"
   },
   fraga: {
+    aterstall_allt: "Reset Pytho?\n\nAll code in your workspace, all data files and all settings are deleted from this browser, and the app restarts as on your first visit. Files you have saved on your computer are not affected.\n\nThis cannot be undone.",
+    aterstaller: "Resetting …",
     ga_till_rad: "Go to line (1–{antal}):",
     dop_om: "New name for the file. The .py extension is added, and you import it with the new name.",
     namnet_upptaget: "There is already a file called {namn}.",
@@ -417,7 +419,10 @@ window.PYTHONLAB_SPRAK.en.om = `
     <p class="om-text">Pytho counts visits anonymously with GoatCounter: no cookies, and nothing about you is stored.</p>
     <p class="om-copyright">Copyright Gabriel Westman 2026</p>
     <h3 class="om-rubrik">Keyboard shortcuts</h3>
-    <table class="kortkommandon"><tr><td><kbd>Ctrl + Enter</kbd></td><td>Run the program</td></tr><tr><td><kbd>Ctrl + Enter</kbd></td><td>Run the selection in the same namespace</td></tr><tr><td><kbd>Tab / Shift + Tab</kbd></td><td>Indent or remove indentation</td></tr><tr><td><kbd>Ctrl + F</kbd> / <kbd>Ctrl + H</kbd></td><td>Find and replace</td></tr><tr><td><kbd>Ctrl + G</kbd></td><td>Go to line</td></tr><tr><td><kbd>Ctrl + S</kbd></td><td>Save to disk</td></tr><tr><td><kbd>Ctrl + Shift + S</kbd></td><td>Save as</td></tr><tr><td><kbd>Ctrl + O</kbd></td><td>Open a file</td></tr><tr><td><kbd>R</kbd></td><td>Reset the 3D view</td></tr><tr><td><kbd>Escape</kbd></td><td>Close the dialog or cancel input</td></tr></table>
+    <table class="kortkommandon"><tr><td><kbd>Ctrl + Enter</kbd></td><td>Run the program</td></tr><tr><td><kbd>Ctrl + Enter</kbd></td><td>Run the selection in the same namespace</td></tr><tr><td><kbd>Ctrl + Z</kbd></td><td>Undo</td></tr><tr><td><kbd>Ctrl + Y</kbd> / <kbd>Ctrl + Shift + Z</kbd></td><td>Redo</td></tr><tr><td><kbd>Tab / Shift + Tab</kbd></td><td>Indent or remove indentation</td></tr><tr><td><kbd>Ctrl + F</kbd> / <kbd>Ctrl + H</kbd></td><td>Find and replace</td></tr><tr><td><kbd>Ctrl + G</kbd></td><td>Go to line</td></tr><tr><td><kbd>Ctrl + S</kbd></td><td>Save to disk</td></tr><tr><td><kbd>Ctrl + Shift + S</kbd></td><td>Save as</td></tr><tr><td><kbd>Ctrl + O</kbd></td><td>Open a file</td></tr><tr><td><kbd>R</kbd></td><td>Reset the 3D view</td></tr><tr><td><kbd>Escape</kbd></td><td>Close the dialog or cancel input</td></tr></table>
+    <h3 class="om-rubrik">Start over</h3>
+    <p class="om-aterstall-text">Deletes all code, data files and settings Pytho has stored in this browser, downloads the app again and starts it as on your first visit. Files you have saved on your computer are not affected.</p>
+    <button class="knapp fara" id="om-aterstall">Reset Pytho</button>
     <div class="dialog-fot">
       <span class="ai-status">Pytho runs locally in your browser</span>
       <button class="knapp kor" id="om-stang">Close</button>

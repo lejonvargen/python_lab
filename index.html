@@ -5,7 +5,7 @@
 <script>
   /* ===== Versionen definieras HÄR och bara här. =====
      Höj sista siffran vid varje ny build. Allt annat följer automatiskt. */
-  window.PYTHONLABBET_VERSION = "1.92";
+  window.PYTHONLABBET_VERSION = "1.97";
 
   /* Språkvalet görs här uppe, innan sidan ritas. Webbläsaren avgör tidigt
      om den ska erbjuda översättning, och hinner den se svensk markup
@@ -808,6 +808,9 @@
     background: var(--panel-2); border: 1px solid var(--line);
     border-radius: 5px; padding: 1px 6px; white-space: nowrap;
   }
+  #app-root .om-aterstall-text { font-size: 12.5px; color: var(--chalk-dim); margin: 0 0 10px; }
+  #app-root button.fara { color: var(--coral); border-color: rgba(255, 125, 107, .45); }
+  #app-root button.fara:hover:not(:disabled) { background: rgba(255, 125, 107, .12); border-color: var(--coral); }
   #app-root .om-copyright {
     font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em;
     color: var(--chalk-dim); margin: 18px 0 0;
@@ -1601,6 +1604,12 @@ window.PYTHONLAB_START = function (SPRAK) {
       { key: "Mod-f", preventDefault: true, run: function () { visaSok(); return true; } },
       { key: "Mod-h", preventDefault: true, run: function () { visaSok(); return true; } },
       { key: "Mod-g", preventDefault: true, run: function () { gaTillRad(); return true; } },
+      // Ångra och gör om, samma på alla datorer. CodeMirror binder annars
+      // Ctrl+Shift+Z bara på Mac och Linux — på Windows föll den igenom
+      // till Ctrl+Z och ångrade i stället för att göra om.
+      { key: "Mod-z", preventDefault: true, run: CMx.undo },
+      { key: "Mod-y", preventDefault: true, run: CMx.redo },
+      { key: "Mod-Shift-z", preventDefault: true, run: CMx.redo },
       { key: "Escape", run: function () { if (sokraden.hidden) return false; doljSok(); return true; } },
       { key: "Tab", run: tab, shift: CMx.indentLess }
     ]));
@@ -1677,6 +1686,9 @@ window.PYTHONLAB_START = function (SPRAK) {
     });
 
     function begransa(p) { return Math.max(0, Math.min(p, cmVy.state.doc.length)); }
+    // Ett WeakMap nycklat på filposten: byter filen namn följer historiken
+    // med, och tas filen bort försvinner historiken av sig själv.
+    var filLagen = new WeakMap(), aktivNyckel = null;
 
     return {
       cm: true,
@@ -1685,7 +1697,19 @@ window.PYTHONLAB_START = function (SPRAK) {
       // ändringshändelser (precis som för en textruta).
       set value(text) {
         cmVy.setState(nyttTillstand(text));
+        aktivNyckel = null;
         spegel.value = text || "";
+      },
+      /* Byter till en annan fil. Varje fil behåller sin egen ångra-historik
+         så länge sidan är öppen: läget sparas per filpost (nyckel) och tas
+         fram igen om texten är densamma som när man lämnade filen. */
+      visaFil: function (text, nyckel) {
+        text = text || "";
+        if (aktivNyckel) filLagen.set(aktivNyckel, cmVy.state);
+        var sparat = nyckel ? filLagen.get(nyckel) : null;
+        cmVy.setState(sparat && sparat.doc.toString() === text ? sparat : nyttTillstand(text));
+        aktivNyckel = nyckel || null;
+        spegel.value = text;
       },
       get selectionStart() { return cmVy.state.selection.main.from; },
       get selectionEnd() { return cmVy.state.selection.main.to; },
@@ -3753,6 +3777,47 @@ window.PYTHONLAB_START = function (SPRAK) {
   /* =======================================================
      Sidomenyn
      ======================================================= */
+  /* ---- markören efter ett byte av fil ----
+     Väljer man en fil eller ett kapitel med musen ska markören stå i koden,
+     så att man kan skriva direkt och så att Ctrl+Z och Ctrl+Y går till rätt
+     fils historik.
+
+     Det sköts på ETT ställe: oppna() flyttar markören om bytet kom från ett
+     klick eller tryck. Alla vägar till en annan fil går genom oppna() —
+     fillistan, kapitlen, Start, Öppna fil, Ny fil, lägesbytet och allt som
+     läggs till senare — så ingen knapp behöver komma ihåg det själv.
+     (Start-knappen glömdes när det sköttes knapp för knapp.)
+
+     Undantag: telefonen, där tangentbordet skulle fällas upp, och
+     tangentbordet, så att den som tabbar genom kapitellistan blir kvar där. */
+  var senastePekare = -Infinity;
+  document.addEventListener("pointerdown", function () { senastePekare = Date.now(); }, true);
+
+  function fokusEfterByte() {
+    if (arMobil() || Date.now() - senastePekare > 1500) return;
+    kodruta.focus();
+    // Säkerhetsnät: om webbläsaren flyttar fokus efter klicket (Edge kan
+    // ge det till knappen man klickade på) tas det tillbaka.
+    setTimeout(function () {
+      if (arMobil() || !omOverlagring.hidden || !flikRuta.hidden) return;
+      var a = document.activeElement;
+      if (!a || a === document.body || a.closest(".filrad, .lektion, label")) kodruta.focus();
+    }, 0);
+  }
+
+  /* Ett musklick på en rad i fil- eller kapitellistan ska inte ge raden
+     själv fokus (Edge lämnar det kvar där). Knapparna inuti en rad, Byt
+     namn och Ta bort, fungerar som vanligt. Gäller även rader som läggs
+     till senare, eftersom lyssnaren sitter på dokumentet. */
+  document.addEventListener("mousedown", function (e) {
+    if (arMobil() || e.button !== 0 || !e.target.closest) return;
+    var rad = e.target.closest(".filrad, .lektion");
+    if (!rad) return;
+    var knapp = e.target.closest("button");
+    if (knapp && knapp !== rad) return;
+    e.preventDefault();
+  }, true);
+
   function markeraVald(index) {
     var alla = document.getElementById("lektionslista").querySelectorAll(".lektion");
     for (var i = 0; i < alla.length; i++) alla[i].classList.toggle("vald", i === index);
@@ -4301,7 +4366,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     if (!f) return;
     if (aktivFil !== namn) sparaAktiv();
     aktivFil = namn;
-    kodruta.value = f.kod;
+    if (kodruta.visaFil) kodruta.visaFil(f.kod, f); else kodruta.value = f.kod;
     filnamn = f.namn;
     filhandtag = f.filhandtag;
     andrad = f.andrad;
@@ -4310,7 +4375,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     var pos = Math.min(f.markor || 0, kodruta.value.length);
     kodruta.setSelectionRange(pos, pos);
     sistaMarkering = { start: 0, slut: 0 };
-    felradNu = 0;
+    markeraFelrad(0);           // en sparad historik kan bära med sig en gammal felrad
     ritaRadnummer();
     ritaFarger();
     ritaTraffar(null);
@@ -4320,6 +4385,7 @@ window.PYTHONLAB_START = function (SPRAK) {
     aterstallKapitelKnapp.textContent = knapptextAterstall();
     ritaFiler();
     byteAvSamtal();
+    fokusEfterByte();
   }
 
   /* Originalet att gå tillbaka till: kapitlets kod för en kapitelfil,
@@ -5882,6 +5948,51 @@ if not getattr(_sympy.plot, '_labb', False):
   document.getElementById("om-stang").addEventListener("click", function () {
     omOverlagring.hidden = true;
   });
+  document.getElementById("om-aterstall").addEventListener("click", aterstallAllt);
+
+  /* Återställ Pytho helt: raderar allt appen sparat i webbläsaren och
+     startar om som vid första besöket. Rör bara Pythos egna nycklar —
+     på GitHub Pages delar alla sajter under samma konto på lagringen. */
+  async function aterstallAllt() {
+    if (!confirm(SPRAK.fraga.aterstall_allt)) return;
+    var knapp = document.getElementById("om-aterstall");
+    knapp.disabled = true;
+    knapp.textContent = SPRAK.fraga.aterstaller;
+    // Ingenting får sparas efter det här, inte ens när sidan stängs.
+    FLIK.aktiv = false;
+    clearTimeout(sparklocka);
+    if (FLIK.kanal) { try { FLIK.kanal.postMessage({ typ: "aterstall", fran: FLIK.id }); } catch (e) { /* */ } }
+    if (FLIK.slapp) { try { FLIK.slapp(); } catch (e) { /* */ } FLIK.slapp = null; }
+    [window.localStorage, window.sessionStorage].forEach(function (lager) {
+      try {
+        for (var i = lager.length - 1; i >= 0; i--) {
+          var k = lager.key(i);
+          if (k && /^pytho/.test(k)) lager.removeItem(k);
+        }
+      } catch (e) { /* lagring avstängd */ }
+    });
+    await new Promise(function (klar) {
+      try {
+        var beg = indexedDB.deleteDatabase(LAGER.namn);
+        beg.onsuccess = beg.onerror = function () { klar(); };
+        // En annan flik kan hålla databasen öppen en kort stund. Raderingen
+        // står då i kö och blir klar innan något nytt öppnas.
+        beg.onblocked = function () { setTimeout(klar, 1500); };
+      } catch (e) { klar(); }
+      setTimeout(klar, 4000);
+    });
+    // Hämta om appens egna filer förbi cachen, så att omstarten använder
+    // senaste versionen. Pyodide och three.js har versionsnummer i adressen.
+    var filer = [location.pathname, "codemirror.js", "sprak-sv.js", "sprak-en.js"];
+    var stampel = window.PYTHONLABBET_VERSION ? "?v=" + window.PYTHONLABBET_VERSION : "";
+    filer.push("sprak-sv.js" + stampel, "sprak-en.js" + stampel);
+    if (location.protocol !== "file:") {
+      await Promise.all(filer.map(function (u) {
+        return fetch(u, { cache: "reload" }).catch(function () { /* offline */ });
+      }));
+    }
+    location.replace(location.pathname);
+  }
   omOverlagring.addEventListener("click", function (e) {
     if (e.target === omOverlagring) omOverlagring.hidden = true;
   });
@@ -6339,6 +6450,8 @@ if not getattr(_sympy.plot, '_labb', False):
     FLIK.kanal.onmessage = function (e) {
       var m = e.data || {};
       if (m.typ === "ta-over" && m.fran !== FLIK.id) blevOvertagen(true);
+      // En annan flik återställer allt: spara ingenting mer härifrån.
+      if (m.typ === "aterstall" && m.fran !== FLIK.id) { FLIK.aktiv = false; clearTimeout(sparklocka); blevOvertagen(false); }
     };
   }
   try {
